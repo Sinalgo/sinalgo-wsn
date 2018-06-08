@@ -14,6 +14,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Utility class to convert the legacy input format to JSON
+ */
 public class ConfigurationConverter {
 
     public static void main(String[] args) {
