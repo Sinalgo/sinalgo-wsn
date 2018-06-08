@@ -123,7 +123,7 @@ public class Simulacao {
 		else{*/
 
         for (Sensor listSensore : listSensores) {
-            enResRede += listSensore.getEnergiaBat();
+            enResRede += listSensore.getBatteryEnergy();
         }
 
         //Calculando a energia consumida

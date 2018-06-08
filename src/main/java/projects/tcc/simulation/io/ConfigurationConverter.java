@@ -2,69 +2,71 @@ package projects.tcc.simulation.io;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import lombok.extern.java.Log;
 
 import java.io.*;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Utility class to convert the legacy input format to JSON
  */
+@Log
 public class ConfigurationConverter {
 
     public static void main(String[] args) {
         try {
+            String folder = "projects/tcc/input/text";
+            log.info("Loading configurations at " + folder);
             URL inputFolder = Thread.currentThread()
                     .getContextClassLoader()
-                    .getResource("projects/tcc/entrada/text");
+                    .getResource(folder);
             if (inputFolder != null) {
-                Map<String, SimulationConfiguration> simulationConfigurations = new HashMap<>();
-                for (Path file : Files.newDirectoryStream(Paths.get(inputFolder.toURI()))) {
-                    LineNumberReader input = new LineNumberReader(new InputStreamReader(Files.newInputStream(file)));
+                Map<String, SimulationConfiguration> simulationConfigurations = new LinkedHashMap<>();
+                for (Path inputFilePath : Files.newDirectoryStream(Paths.get(inputFolder.toURI()))) {
+                    log.info("Configuration found: " + inputFilePath.getFileName());
+                    LineNumberReader input =
+                            new LineNumberReader(new InputStreamReader(Files.newInputStream(inputFilePath)));
                     List<SimulationConfiguration.SensorConfiguration> sensorConfigurations = new ArrayList<>();
+
                     input.readLine(); // skipping the number of nodes
-                    double raioSens = Double.valueOf(input.readLine());
-                    double raioCom = Double.valueOf(input.readLine());
-                    double energBat = Double.valueOf(input.readLine());
-                    double potAtiv = Double.valueOf(input.readLine());
-                    double potRec = Double.valueOf(input.readLine());
-                    double potManut = Double.valueOf(input.readLine());
-                    double taxaCom = Double.valueOf(input.readLine());
+                    double sensorRadius = Double.valueOf(input.readLine());
+                    double commRadius = Double.valueOf(input.readLine());
+                    double batteryEnergy = Double.valueOf(input.readLine());
+                    double activationPower = Double.valueOf(input.readLine());
+                    double receivePower = Double.valueOf(input.readLine());
+                    double maintenancePower = Double.valueOf(input.readLine());
+                    double commRatio = Double.valueOf(input.readLine());
 
                     String aLine;
                     while ((aLine = input.readLine()) != null) {
                         String[] values = aLine.split("\t");
 
-                        long id = Long.parseLong(values[0]);
                         double x = Double.parseDouble(values[1]);
                         double y = Double.parseDouble(values[2]);
 
-                        SimulationConfiguration.SensorConfiguration aux = SimulationConfiguration.SensorConfiguration
+                        sensorConfigurations.add(SimulationConfiguration.SensorConfiguration
                                 .builder()
-                                .id(id)
                                 .x(x)
                                 .y(y)
-                                .build();
-                        sensorConfigurations.add(aux);
+                                .build());
                     }
 
-                    String path = file.toString();
-                    simulationConfigurations.put(path.substring(path.lastIndexOf(File.separatorChar) + 1),
+                    simulationConfigurations.put(inputFilePath.getFileName().toString(),
                             SimulationConfiguration.builder()
-                                    .sensorRadius(raioSens)
-                                    .activationPower(potAtiv)
-                                    .batteryEnergy(energBat)
-                                    .commRadius(raioCom)
-                                    .commRatio(taxaCom)
-                                    .maintenancePower(potManut)
-                                    .receivePower(potRec)
+                                    .sensorRadius(sensorRadius)
+                                    .activationPower(activationPower)
+                                    .batteryEnergy(batteryEnergy)
+                                    .commRadius(commRadius)
+                                    .commRatio(commRatio)
+                                    .maintenancePower(maintenancePower)
+                                    .receivePower(receivePower)
                                     .sensors(sensorConfigurations)
                                     .sinkPosX(0)
                                     .sinkPosY(0)
@@ -73,20 +75,24 @@ public class ConfigurationConverter {
 
                 Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
+                String outputPath = "src/main/resources/projects/tcc/input/json";
+                log.info("Saving configurations to " + outputPath);
                 for (Map.Entry<String, SimulationConfiguration> entry : simulationConfigurations.entrySet()) {
+                    log.info("Saving configuration as " + entry.getKey() + ".json");
                     File f = Paths.get(Paths.get("").toAbsolutePath().toString(),
-                            "src/main/resources/projects/tcc/entrada/json",
-                            entry.getKey() + ".json").toFile();
+                            outputPath, entry.getKey() + ".json").toFile();
                     String json = gson.toJson(entry.getValue());
-                    BufferedWriter writer = new BufferedWriter(new FileWriter(f));
-                    writer.write(json);
-                    writer.flush();
-                    writer.close();
+                    try (BufferedWriter writer = new BufferedWriter(new FileWriter(f))) {
+                        writer.write(json);
+                        writer.flush();
+                    }
                 }
             }
 
-        } catch (IOException | URISyntaxException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            log.severe("Error while trying to convert configuration");
+            throw new RuntimeException(e);
         }
+
     }
 }

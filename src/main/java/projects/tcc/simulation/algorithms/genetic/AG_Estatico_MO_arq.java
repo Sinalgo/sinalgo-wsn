@@ -23,7 +23,7 @@ public class AG_Estatico_MO_arq {
 
         Populacao popCromo = new Populacao(tamanhoPopulacao, vNumBits, rede.getVetIdsSensDisp(), txCruzamento);
 
-        double raioSens = listSensensores.get(0).getRaioSensoriamento();
+        double raioSens = listSensensores.get(0).getSensorRadius();
 
         popCromo.startPop(rede.getArea(), raioSens, rede.getFatorCob());
 
@@ -129,12 +129,12 @@ public class AG_Estatico_MO_arq {
         //			mAmbiente.incrementaCont();
         //			int contAG = mAmbiente.getCont();
 
-        //saida.geraArqSaidaMO("paretoOtimo.txt", conjMelhorPareto);
-        //saida.geraArqSaidaPopMO("popTotal"+contAG+".txt", popCromo.getPopCromossomo());
-        //saida.geraArqSaidaMpPareto("melhorPonto.txt", popCromo.getMelhorIndv());
+        //output.geraArqSaidaMO("paretoOtimo.txt", conjMelhorPareto);
+        //output.geraArqSaidaPopMO("popTotal"+contAG+".txt", popCromo.getPopCromossomo());
+        //output.geraArqSaidaMpPareto("melhorPonto.txt", popCromo.getMelhorIndv());
 
 		/*cont--;
-			saida.geraArqSaidaMpPareto("melhorPonto"+cont+".txt", popCromo.getMelhorIndv());
+			output.geraArqSaidaMpPareto("melhorPonto"+cont+".txt", popCromo.getMelhorIndv());
 		 */
 
 
@@ -162,7 +162,7 @@ public class AG_Estatico_MO_arq {
 
 
     // Prepara��o para uma nova chamada do AG_Estatico
-	/*public static int [] novaSolucao (Ambiente mAmbiente, RedeSensor rede, Saidas saida) throws Exception{
+	/*public static int [] novaSolucao (Ambiente mAmbiente, RedeSensor rede, Saidas output) throws Exception{
 
 		ArrayList<Sensor> popTotal;
 		ArrayList<Sensor> popAG;
@@ -186,7 +186,7 @@ public class AG_Estatico_MO_arq {
 
 
 		if (popAG.size() > 3) {
-			vetBits_popAG = resolveAG_Estatico_MO (rede, mAmbiente, popAG, null, saida);
+			vetBits_popAG = resolveAG_Estatico_MO (rede, mAmbiente, popAG, null, output);
 		}
 
 		else
@@ -218,7 +218,7 @@ public class AG_Estatico_MO_arq {
 
         ArrayList<Sensor> popSensores = rede.getListSensoresDisp();
 
-        double penAtiv = popSensores.get(0).getPotAtiv() + popSensores.get(0).getPotManut();
+        double penAtiv = popSensores.get(0).getActivationPower() + popSensores.get(0).getMaintenancePower();
         int penNCob = 0;//100000 utilizado no mono-objetivo;
 
         for (Cromossomo indv : pCromossomos) {
@@ -239,8 +239,8 @@ public class AG_Estatico_MO_arq {
         rede.ativarSensoresVetBits(individuo.getVetorBits());
         double custoCaminhoTotal = 0;
         for (Sensor sens : rede.getListSensoresDisp()) {
-            if (sens.isAtivo())
-                custoCaminhoTotal += sens.getCustoCaminhoSink();
+            if (sens.isActive())
+                custoCaminhoTotal += sens.getPathToSinkCost();
         }
 
         int penCustoCaminho = 100;
@@ -257,7 +257,7 @@ public class AG_Estatico_MO_arq {
         int penNCob = 100000;
         double penAtiv = 100000;
 
-        raioSens = rede.getListSensoresDisp().get(0).getRaioSensoriamento();
+        raioSens = rede.getListSensoresDisp().get(0).getSensorRadius();
 
         for (Cromossomo indiv : pCromossomos) {
 

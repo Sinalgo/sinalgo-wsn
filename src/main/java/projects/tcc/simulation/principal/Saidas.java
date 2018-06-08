@@ -66,19 +66,19 @@ public class Saidas {
 
         for (Sensor s : rede.getListSensores()) {
             int estadoSensor;
-            if (s.isAtivo())
+            if (s.isActive())
                 estadoSensor = 1;
             else
                 estadoSensor = 2;
 
-            if (s.isFalho())
+            if (s.isFailed())
                 estadoSensor = 3;
 
-            double bateria = s.getEnergiaBat();
+            double bateria = s.getBatteryEnergy();
 
             int pai;
-            if (s.isAtivo() && s.getSensorPai() != null)
-                pai = s.getSensorPai().getId();
+            if (s.isActive() && s.getParent() != null)
+                pai = s.getParent().getId();
             else
                 pai = -1;
 
@@ -172,7 +172,7 @@ public class Saidas {
 //			//imprimindo as coordenadas dos sensores
 //			pw.print(rede.getListSensores().get(i).getPosicaoX()+ "\t" + 
 //					rede.getListSensores().get(i).getPosicaoY() + "\t" +
-//					rede.getListSensores().get(i).getSensorPai()+ "\t" +
+//					rede.getListSensores().get(i).getParent()+ "\t" +
 //					sensAtivo						 + "\t" +
 //					sensFalho						 + "\n");
 //
@@ -181,7 +181,7 @@ public class Saidas {
 //		//acrescentando o sink no arquivo texto.
 //		pw.print(rede.getListSensores().get(sink).getPosicaoX()+ "\t" + 
 //				rede.getListSensores().get(sink).getPosicaoY() + "\t" +
-//				rede.getListSensores().get(sink).getSensorPai()+ "\t" +
+//				rede.getListSensores().get(sink).getParent()+ "\t" +
 //				1									     + "\t" +
 //				0									     + "\n");
 //

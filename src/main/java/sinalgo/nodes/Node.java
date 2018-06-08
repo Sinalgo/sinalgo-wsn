@@ -47,18 +47,10 @@ import sinalgo.exception.SinalgoFatalException;
 import sinalgo.exception.WrongConfigurationException;
 import sinalgo.gui.transformation.PositionTransformation;
 import sinalgo.io.eps.EPSOutputPrintStream;
-import sinalgo.models.ConnectivityModel;
-import sinalgo.models.InterferenceModel;
-import sinalgo.models.MobilityModel;
-import sinalgo.models.Model;
-import sinalgo.models.ReliabilityModel;
+import sinalgo.models.*;
 import sinalgo.nodes.edges.Edge;
-import sinalgo.nodes.messages.Inbox;
-import sinalgo.nodes.messages.Message;
-import sinalgo.nodes.messages.NackBox;
-import sinalgo.nodes.messages.Packet;
+import sinalgo.nodes.messages.*;
 import sinalgo.nodes.messages.Packet.PacketType;
-import sinalgo.nodes.messages.PacketCollection;
 import sinalgo.nodes.timers.Timer;
 import sinalgo.runtime.GUIRuntime;
 import sinalgo.runtime.Global;
@@ -210,7 +202,16 @@ public abstract class Node implements DoublyLinkedListEntry, Comparable<Node> {
      */
     @Override
     public String toString() {
-        return "Node(ID=" + this.getID() + ")";
+        return this.nodeTypeName() + "(ID=" + this.getID() + ")";
+    }
+
+    /**
+     * Allows you to set a custom name for this node type
+     *
+     * @return The custom name to use for this node
+     */
+    protected String nodeTypeName() {
+        return "Node";
     }
 
     /**

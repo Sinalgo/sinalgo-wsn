@@ -12,7 +12,6 @@ public class SimulationConfiguration {
     @Data
     @Builder
     public static class SensorConfiguration {
-        private final long id;
         private final double x;
         private final double y;
     }

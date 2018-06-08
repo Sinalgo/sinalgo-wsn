@@ -1,6 +1,7 @@
 package projects.tcc.simulation.rssf;
 
 import projects.tcc.simulation.algorithms.graph.Grafo;
+import sinalgo.nodes.edges.Edge;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -133,7 +134,7 @@ public class RedeSensor {
 
     public void addSink(double x, double y) {
         int idSink = listSensores.size(); // pois sera o ultimo na lista de sensores.
-        double taxaCom = listSensores.get(0).getTaxaCom();
+        double taxaCom = listSensores.get(0).getCommRatio();
 
         /*Sensor (id, posX, posY, raioComunicacao, taxaCom) */
         Sink vSink = new Sink(idSink, x, y, 25, taxaCom);
@@ -162,13 +163,13 @@ public class RedeSensor {
         matrizConectividade = alocaMatrizDouble(vLinhas, vColunas);
 
         for (int i = 0; i < listSensoresDisp_Sink.size(); i++) {
-            double Xsensor1 = listSensoresDisp_Sink.get(i).getPosX();
-            double Ysensor1 = listSensoresDisp_Sink.get(i).getPosY();
+            double Xsensor1 = listSensoresDisp_Sink.get(i).getX();
+            double Ysensor1 = listSensoresDisp_Sink.get(i).getY();
 
             for (int j = 0; j < listSensoresDisp_Sink.size(); j++) {
                 if (i != j) {
-                    double Xsensor2 = listSensoresDisp_Sink.get(j).getPosX();
-                    double Ysensor2 = listSensoresDisp_Sink.get(j).getPosY();
+                    double Xsensor2 = listSensoresDisp_Sink.get(j).getX();
+                    double Ysensor2 = listSensoresDisp_Sink.get(j).getY();
                     double vDistancia = Math.sqrt(((Xsensor1 - Xsensor2) * (Xsensor1 - Xsensor2)) +
                             ((Ysensor1 - Ysensor2) * (Ysensor1 - Ysensor2)));
                     matrizConectividade[i][j] = vDistancia;
@@ -185,8 +186,8 @@ public class RedeSensor {
         for (Sensor sens : listSensores) {
 
             ArrayList<Integer> listPontosCobertos = new ArrayList<>();
-            double Xsensor = sens.getPosX();
-            double Ysensor = sens.getPosY();
+            double Xsensor = sens.getX();
+            double Ysensor = sens.getY();
 
             for (int j = 0; j < pontosDemanda.size(); j++) {
 
@@ -195,11 +196,11 @@ public class RedeSensor {
 
                 double vDistancia = Math.sqrt(((Xsensor - Xponto) * (Xsensor - Xponto)) + ((Ysensor - Yponto) * (Ysensor - Yponto)));
 
-                if (vDistancia <= sens.getRaioSensoriamento()) {
+                if (vDistancia <= sens.getSensorRadius()) {
                     listPontosCobertos.add(j);
                 }
             }
-            sens.setListPontosCobertos(listPontosCobertos);
+            sens.setCoveredPoints(listPontosCobertos);
 
         }
     }
@@ -228,14 +229,14 @@ public class RedeSensor {
             for (int j = 0; j < listSensoresDisp_Sink.size(); j++) {
                 if (i != j) {
                     double vDistancia = matrizConectividade[i][j];
-                    double vRaio = (float) listSensoresDisp_Sink.get(i).getRaioComunicacao();
+                    double vRaio = (float) listSensoresDisp_Sink.get(i).getCommRadius();
 
                     if (vDistancia <= vRaio) {
                         listSensVizinhos.add(listSensoresDisp_Sink.get(j));
                     }
                 }
             }
-            listSensoresDisp_Sink.get(i).setListSensVizinhos(listSensVizinhos);
+            listSensoresDisp_Sink.get(i).setNeighbors(listSensVizinhos);
 
         }
     }
@@ -250,15 +251,15 @@ public class RedeSensor {
 
         for (Sensor s : listSens) {
             int idSens = s.getId();
-            int sensPai = s.getSensorPai().getId();
-            int vNumeroFilhos = s.BuscaDescendentes();
+            int sensPai = s.getParent().getId();
+            int vNumeroFilhos = s.queryDescendants();
 
-            double ER = s.getPotRec() * vNumeroFilhos;
+            double ER = s.getReceivePower() * vNumeroFilhos;
 
             double vDistanciaAoPai = matrizConectividade[idSens][sensPai];
 
-            double ET = s.getGastoTransmissao(vDistanciaAoPai, vNumeroFilhos);
-            double EM = s.getPotManut();
+            double ET = s.getEnergySpentInTransmission(vDistanciaAoPai, vNumeroFilhos);
+            double EM = s.getMaintenancePower();
             double EnergiaGasta = ER + ET + EM;
 
             EnergiaGastaAcum = EnergiaGastaAcum + EnergiaGasta;
@@ -271,8 +272,8 @@ public class RedeSensor {
         double enAtivAcum = 0;
 
         for (Sensor aListSensoresDisp : listSensoresDisp) {
-            if (aListSensoresDisp.isBitEA() && aListSensoresDisp.isAtivo()) {
-                enAtivAcum += aListSensoresDisp.getPotAtiv();
+            if (aListSensoresDisp.isBitEA() && aListSensoresDisp.isActive()) {
+                enAtivAcum += aListSensoresDisp.getActivationPower();
                 aListSensoresDisp.setBitEA(false);
             }
         }
@@ -283,14 +284,14 @@ public class RedeSensor {
     public void desligarSensoresDesconexos() {
         // TODO Auto-generated method stub
 		/*for (Sensor s : listSensoresAtivos){
-			s.setConex(false);
+			s.setConnected(false);
 		}
 
 		int numSensDesligados = 0;
 		for (Sensor s : listSensoresDisp){
-			if (s.isAtivo()){
+			if (s.isActive()){
 				verificarConectividade(s);
-				if (!s.isConex()){
+				if (!s.isConnected()){
 					desligarSensor(s);
 					numSensDesligados++;
 				}
@@ -300,7 +301,7 @@ public class RedeSensor {
 
         int numSensDesligados = 0;
         for (Sensor s : listSensoresAtivos) {
-            if (!s.isConex()) {
+            if (!s.isConnected()) {
                 desligarSensor(s);
                 numSensDesligados++;
             }
@@ -313,30 +314,30 @@ public class RedeSensor {
 
     private void desligarSensor(Sensor s) {
         // TODO Auto-generated method stub
-        s.setAtivo(false);
+        s.setActive(false);
         atualizaCoberturaSemConec(s);
     }
 
     private boolean verificarConectividade(Sensor s) {
         // TODO Auto-generated method stub
-        if (s.isConex())
+        if (s.isConnected())
             return true;
 
-        if (s.getSensorPai() == null)
+        if (s.getParent() == null)
             return false;
 
-        if (s.getSensorPai() instanceof Sink) {
-            s.setConex(true);
+        if (s.getParent() instanceof Sink) {
+            s.setConnected(true);
             return true;
         }
-        if (s.getSensorPai().isConex()) {
-            s.setConex(true);
+        if (s.getParent().isConnected()) {
+            s.setConnected(true);
             return true;
         }
-        boolean conexo = verificarConectividade(s.getSensorPai());
+        boolean conexo = verificarConectividade(s.getParent());
 
         if (conexo) {
-            s.setConex(true);
+            s.setConnected(true);
             return true;
         } else
             return false;
@@ -355,8 +356,8 @@ public class RedeSensor {
     private void retirarCoberturaDesconexos() {
         // TODO Auto-generated method stub
         for (Sensor s : listSensoresAtivos) {
-            if (!s.isConex()) {
-                ArrayList<Integer> listPontosCobertos = s.getListPontosCobertos();
+            if (!s.isConnected()) {
+                ArrayList<Integer> listPontosCobertos = s.getCoveredPoints();
                 for (Integer listPontosCoberto : listPontosCobertos) {
                     vetCobertura[listPontosCoberto]--;
                     if (vetCobertura[listPontosCoberto] == 0)
@@ -390,17 +391,17 @@ public class RedeSensor {
 
         for (Sensor s : listSensoresAtivos) {
 
-            int vNumeroFilhos = s.BuscaDescendentes();
-            double ER = s.getPotRec() * vNumeroFilhos;
+            int vNumeroFilhos = s.queryDescendants();
+            double ER = s.getReceivePower() * vNumeroFilhos;
 
-            double vDistanciaAoPai = matrizConectividade[s.getId()][s.getSensorPai().getId()];
-            double vCorrente = s.BuscaCorrente_Distancia(vDistanciaAoPai);
+            double vDistanciaAoPai = matrizConectividade[s.getId()][s.getParent().getId()];
+            double vCorrente = s.queryDistances(vDistanciaAoPai);
 
-            double ET = s.getTaxaCom() * vCorrente * (vNumeroFilhos + 1);
-            double EM = s.getPotManut();
+            double ET = s.getCommRatio() * vCorrente * (vNumeroFilhos + 1);
+            double EM = s.getMaintenancePower();
             double EnergiaGasta = ER + ET + EM;
 
-            s.retirarEnergGastaPeriodo(EnergiaGasta);
+            s.subtractEnergySpent(EnergiaGasta);
 
         }
     }
@@ -412,23 +413,23 @@ public class RedeSensor {
 
         for (Sensor s : listSensoresAtivos) {
 
-            double enB = s.getEnergiaOriginal();
+            double enB = s.getOriginalEnergy();
 
-            if (s.getEnergiaBat() <= (porcBatRet / 100.) * enB && s.isAtivo()) {
+            if (s.getBatteryEnergy() <= (porcBatRet / 100.) * enB && s.isActive()) {
 
                 falha = true;
 
-                s.setFalho(true);
-                s.setAtivo(false);
-                s.setConex(false);
-                s.desconectafilhos();
+                s.setFailed(true);
+                s.setActive(false);
+                s.setConnected(false);
+                s.disconnectChildren();
                 listSensFalhosNoPer.add(s);
             } // end if
         } // end for
 
         for (Sensor sens : listSensFalhosNoPer) {
             this.desligarSensor(sens);
-            sens.getSensorPai().getListFilhos().remove(sens);
+            sens.getParent().getChildren().remove(sens);
             listSensoresAtivos.remove(sens);
             listSensoresDisp.remove(sens);
             listSensoresDisp_Sink.remove(sens);
@@ -462,7 +463,7 @@ public class RedeSensor {
     private int atualizaCoberturaSemConec(Sensor sensor, int[] vetCoberturaAux) {
         // TODO Auto-generated method stub
         int numPontosCobertosAux = 0;
-        ArrayList<Integer> listPontosCobertos = sensor.getListPontosCobertos();
+        ArrayList<Integer> listPontosCobertos = sensor.getCoveredPoints();
 
         for (Integer listPontosCoberto : listPontosCobertos) {
             if (vetCoberturaAux[listPontosCoberto] == 0) {
@@ -475,9 +476,9 @@ public class RedeSensor {
 
     private int atualizaCoberturaSemConec(Sensor sensor) {
         // TODO Auto-generated method stub
-        ArrayList<Integer> listPontosCobertos = sensor.getListPontosCobertos();
+        ArrayList<Integer> listPontosCobertos = sensor.getCoveredPoints();
 
-        if (sensor.isAtivo()) {
+        if (sensor.isActive()) {
             for (Integer listPontosCoberto : listPontosCobertos) {
                 if (vetCobertura[listPontosCoberto] == 0)
                     numPontosCobertos++;
@@ -509,10 +510,10 @@ public class RedeSensor {
         listSensoresAtivos.clear();
         for (int i = 0; i < vetBoolean.length; i++) {
             if (vetBoolean[i]) {
-                listSensoresDisp.get(i).setAtivo(true);
+                listSensoresDisp.get(i).setActive(true);
                 listSensoresAtivos.add(listSensoresDisp.get(i));
             } else
-                listSensoresDisp.get(i).setAtivo(false);
+                listSensoresDisp.get(i).setActive(false);
         }
 
     }
@@ -523,10 +524,10 @@ public class RedeSensor {
         listSensoresAtivos.clear();
         for (int i = 0; i < vetBoolean.length; i++) {
             if (vetBoolean[i] == 1) {
-                listSensoresDisp.get(i).setAtivo(true);
+                listSensoresDisp.get(i).setActive(true);
                 listSensoresAtivos.add(listSensoresDisp.get(i));
             } else
-                listSensoresDisp.get(i).setAtivo(false);
+                listSensoresDisp.get(i).setActive(false);
         }
 
     }
@@ -558,7 +559,7 @@ public class RedeSensor {
         for (Sensor sens : listSensoresDisp) {
             sens.reiniciarSensorParaConectividade();
             int indSensPai = listSensPai[sens.getId()];
-            sens.setSensorPai(listSensores.get(indSensPai));
+            sens.setParent(listSensores.get(indSensPai));
         }
 
         geraListFilhos();
@@ -570,9 +571,9 @@ public class RedeSensor {
 
         for (Sensor sens : listSensoresAtivos) {
 
-            Sensor pai = sens.getSensorPai();
+            Sensor pai = sens.getParent();
             if (pai != null)
-                pai.adicionaFilho(sens);
+                pai.addChild(sens);
 
         }
 
@@ -585,11 +586,11 @@ public class RedeSensor {
         int numSensCox = 0;
         for (Sensor sens : listSensoresAtivos) {
             Sensor sensAux = sens;
-            while (sensAux.getSensorPai() != null && !sensAux.getSensorPai().isAtivo() && !(sensAux instanceof Sink)) {
-                sensAux.getSensorPai().setAtivo(true);
-                sensAtivos.add(sensAux.getSensorPai());
-                atualizaCoberturaSemConec(sensAux.getSensorPai());
-                sensAux = sensAux.getSensorPai();
+            while (sensAux.getParent() != null && !sensAux.getParent().isActive() && !(sensAux instanceof Sink)) {
+                sensAux.getParent().setActive(true);
+                sensAtivos.add(sensAux.getParent());
+                atualizaCoberturaSemConec(sensAux.getParent());
+                sensAux = sensAux.getParent();
                 numSensCox++;
             }
         }
@@ -608,7 +609,7 @@ public class RedeSensor {
         // Utilizado na vers�o OnlineH�brido
 
         for (Sensor s : listSensoresAtivos) {
-            if (!s.isConex())
+            if (!s.isConnected())
                 atualizaCoberturaSemConec(s);
         }
 
@@ -628,14 +629,14 @@ public class RedeSensor {
                 ligaSensor(sensEscolhido);
                 criarConect();
 
-                if (sensEscolhido.getSensorPai() == null) {
+                if (sensEscolhido.getParent() == null) {
                     //Impossivel conectar o sensor na rede
                     listSensorDesconex.add(sensEscolhido);
                     desligarSensor(sensEscolhido);
                     continue;
                 }
                 //possivel problema que pode ocorrer.
-                else if (sensEscolhido.getSensorPai().isFalho()) {
+                else if (sensEscolhido.getParent().isFailed()) {
                     //Impossivel conectar o sensor na rede
                     listSensorDesconex.add(sensEscolhido);
                     desligarSensor(sensEscolhido);
@@ -644,8 +645,8 @@ public class RedeSensor {
                     System.out.println("Sensor Escolhido = " + sensEscolhido);
 
 
-                    if (!(sensEscolhido.getSensorPai() instanceof Sink)) {
-                        atualizarListaPontosCobExclusivo(sensEscolhido.getSensorPai());
+                    if (!(sensEscolhido.getParent() instanceof Sink)) {
+                        atualizarListaPontosCobExclusivo(sensEscolhido.getParent());
                     }
 
                 }
@@ -673,8 +674,8 @@ public class RedeSensor {
         for (Sensor sens : listSensoresDisp) {
 
             if (!listSensorDesconex.contains(sens)) {
-                if (!sens.isAtivo()) {
-                    if (sens.isFalho()) {
+                if (!sens.isActive()) {
+                    if (sens.isFailed()) {
                         System.out.println("Acessando Sensor Falho na lista de Sensores Dispon�veis");
                         System.out.println("suprirCoberturaSeNecessario() - RedeSensor");
                         System.exit(1);
@@ -695,7 +696,7 @@ public class RedeSensor {
 
     private void ligaSensor(Sensor sensEscolhido) {
         // TODO Auto-generated method stub
-        sensEscolhido.setAtivo(true);
+        sensEscolhido.setActive(true);
         listSensoresAtivos.add(sensEscolhido);
         atualizaCoberturaSemConec(sensEscolhido);
 
@@ -704,10 +705,10 @@ public class RedeSensor {
     private int atualizarListaPontosCobExclusivo(Sensor sens) {
         // TODO Auto-generated method stub
 
-        ArrayList<Integer> listPontosCobExclusivo = sens.getListPontosCobExclusivo();
+        ArrayList<Integer> listPontosCobExclusivo = sens.getExclusivelyCoveredPoints();
         listPontosCobExclusivo.clear();
 
-        ArrayList<Integer> listPontosCob = sens.getListPontosCobertos();
+        ArrayList<Integer> listPontosCob = sens.getCoveredPoints();
 
         int numPontCobDescob = 0;
         for (int pont : listPontosCob) {
@@ -717,7 +718,7 @@ public class RedeSensor {
                 listPontosCobExclusivo.add(pont);
             }
         }
-        sens.setListPontosCobExclusivo(listPontosCobExclusivo);
+        sens.setExclusivelyCoveredPoints(listPontosCobExclusivo);
 
         return numPontCobDescob;
     }
@@ -770,24 +771,24 @@ public class RedeSensor {
         // TODO Auto-generated method stub
 
         boolean retorno = true;
-        if (sensorEscolhido.getListSensVizinhos().contains(sensFalho.getSensorPai())) {
-            sensorEscolhido.setSensorPai(sensFalho.getSensorPai());
-            sensFalho.getSensorPai().adicionaFilho(sensorEscolhido);
-            if (sensFalho.getSensorPai().isConex() || sensFalho.getSensorPai() instanceof Sink)
-                sensorEscolhido.setConex(true);
+        if (sensorEscolhido.getNeighbors().contains(sensFalho.getParent())) {
+            sensorEscolhido.setParent(sensFalho.getParent());
+            sensFalho.getParent().addChild(sensorEscolhido);
+            if (sensFalho.getParent().isConnected() || sensFalho.getParent() instanceof Sink)
+                sensorEscolhido.setConnected(true);
         } else {
             retorno = false;
         }
 
         ArrayList<Sensor> listSensorReconex = new ArrayList<>();
-        for (Sensor sensFilho : sensFalho.getListFilhos()) {
-            if (!sensFilho.isConex())
-                if (sensorEscolhido.getListSensVizinhos().contains(sensFilho)) {
-                    sensorEscolhido.adicionaFilho(sensFilho);
-                    sensFilho.setSensorPai(sensorEscolhido);
-                    sensFilho.setConex(true);
+        for (Sensor sensFilho : sensFalho.getChildren()) {
+            if (!sensFilho.isConnected())
+                if (sensorEscolhido.getNeighbors().contains(sensFilho)) {
+                    sensorEscolhido.addChild(sensFilho);
+                    sensFilho.setParent(sensorEscolhido);
+                    sensFilho.setConnected(true);
                     listSensorReconex.add(sensFilho);
-                    sensFilho.conectafilhos(listSensorReconex);
+                    sensFilho.connectChildren(listSensorReconex);
                 } else
                     retorno = false;
         }
@@ -808,17 +809,17 @@ public class RedeSensor {
         double distQuad = Double.MAX_VALUE;
 
 
-        for (Sensor sensCand : sensFalho.getListSensVizinhos()) {
-
-            if (!sensCand.isAtivo() && !sensCand.isFalho()) {
+        for (Edge edge : sensFalho.getOutgoingConnections()) {
+            Sensor sensCand = (Sensor) edge.getEndNode();
+            if (!sensCand.isActive() && !sensCand.isFailed()) {
                 double distAux = 0;
-                double distPai = matrizConectividade[sensCand.getId()][sensFalho.getSensorPai().getId()];
+                double distPai = matrizConectividade[(int) sensCand.getID()][(int) sensFalho.getParent().getID()];
 
                 distAux = distAux + Math.pow(distPai, 2);
 
                 double distFilho;
-                for (Sensor sensFilho : sensFalho.getListFilhos()) {
-                    distFilho = matrizConectividade[sensCand.getId()][sensFilho.getId()];
+                for (Sensor sensFilho : sensFalho.getChildren()) {
+                    distFilho = matrizConectividade[(int) sensCand.getID()][(int) sensFilho.getID()];
                     distAux = distAux + Math.pow(distFilho, 2);
                 }
 

@@ -1,128 +1,207 @@
 package projects.tcc.simulation.rssf;
 
-import projects.tcc.simulation.algorithms.graph.Edge;
+import lombok.extern.java.Log;
+import sinalgo.exception.WrongConfigurationException;
+import sinalgo.nodes.messages.Inbox;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-public class Sensor implements Comparable<Sensor> {
+@Log
+public class Sensor extends SimulationNode {
 
-    private int id;
-    private double posX;
-    private double posY;
-    private double energiaBat;
-    private double energiaOriginal;
-    private ArrayList<Sensor> listFilhos;
-    private Sensor sensorPai;
-    private double raioSensoriamento;
-    private double raioComunicacao;
-    private boolean ativo;
-    private boolean bitEA;
-    private boolean conex;
-    private boolean falho;
+    private final static double DISTANCES[] = {
+            5.142,
+            5.769,
+            6.473,
+            7.263,
+            8.150,
+            9.144,
+            10.260,
+            11.512,
+            12.916,
+            14.492,
+            16.261,
+            18.245,
+            20.471,
+            22.969,
+            25.771,
+            28.916,
+            32.444,
+            36.403,
+            40.845,
+            45.829,
+            51.420,
+            57.695,
+            64.735,
+            72.633,
+            81.496,
+            91.440
+    };
 
-    private double potAtiv;
-    private double potRec;
-    private double potManut;
-    private double taxaCom; //Taxa de comunica��o durante a transmiss�o em uma u.t.
+    private final static double CURRENTS[] = {
+            8.6,
+            8.8,
+            9.0,
+            9.0,
+            9.1,
+            9.3,
+            9.3,
+            9.5,
+            9.7,
+            9.9,
+            10.1,
+            10.4,
+            10.6,
+            10.8,
+            11.1,
+            13.8,
+            14.5,
+            14.5,
+            15.1,
+            15.8,
+            16.8,
+            17.2,
+            18.5,
+            19.2,
+            21.3,
+            25.4
+    };
 
-    private ArrayList<Sensor> listSensVizinhos;
-    private ArrayList<Integer> listPontosCobertos;
-    private ArrayList<Integer> listPontosCobExclusivo;
-    private double custoCaminhoSink;
-
-    public ArrayList<Edge> adjacencies;
-    public double minDistance;
-    public Sensor previous;
-
-
-    public Sensor(int id, double posX, double posY, double raioComunicacao, double taxaCom) {
-
-        this.id = id;
-        this.posX = posX;
-        this.posY = posY;
-        this.raioComunicacao = raioComunicacao;
-
-        this.ativo = true;
-
-        this.listFilhos = new ArrayList<>();
-        this.listSensVizinhos = new ArrayList<>();
-
-        this.adjacencies = new ArrayList<>();
-        this.minDistance = Double.POSITIVE_INFINITY;
-
-        this.taxaCom = taxaCom;
-
+    static {
+        Arrays.sort(DISTANCES);
+        Arrays.sort(CURRENTS);
     }
 
-    public Sensor(int id, double posX, double posY, double raioSensoriamento, double raioComunicacao,
-                  double energiaBat, double potAtiv, double potRec, double potManut, double taxaCom) {
+    private double batteryEnergy;
+    private double originalEnergy;
+    private final List<Sensor> children;
+    private Sensor parent;
+    private double sensorRadius;
+    private double commRadius;
+    private boolean active;
+    private boolean bitEA;
+    private boolean connected;
+    private boolean failed;
 
-        this(id, posX, posY, raioComunicacao, taxaCom);
+    private double activationPower;
+    private double receivePower;
+    private double maintenancePower;
+    private double commRatio; //Taxa de comunicação durante a transmissão em uma u.t.
 
-        this.potAtiv = potAtiv;
-        this.potRec = potRec;
-        this.potManut = potManut;
+    private List<Integer> coveredPoints;
+    private List<Integer> exclusivelyCoveredPoints;
+    private double pathToSinkCost;
 
-        this.energiaBat = energiaBat;
-        energiaOriginal = energiaBat;
-        this.raioSensoriamento = raioSensoriamento;
+    private double minDistance;
+    private Sensor previous;
 
-        this.sensorPai = null; //-1 n�o usado  | -2 sem possibilidade de ter pai  | -3 pai retirado  |
+    public Sensor(double x, double y, double commRadius, double commRatio) {
+        super();
+        this.setPosition(x, y, 0);
 
-        this.ativo = false;
-        this.falho = false;
-        this.conex = false;
+        this.commRadius = commRadius;
 
-        this.listPontosCobertos = new ArrayList<>();
-        this.listPontosCobExclusivo = new ArrayList<>();
+        this.active = true;
+
+        this.children = new ArrayList<>();
+
+        this.setMinDistance(Double.POSITIVE_INFINITY);
+
+        this.commRatio = commRatio;
+    }
+
+    public Sensor(double x, double y, double sensorRadius, double raioComunicacao,
+                  double batteryEnergy, double activationPower, double receivePower, double maintenancePower, double commRatio) {
+
+        this(x, y, raioComunicacao, commRatio);
+
+        this.activationPower = activationPower;
+        this.receivePower = receivePower;
+        this.maintenancePower = maintenancePower;
+
+        this.batteryEnergy = batteryEnergy;
+        this.originalEnergy = batteryEnergy;
+        this.sensorRadius = sensorRadius;
+
+        this.parent = null;
+
+        this.active = false;
+        this.failed = false;
+        this.connected = false;
+
+        this.coveredPoints = new ArrayList<>();
+        this.exclusivelyCoveredPoints = new ArrayList<>();
     }
 
     public void reiniciarSensorParaConectividade() {
-        this.sensorPai = null;
-        this.previous = null;
-        this.conex = false;
-        this.adjacencies.clear();
-        this.minDistance = Double.POSITIVE_INFINITY;
-        this.listFilhos.clear();
+        this.setParent(null);
+        this.setPrevious(null);
+        this.setConnected(false);
+        this.setMinDistance(Double.POSITIVE_INFINITY);
+        this.children.clear();
     }
 
     public int compareTo(Sensor other) {
-        return Double.compare(minDistance, other.minDistance);
+        return Double.compare(this.getMinDistance(), other.getMinDistance());
     }
 
-    public String toString() {
-        return String.valueOf(id);
+    @Override
+    public void handleMessages(Inbox inbox) {
+
     }
 
-    public void adicionaFilho(Sensor sensFilho) {
-        listFilhos.add(sensFilho);
+    @Override
+    public void preStep() {
+
     }
 
-    public ArrayList<Sensor> getListFilhos() {
-        return listFilhos;
+    @Override
+    public void init() {
+
     }
 
-    public void setListFilhos(ArrayList<Sensor> listFilhos) {
-        this.listFilhos = listFilhos;
+    @Override
+    public void neighborhoodChange() {
+
     }
 
-    public Sensor getSensorPai() {
-        return sensorPai;
+    @Override
+    public void postStep() {
+
     }
 
-    public void setSensorPai(Sensor sensorPai) {
-        this.sensorPai = sensorPai;
+    @Override
+    public void checkRequirements() throws WrongConfigurationException {
+
     }
 
-    public boolean isAtivo() {
-        return ativo;
+    public void addChild(Sensor child) {
+        children.add(child);
     }
 
-    public void setAtivo(boolean ativo) {
-        if (!this.ativo && ativo) {
-            this.bitEA = ativo;
+    public List<Sensor> getChildren() {
+        return children;
+    }
+
+    public Sensor getParent() {
+        return parent;
+    }
+
+    public void setParent(Sensor parent) {
+        this.parent = parent;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        if (!this.active && active) {
+            this.setBitEA(true);
         }
-        this.ativo = ativo;
+        this.active = active;
     }
 
     public boolean isBitEA() {
@@ -133,219 +212,137 @@ public class Sensor implements Comparable<Sensor> {
         this.bitEA = bitEA;
     }
 
-    public boolean isConex() {
-        return conex;
+    public boolean isConnected() {
+        return connected;
     }
 
-    public void setConex(boolean conex) {
-        this.conex = conex;
+    public void setConnected(boolean connected) {
+        this.connected = connected;
     }
 
-    public boolean isFalho() {
-        return falho;
+    public boolean isFailed() {
+        return failed;
     }
 
-    public void setFalho(boolean falho) {
-        this.falho = falho;
+    public void setFailed(boolean failed) {
+        this.failed = failed;
     }
 
-    public ArrayList<Sensor> getListSensVizinhos() {
-        return listSensVizinhos;
+    public List<Integer> getCoveredPoints() {
+        return coveredPoints;
     }
 
-    public void setListSensVizinhos(ArrayList<Sensor> listSensVizinhos) {
-        this.listSensVizinhos = listSensVizinhos;
+    public void setCoveredPoints(List<Integer> coveredPoints) {
+        this.coveredPoints = coveredPoints;
     }
 
-    public ArrayList<Integer> getListPontosCobertos() {
-        return listPontosCobertos;
+    public List<Integer> getExclusivelyCoveredPoints() {
+        return exclusivelyCoveredPoints;
     }
 
-    public void setListPontosCobertos(ArrayList<Integer> listPontosCobertos) {
-        this.listPontosCobertos = listPontosCobertos;
+    public void setExclusivelyCoveredPoints(List<Integer> exclusivelyCoveredPoints) {
+        this.exclusivelyCoveredPoints = exclusivelyCoveredPoints;
     }
 
-    public ArrayList<Integer> getListPontosCobExclusivo() {
-        return listPontosCobExclusivo;
+    public double getBatteryEnergy() {
+        return batteryEnergy;
     }
 
-    public void setListPontosCobExclusivo(ArrayList<Integer> listPontosCobExclusivo) {
-        this.listPontosCobExclusivo = listPontosCobExclusivo;
+    public double getOriginalEnergy() {
+        return originalEnergy;
     }
 
-    public int getId() {
-        return id;
+    public double getSensorRadius() {
+        return sensorRadius;
     }
 
-    public double getPosX() {
-        return posX;
+    public double getCommRadius() {
+        return commRadius;
     }
 
-    public double getPosY() {
-        return posY;
+    public double getActivationPower() {
+        return activationPower;
     }
 
-    public double getEnergiaBat() {
-        return energiaBat;
+    public double getReceivePower() {
+        return receivePower;
     }
 
-    public double getEnergiaOriginal() {
-        return energiaOriginal;
+    public double getMaintenancePower() {
+        return maintenancePower;
     }
 
-    public double getRaioSensoriamento() {
-        return raioSensoriamento;
+    public double getCommRatio() {
+        return commRatio;
     }
 
-    public double getRaioComunicacao() {
-        return raioComunicacao;
+    public double getPathToSinkCost() {
+        return pathToSinkCost;
     }
 
-    public double getPotAtiv() {
-        return potAtiv;
+    public void setPathToSinkCost(double pathToSinkCost) {
+        this.pathToSinkCost = pathToSinkCost;
     }
 
-    public double getPotRec() {
-        return potRec;
-    }
-
-    public double getPotManut() {
-        return potManut;
-    }
-
-    public double getTaxaCom() {
-        return taxaCom;
-    }
-
-    public double getCustoCaminhoSink() {
-        return custoCaminhoSink;
-    }
-
-    public void setCustoCaminhoSink(double custoCaminhoSink) {
-        this.custoCaminhoSink = custoCaminhoSink;
-    }
-
-    public int BuscaDescendentes() {
-
-        int TotalFilhos = this.listFilhos.size();
-
-        for (Sensor sensFilho : listFilhos) {
-            TotalFilhos += sensFilho.BuscaDescendentes();
+    public long queryDescendants() {
+        long totalChildren = this.children.size();
+        for (Sensor sensFilho : children) {
+            totalChildren += sensFilho.queryDescendants();
         }
-        return (TotalFilhos);
+        return totalChildren;
     }
 
-    //Vetor de Corrente x dist�ncia
-
-    public double BuscaCorrente_Distancia(double Distancia) {
-
-        double VetorDistancias[] = {
-                5.142,
-                5.769,
-                6.473,
-                7.263,
-                8.150,
-                9.144,
-                10.260,
-                11.512,
-                12.916,
-                14.492,
-                16.261,
-                18.245,
-                20.471,
-                22.969,
-                25.771,
-                28.916,
-                32.444,
-                36.403,
-                40.845,
-                45.829,
-                51.420,
-                57.695,
-                64.735,
-                72.633,
-                81.496,
-                91.440};
-
-        double VetorCorrente[] = {
-                8.6,
-                8.8,
-                9.0,
-                9.0,
-                9.1,
-                9.3,
-                9.3,
-                9.5,
-                9.7,
-                9.9,
-                10.1,
-                10.4,
-                10.6,
-                10.8,
-                11.1,
-                13.8,
-                14.5,
-                14.5,
-                15.1,
-                15.8,
-                16.8,
-                17.2,
-                18.5,
-                19.2,
-                21.3,
-                25.4,
-        };
+    //Vetor de Corrente x distância
+    public double queryDistances(double distance) {
+        if (Double.compare(distance, DISTANCES[DISTANCES.length - 1]) > 0) {
+            throw new RuntimeException("Distância ao Pai não informada corretamente: " + distance);
+        }
 
         int i = 0;
-
-        while (VetorDistancias[i] <= Distancia) {
+        while (Double.compare(DISTANCES[i], distance) <= 0) {
             i++;
-            if (i == VetorDistancias.length) {
-                System.out.println("\n\nERROR: Dist�ncia ao Pai n�o informada corretamente");
-                System.out.println("Valor da Dist�ncia: " + Distancia);
-                //System.exit(-1);
-            }
-
-
         }
 
-        return (VetorCorrente[i]);
+        return CURRENTS[i];
     }
 
-
-    public void retirarEnergGastaPeriodo(double Valor) {
-
-        energiaBat -= Valor;
-        if (energiaBat < 0)
-            energiaBat = 0;
+    public void subtractEnergySpent(double value) {
+        batteryEnergy = Math.max(0, batteryEnergy - value);
     }
 
-    public double getGastoTransmissao(double vDistanciaAoPai, int vNumeroFilhos2) {
-        // TODO Auto-generated method stub
-
-        double vCorrente = BuscaCorrente_Distancia(vDistanciaAoPai);
-
-        return taxaCom * vCorrente * (vNumeroFilhos2 + 1);
+    public double getEnergySpentInTransmission(double distanceToParent, int numberOfChildren) {
+        double vCorrente = this.queryDistances(distanceToParent);
+        return commRatio * vCorrente * (numberOfChildren + 1);
     }
 
-    public void desconectafilhos() {
-        // TODO Auto-generated method stub
-        for (Sensor sFilho : this.getListFilhos()) {
-            sFilho.setConex(false);
-            sFilho.desconectafilhos();
+    public void disconnectChildren() {
+        for (Sensor child : this.getChildren()) {
+            child.setConnected(false);
+            child.disconnectChildren();
         }
-        //listFilhos.clear();
     }
 
-    public void conectafilhos(ArrayList<Sensor> listSensorReconex) {
-        // TODO Auto-generated method stub
-        for (Sensor sFilho : this.getListFilhos()) {
-            sFilho.setConex(true);
-            listSensorReconex.add(sFilho);
-            sFilho.conectafilhos(listSensorReconex);
+    public void connectChildren(List<Sensor> reconnectedSensors) {
+        for (Sensor child : this.getChildren()) {
+            child.setConnected(true);
+            reconnectedSensors.add(child);
+            child.connectChildren(reconnectedSensors);
         }
-        //listFilhos.clear();
     }
 
+    public double getMinDistance() {
+        return minDistance;
+    }
 
+    public void setMinDistance(double minDistance) {
+        this.minDistance = minDistance;
+    }
+
+    public Sensor getPrevious() {
+        return previous;
+    }
+
+    public void setPrevious(Sensor previous) {
+        this.previous = previous;
+    }
 }

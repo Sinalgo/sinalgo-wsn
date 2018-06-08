@@ -20,10 +20,10 @@ public class Grafo {
 
     public void construirGrafo() {
         for (Sensor vertA : listSensores_Sink) {
-            for (Sensor vertB : vertA.getListSensVizinhos()) {
+            for (Sensor vertB : vertA.getNeighbors()) {
                 double vDistancia = matrizConectividade[vertA.getId()][vertB.getId()];
-                double peso = vertA.BuscaCorrente_Distancia(vDistancia);
-                vertA.adjacencies.add(new Edge(vertB, peso));
+                double peso = vertA.queryDistances(vDistancia);
+                vertA.getAdjacencies().add(new Edge(vertB, peso));
             }
         }
 
@@ -41,13 +41,13 @@ public class Grafo {
 
     private void registrarCustoCaminhoSens() {
         for (Sensor vert : listSensores_Sink) {
-            vert.setCustoCaminhoSink(vert.minDistance);
+            vert.setPathToSinkCost(vert.getMinDistance());
         }
     }
 
     public static List<Sensor> getShortestPathTo(Sensor target) {
         List<Sensor> path = new ArrayList<>();
-        for (Sensor vertex = target; vertex != null; vertex = vertex.previous)
+        for (Sensor vertex = target; vertex != null; vertex = vertex.getPrevious())
             path.add(vertex);
         Collections.reverse(path);
         return path;
@@ -58,22 +58,22 @@ public class Grafo {
         double penalidade = 2500;
 
         for (Sensor vertA : listSensores_Sink) {
-            for (Sensor vertB : vertA.getListSensVizinhos()) {
-                if (!vertB.isFalho()) {
+            for (Sensor vertB : vertA.getNeighbors()) {
+                if (!vertB.isFailed()) {
                     double vDistancia = matrizConectividade[vertA.getId()][vertB.getId()];
-                    double peso = vertA.BuscaCorrente_Distancia(vDistancia);
+                    double peso = vertA.queryDistances(vDistancia);
 
-                    //	if (vertA.isAtivo() && vertB.isAtivo())
+                    //	if (vertA.isActive() && vertB.isActive())
                     //		peso = peso;
 
-                    if ((vertA.isAtivo() && !vertB.isAtivo()) ||
-                            (!vertA.isAtivo() && vertB.isAtivo()))
+                    if ((vertA.isActive() && !vertB.isActive()) ||
+                            (!vertA.isActive() && vertB.isActive()))
                         peso = peso * penalidade;
 
-                    if (!vertA.isAtivo() && !vertB.isAtivo())
+                    if (!vertA.isActive() && !vertB.isActive())
                         peso = peso * penalidade * penalidade;
 
-                    vertA.adjacencies.add(new Edge(vertB, peso));
+                    vertA.getAdjacencies().add(new Edge(vertB, peso));
                 }
             }
         }
