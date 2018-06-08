@@ -1,0 +1,1 @@
+This project is a port of ouor Genetic Algorithm to run on Sinalgo
