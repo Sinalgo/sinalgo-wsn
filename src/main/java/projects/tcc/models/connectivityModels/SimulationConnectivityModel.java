@@ -1,14 +1,14 @@
 package projects.tcc.models.connectivityModels;
 
-import projects.defaultProject.models.connectivityModels.UDG;
-import sinalgo.exception.CorruptConfigurationEntryException;
+import sinalgo.exception.WrongConfigurationException;
+import sinalgo.models.ConnectivityModel;
+import sinalgo.nodes.Node;
 
-public class SimulationConnectivityModel extends UDG {
+public class SimulationConnectivityModel extends ConnectivityModel {
 
-    public SimulationConnectivityModel(double rMax) {
-        super(rMax);
+    @Override
+    public boolean updateConnections(Node n) throws WrongConfigurationException {
+        return false;
     }
 
-    public SimulationConnectivityModel() throws CorruptConfigurationEntryException {
-    }
 }

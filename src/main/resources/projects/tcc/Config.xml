@@ -8,10 +8,10 @@
         <dimensions value="2"/>
 
         <!--Length of the deployment field along the x-axis. -->
-        <dimX value="1000"/>
+        <dimX value="100"/>
 
         <!--Length of the deployment field along the y-axis. -->
-        <dimY value="1000"/>
+        <dimY value="100"/>
 
         <!--Length of the deployment field along the z-axis. -->
         <dimZ value="500"/>
@@ -229,6 +229,8 @@
 
     </Framework>
     <Custom>
+        <InputFile value="1050"/>
+
         <MessageTransmission ConstantTime="1"/>
 
         <Node defaultSize="10"/>

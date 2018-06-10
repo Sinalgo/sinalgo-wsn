@@ -1,6 +1,5 @@
 package projects.tcc.simulation.rssf;
 
-import lombok.extern.java.Log;
 import sinalgo.exception.WrongConfigurationException;
 import sinalgo.nodes.messages.Inbox;
 
@@ -8,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-@Log
 public class Sensor extends SimulationNode {
 
     private final static double DISTANCES[] = {
