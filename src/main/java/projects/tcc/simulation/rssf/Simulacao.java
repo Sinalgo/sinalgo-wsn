@@ -40,7 +40,7 @@ public class Simulacao {
         nEstagio = new ArrayList<>();
 
         this.rede = rede;
-        listSensores = rede.getListSensoresDisp();
+        listSensores = rede.getAvailableSensors();
 
         porcBatRet = 10;
 
@@ -174,7 +174,7 @@ public class Simulacao {
         }
         if (estagioAtual > 0) {
             somaModDiffAtivos = Math.abs(nSensorAtivos.get(nSensorAtivos.size() - 1) - rede.getNumSensAtivos());
-            if (somaModDiffAtivos > limAumentoEnergiaCons * rede.getListSensoresDisp().size()) {
+            if (somaModDiffAtivos > limAumentoEnergiaCons * rede.getAvailableSensors().size()) {
                 somaModDiffAtivos = 0;
                 reestrutrarRede = true;
             }

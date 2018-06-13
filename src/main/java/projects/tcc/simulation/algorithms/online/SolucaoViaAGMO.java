@@ -42,7 +42,7 @@ public class SolucaoViaAGMO {
                 System.out.print("0 ");
         }
 
-        rede.constroiRedeInicial(vetSensAtiv);
+        rede.createInitialNetwork(vetSensAtiv);
 
         Simulacao redeSim;
         redeSim = new Simulacao(rede);
@@ -61,7 +61,7 @@ public class SolucaoViaAGMO {
             if (reestruturar) {
                 //gerando a POP de Cromossomos inicial para o AG
                 vetSensAtiv = AG_Estatico_MO_arq.resolveAG_Estatico_MO(rede, numeroGeracoes, tamanhoPopulacao, txCruzamento, txMutacao);
-                rede.constroiRedeInicial(vetSensAtiv);
+                rede.createInitialNetwork(vetSensAtiv);
                 System.out.println("===== EVENTO e REESTRUTUROU TEMPO = " + perAtual);
             }
 

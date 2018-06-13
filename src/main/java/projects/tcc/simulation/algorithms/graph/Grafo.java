@@ -1,5 +1,6 @@
 package projects.tcc.simulation.algorithms.graph;
 
+import projects.tcc.nodes.edges.GraphEdge;
 import projects.tcc.simulation.rssf.Sensor;
 import projects.tcc.simulation.rssf.Sink;
 
@@ -10,10 +11,10 @@ import java.util.List;
 
 public class Grafo {
 
-    private ArrayList<Sensor> listSensores_Sink;
+    private List<Sensor> listSensores_Sink;
     private double[][] matrizConectividade;
 
-    public Grafo(ArrayList<Sensor> listSensores, double[][] matrizConectividade) {
+    public Grafo(List<Sensor> listSensores, double[][] matrizConectividade) {
         this.listSensores_Sink = listSensores;
         this.matrizConectividade = matrizConectividade;
     }
@@ -21,9 +22,9 @@ public class Grafo {
     public void construirGrafo() {
         for (Sensor vertA : listSensores_Sink) {
             for (Sensor vertB : vertA.getNeighbors()) {
-                double vDistancia = matrizConectividade[vertA.getId()][vertB.getId()];
+                double vDistancia = matrizConectividade[(int) vertA.getID()][(int) vertB.getID()];
                 double peso = vertA.queryDistances(vDistancia);
-                vertA.getAdjacencies().add(new Edge(vertB, peso));
+                vertA.getAdjacencies().add(new GraphEdge(vertB, peso));
             }
         }
 
@@ -60,7 +61,7 @@ public class Grafo {
         for (Sensor vertA : listSensores_Sink) {
             for (Sensor vertB : vertA.getNeighbors()) {
                 if (!vertB.isFailed()) {
-                    double vDistancia = matrizConectividade[vertA.getId()][vertB.getId()];
+                    double vDistancia = matrizConectividade[(int) vertA.getID()][(int) vertB.getID()];
                     double peso = vertA.queryDistances(vDistancia);
 
                     //	if (vertA.isActive() && vertB.isActive())
@@ -73,7 +74,7 @@ public class Grafo {
                     if (!vertA.isActive() && !vertB.isActive())
                         peso = peso * penalidade * penalidade;
 
-                    vertA.getAdjacencies().add(new Edge(vertB, peso));
+                    vertA.getAdjacencies().add(new GraphEdge(vertB, peso));
                 }
             }
         }

@@ -1,6 +1,6 @@
 package projects.tcc.simulation.algorithms.graph;
 
-import projects.tcc.nodes.edges.SimulationEdge;
+import projects.tcc.nodes.edges.GraphEdge;
 import projects.tcc.simulation.rssf.Sensor;
 import sinalgo.nodes.edges.Edge;
 
@@ -22,15 +22,14 @@ public class Dijkstra {
             // Visit each edge exiting u
             if (u != null) {
                 for (Edge edge : u.getOutgoingConnections()) {
-                    SimulationEdge e = (SimulationEdge) edge;
-                    Sensor v = (Sensor) e.getEndNode();
-                    double weight = e.getWeight();
+                    Sensor v = (Sensor) edge.getEndNode();
+                    double weight = ((GraphEdge) edge).getWeight();
                     double distanceThroughU = u.getMinDistance() + weight;
                     if (distanceThroughU < v.getMinDistance()) {
                         vertexQueue.remove(v);
                         v.setMinDistance(distanceThroughU);
                         v.setPrevious(u);
-                        v.setParent(u); //Adicionando o Pai do Sensor
+                        v.addConnectionTo(u); //Adicionando o Pai do Sensor
                         vertexQueue.add(v);
                     }
                 }
@@ -54,8 +53,9 @@ public class Dijkstra {
         Sensor s3 = new Sensor(5., 5., 15, 0.25);
         Sensor s4 = new Sensor(5., 15., 15, 0.25);
 
-        s0.
-                s0.getAdjacencies().add(new Edge(s1, 5));
+        s0.addConnectionTo(s1);
+
+        s0.getAdjacencies().add(new Edge(s1, 5));
         s0.getAdjacencies().add(new Edge(s2, 10));
         s0.getAdjacencies().add(new Edge(s3, 9));
         s0.getAdjacencies().add(new Edge(s3, 8));

@@ -9,7 +9,7 @@ public class AG_Estatico_MO_arq {
 
     public static boolean[] resolveAG_Estatico_MO(RedeSensor rede, int numeroGeracoes, int tamanhoPopulacao, double txCruzamento, double txMutacao) throws Exception {
 
-        ArrayList<Sensor> listSensensores = rede.getListSensoresDisp();
+        ArrayList<Sensor> listSensensores = rede.getAvailableSensors();
 
         rede.calCustosCaminho(); //atulizando o custo de caminho de cada sensor ao sink;
 
@@ -19,7 +19,7 @@ public class AG_Estatico_MO_arq {
         double medFitness = 0;
         int numSA = 0;
 
-        int vNumBits = rede.getListSensoresDisp().size();
+        int vNumBits = rede.getAvailableSensors().size();
 
         Populacao popCromo = new Populacao(tamanhoPopulacao, vNumBits, rede.getVetIdsSensDisp(), txCruzamento);
 
@@ -216,7 +216,7 @@ public class AG_Estatico_MO_arq {
     /*evaluates objective function for each chromossome*/
     static void calculaFuncaoObjetivo(RedeSensor rede, ArrayList<Cromossomo> pCromossomos) {
 
-        ArrayList<Sensor> popSensores = rede.getListSensoresDisp();
+        ArrayList<Sensor> popSensores = rede.getAvailableSensors();
 
         double penAtiv = popSensores.get(0).getActivationPower() + popSensores.get(0).getMaintenancePower();
         int penNCob = 0;//100000 utilizado no mono-objetivo;
@@ -238,7 +238,7 @@ public class AG_Estatico_MO_arq {
 
         rede.ativarSensoresVetBits(individuo.getVetorBits());
         double custoCaminhoTotal = 0;
-        for (Sensor sens : rede.getListSensoresDisp()) {
+        for (Sensor sens : rede.getAvailableSensors()) {
             if (sens.isActive())
                 custoCaminhoTotal += sens.getPathToSinkCost();
         }
@@ -257,7 +257,7 @@ public class AG_Estatico_MO_arq {
         int penNCob = 100000;
         double penAtiv = 100000;
 
-        raioSens = rede.getListSensoresDisp().get(0).getSensorRadius();
+        raioSens = rede.getAvailableSensors().get(0).getSensorRadius();
 
         for (Cromossomo indiv : pCromossomos) {
 

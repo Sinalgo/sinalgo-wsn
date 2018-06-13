@@ -1,12 +1,25 @@
 package projects.tcc.simulation.rssf;
 
+import lombok.Getter;
+import lombok.Setter;
+import projects.tcc.nodes.edges.GraphEdge;
 import sinalgo.exception.WrongConfigurationException;
+import sinalgo.nodes.Node;
+import sinalgo.nodes.edges.Edge;
 import sinalgo.nodes.messages.Inbox;
+import sinalgo.tools.storage.ReusableIterator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
+import static projects.tcc.simulation.io.ConfigurationLoader.getConfiguration;
+
+@Getter
+@Setter
 public class Sensor extends SimulationNode {
 
     private final static double DISTANCES[] = {
@@ -74,8 +87,6 @@ public class Sensor extends SimulationNode {
 
     private double batteryEnergy;
     private double originalEnergy;
-    private final List<Sensor> children;
-    private Sensor parent;
     private double sensorRadius;
     private double commRadius;
     private boolean active;
@@ -88,61 +99,61 @@ public class Sensor extends SimulationNode {
     private double maintenancePower;
     private double commRatio; //Taxa de comunicação durante a transmissão em uma u.t.
 
-    private List<Integer> coveredPoints;
-    private List<Integer> exclusivelyCoveredPoints;
+    private final List<Sensor> children;
+    private final List<Sensor> neighbors;
+    private final List<GraphEdge> adjacencies;
+    private final Set<Integer> coveredPoints;
+    private final Set<Integer> exclusivelyCoveredPoints;
     private double pathToSinkCost;
 
     private double minDistance;
     private Sensor previous;
 
     public Sensor(double x, double y, double commRadius, double commRatio) {
+        this(x, y, commRadius, commRatio, getConfiguration().getBatteryEnergy(),
+                getConfiguration().getActivationPower(), getConfiguration().getReceivePower(),
+                getConfiguration().getMaintenancePower(), getConfiguration().getSensorRadius());
+    }
+
+    private Sensor(double x, double y, double commRadius, double commRatio,
+                   double batteryEnergy, double activationPower, double receivePower,
+                   double maintenancePower, double sensorRadius) {
         super();
+
         this.setPosition(x, y, 0);
-
-        this.commRadius = commRadius;
-
-        this.active = true;
-
-        this.children = new ArrayList<>();
-
+        this.setCommRadius(commRadius);
+        this.setActive(true);
         this.setMinDistance(Double.POSITIVE_INFINITY);
+        this.setCommRatio(commRatio);
+        this.neighbors = new ArrayList<>();
+        this.adjacencies = new ArrayList<>();
+        this.children = new ArrayList<>();
+        this.coveredPoints = new LinkedHashSet<>();
+        this.exclusivelyCoveredPoints = new LinkedHashSet<>();
 
-        this.commRatio = commRatio;
+        this.setActivationPower(activationPower);
+        this.setReceivePower(receivePower);
+        this.setMaintenancePower(maintenancePower);
+
+        this.setBatteryEnergy(batteryEnergy);
+        this.setOriginalEnergy(batteryEnergy);
+        this.setSensorRadius(sensorRadius);
+
+        this.setActive(false);
+        this.setFailed(false);
+        this.setConnected(false);
     }
 
-    public Sensor(double x, double y, double sensorRadius, double raioComunicacao,
-                  double batteryEnergy, double activationPower, double receivePower, double maintenancePower, double commRatio) {
-
-        this(x, y, raioComunicacao, commRatio);
-
-        this.activationPower = activationPower;
-        this.receivePower = receivePower;
-        this.maintenancePower = maintenancePower;
-
-        this.batteryEnergy = batteryEnergy;
-        this.originalEnergy = batteryEnergy;
-        this.sensorRadius = sensorRadius;
-
-        this.parent = null;
-
-        this.active = false;
-        this.failed = false;
-        this.connected = false;
-
-        this.coveredPoints = new ArrayList<>();
-        this.exclusivelyCoveredPoints = new ArrayList<>();
-    }
-
-    public void reiniciarSensorParaConectividade() {
-        this.setParent(null);
+    public void resetConnectivity() {
         this.setPrevious(null);
         this.setConnected(false);
         this.setMinDistance(Double.POSITIVE_INFINITY);
         this.children.clear();
     }
 
-    public int compareTo(Sensor other) {
-        return Double.compare(this.getMinDistance(), other.getMinDistance());
+    @Override
+    public int compareTo(Node other) {
+        return Double.compare(this.getMinDistance(), ((Sensor) other).getMinDistance());
     }
 
     @Override
@@ -179,107 +190,11 @@ public class Sensor extends SimulationNode {
         children.add(child);
     }
 
-    public List<Sensor> getChildren() {
-        return children;
-    }
-
-    public Sensor getParent() {
-        return parent;
-    }
-
-    public void setParent(Sensor parent) {
-        this.parent = parent;
-    }
-
-    public boolean isActive() {
-        return active;
-    }
-
     public void setActive(boolean active) {
         if (!this.active && active) {
             this.setBitEA(true);
         }
         this.active = active;
-    }
-
-    public boolean isBitEA() {
-        return bitEA;
-    }
-
-    public void setBitEA(boolean bitEA) {
-        this.bitEA = bitEA;
-    }
-
-    public boolean isConnected() {
-        return connected;
-    }
-
-    public void setConnected(boolean connected) {
-        this.connected = connected;
-    }
-
-    public boolean isFailed() {
-        return failed;
-    }
-
-    public void setFailed(boolean failed) {
-        this.failed = failed;
-    }
-
-    public List<Integer> getCoveredPoints() {
-        return coveredPoints;
-    }
-
-    public void setCoveredPoints(List<Integer> coveredPoints) {
-        this.coveredPoints = coveredPoints;
-    }
-
-    public List<Integer> getExclusivelyCoveredPoints() {
-        return exclusivelyCoveredPoints;
-    }
-
-    public void setExclusivelyCoveredPoints(List<Integer> exclusivelyCoveredPoints) {
-        this.exclusivelyCoveredPoints = exclusivelyCoveredPoints;
-    }
-
-    public double getBatteryEnergy() {
-        return batteryEnergy;
-    }
-
-    public double getOriginalEnergy() {
-        return originalEnergy;
-    }
-
-    public double getSensorRadius() {
-        return sensorRadius;
-    }
-
-    public double getCommRadius() {
-        return commRadius;
-    }
-
-    public double getActivationPower() {
-        return activationPower;
-    }
-
-    public double getReceivePower() {
-        return receivePower;
-    }
-
-    public double getMaintenancePower() {
-        return maintenancePower;
-    }
-
-    public double getCommRatio() {
-        return commRatio;
-    }
-
-    public double getPathToSinkCost() {
-        return pathToSinkCost;
-    }
-
-    public void setPathToSinkCost(double pathToSinkCost) {
-        this.pathToSinkCost = pathToSinkCost;
     }
 
     public long queryDescendants() {
@@ -308,7 +223,7 @@ public class Sensor extends SimulationNode {
         batteryEnergy = Math.max(0, batteryEnergy - value);
     }
 
-    public double getEnergySpentInTransmission(double distanceToParent, int numberOfChildren) {
+    public double getEnergySpentInTransmission(double distanceToParent, long numberOfChildren) {
         double vCorrente = this.queryDistances(distanceToParent);
         return commRatio * vCorrente * (numberOfChildren + 1);
     }
@@ -320,7 +235,14 @@ public class Sensor extends SimulationNode {
         }
     }
 
-    public void connectChildren(List<Sensor> reconnectedSensors) {
+    public List<Sensor> connectChildren() {
+        List<Sensor> connectedChildren = new ArrayList<>();
+        connectedChildren.add(this);
+        this.connectChildren(connectedChildren);
+        return connectedChildren;
+    }
+
+    private void connectChildren(List<Sensor> reconnectedSensors) {
         for (Sensor child : this.getChildren()) {
             child.setConnected(true);
             reconnectedSensors.add(child);
@@ -328,19 +250,13 @@ public class Sensor extends SimulationNode {
         }
     }
 
-    public double getMinDistance() {
-        return minDistance;
+    public Sensor getParent() {
+        Iterator<Edge> iterator = this.getOutgoingConnections().iterator();
+        ((ReusableIterator<?>) iterator).reset();
+        if (iterator.hasNext()) {
+            return (Sensor) iterator.next().getEndNode();
+        }
+        return null;
     }
 
-    public void setMinDistance(double minDistance) {
-        this.minDistance = minDistance;
-    }
-
-    public Sensor getPrevious() {
-        return previous;
-    }
-
-    public void setPrevious(Sensor previous) {
-        this.previous = previous;
-    }
 }

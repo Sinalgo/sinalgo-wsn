@@ -2,9 +2,9 @@ package projects.tcc.simulation.io;
 
 import com.google.gson.Gson;
 import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.extern.java.Log;
 import sinalgo.configuration.Configuration;
 import sinalgo.exception.CorruptConfigurationEntryException;
 import sinalgo.exception.SinalgoFatalException;
@@ -14,14 +14,21 @@ import java.io.LineNumberReader;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
+@Log
 public class ConfigurationLoader {
 
 
-    @Getter
     @Setter(AccessLevel.PRIVATE)
     private static SimulationConfiguration configuration;
 
-    public static void load() {
+    public static SimulationConfiguration getConfiguration() {
+        if (configuration == null) {
+            load();
+        }
+        return configuration;
+    }
+
+    private static void load() {
         try {
             setConfiguration(load(Configuration.getStringParameter("inputFile")));
         } catch (CorruptConfigurationEntryException e) {

@@ -1,40 +1,46 @@
 package projects.tcc.simulation.rssf;
 
+import lombok.Getter;
 import projects.tcc.simulation.algorithms.graph.Grafo;
-import sinalgo.nodes.edges.Edge;
+import projects.tcc.simulation.io.ConfigurationLoader;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 
 public class RedeSensor {
 
-    private ArrayList<Sensor> listSensores;
-    private ArrayList<Sensor> listSensoresDisp;
-    private ArrayList<Sensor> listSensoresDisp_Sink;
-    private ArrayList<Sensor> listSensoresAtivos;
-    private ArrayList<Sensor> listSensFalhosNoPer;
-    private ArrayList<Sink> listSink;
-    private int numSens;
-    private int[] vetCobertura;
+    @Getter
+    private List<Sensor> listSensores;
+    @Getter
+    private List<Sensor> availableSensors;
+    private List<Sensor> listSensoresDisp_Sink;
+    private List<Sensor> activeSensors;
+    private List<Sensor> listSensFalhosNoPer;
+    private List<Sink> listSink;
+    private int[] coverageMatrix;
     private int numPontosCobertos;
+
+    @Getter
     private double porcCobAtual;
-    private double[][] matrizConectividade;
+    private double[][] connectivityMatrix;
     private ArrayList<PontosDemanda> pontosDemanda;
+
+    @Getter
     private double area;
 
-    double fatorCob;
+    @Getter
+    private double fatorCob;
 
     public RedeSensor(String nomeArq, int largura, int comprimento, double fatorCob) throws IOException {
         listSensores = new ArrayList<>();
         listSensoresDisp_Sink = new ArrayList<>();
-        listSensoresDisp = new ArrayList<>();
-        listSensoresAtivos = new ArrayList<>();
+        availableSensors = new ArrayList<>();
+        activeSensors = new ArrayList<>();
         listSink = new ArrayList<>();
         setPontosDemanda(largura, comprimento);
-        setSensores(nomeArq);
         constroiVetCobertura();
         numPontosCobertos = 0;
         porcCobAtual = 0.;
@@ -46,39 +52,15 @@ public class RedeSensor {
         this.listSensFalhosNoPer = listSensFalhosNoPer;
     }
 
-    public double getPorcCobAtual() {
-        return porcCobAtual;
-    }
-
-    public double getFatorCob() {
-        return fatorCob;
-    }
-
-    public double getArea() {
-        return area;
-    }
-
     public int getNumPontosDemanda() {
         return pontosDemanda.size();
     }
 
-    public ArrayList<Sensor> getListSensoresDisp() {
-        // TODO Auto-generated method stub
-        return listSensoresDisp;
-    }
-
-    public ArrayList<Sensor> getListSensores() {
-        // TODO Auto-generated method stub
-        return listSensores;
-    }
-
-    public int[] getVetIdsSensDisp() {
-        int[] vetIds = new int[listSensoresDisp.size()];
-
-        for (int i = 0; i < listSensoresDisp.size(); i++) {
-            vetIds[i] = listSensoresDisp.get(i).getId();
+    public long[] getVetIdsSensDisp() {
+        long[] vetIds = new long[availableSensors.size()];
+        for (int i = 0; i < availableSensors.size(); i++) {
+            vetIds[i] = availableSensors.get(i).getID();
         }
-
         return vetIds;
     }
 
@@ -94,50 +76,9 @@ public class RedeSensor {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    public void setSensores(String nomeArq) throws IOException {
-
-        //Fazer a leitura de arquivo.
-        double raioSens, raioCom, energBat, potAtiv, potRec, potManut, taxaCom;
-
-        BufferedReader input = new BufferedReader(new FileReader(nomeArq));
-
-        String aLine;
-        this.numSens = Integer.valueOf(input.readLine());
-        raioSens = Double.valueOf(input.readLine());
-        raioCom = Double.valueOf(input.readLine());
-        energBat = Double.valueOf(input.readLine());
-        potAtiv = Double.valueOf(input.readLine());
-        potRec = Double.valueOf(input.readLine());
-        potManut = Double.valueOf(input.readLine());
-        taxaCom = Double.valueOf(input.readLine());
-
-        for (int i = 0; i < numSens; i++) {
-            aLine = input.readLine();
-            String[] values = aLine.split("\t");
-
-            int id = Integer.valueOf(values[0]);
-            double x = Double.valueOf(values[1]);
-            double y = Double.valueOf(values[2]);
-
-            Sensor aux = new Sensor(id, x, y, raioSens, raioCom, energBat,
-                    potAtiv, potRec, potManut, taxaCom);
-            listSensores.add(aux);
-        }
-
-        listSensoresDisp_Sink = (ArrayList<Sensor>) listSensores.clone();
-        listSensoresDisp = (ArrayList<Sensor>) listSensores.clone();
-
-        input.close();
-
-    }
-
     public void addSink(double x, double y) {
-        int idSink = listSensores.size(); // pois sera o ultimo na lista de sensores.
-        double taxaCom = listSensores.get(0).getCommRatio();
-
         /*Sensor (id, posX, posY, raioComunicacao, taxaCom) */
-        Sink vSink = new Sink(idSink, x, y, 25, taxaCom);
+        Sink vSink = new Sink(x, y, 25, ConfigurationLoader.getConfiguration().getCommRatio());
 
         listSensoresDisp_Sink.add(vSink);
         listSink.add(vSink);
@@ -149,10 +90,8 @@ public class RedeSensor {
 
 
     public void prepararRede() throws Exception {
-
         constroiMatrizConectividade();
         criaListVizinhosRC();
-
     }
 
     public void constroiMatrizConectividade() {
@@ -160,34 +99,35 @@ public class RedeSensor {
         int vLinhas = listSensoresDisp_Sink.size();
         int vColunas = listSensoresDisp_Sink.size();
 
-        matrizConectividade = alocaMatrizDouble(vLinhas, vColunas);
+        connectivityMatrix = alocaMatrizDouble(vLinhas, vColunas);
 
         for (int i = 0; i < listSensoresDisp_Sink.size(); i++) {
-            double Xsensor1 = listSensoresDisp_Sink.get(i).getX();
-            double Ysensor1 = listSensoresDisp_Sink.get(i).getY();
+            double Xsensor1 = listSensoresDisp_Sink.get(i).getPosition().getXCoord();
+            double Ysensor1 = listSensoresDisp_Sink.get(i).getPosition().getYCoord();
 
             for (int j = 0; j < listSensoresDisp_Sink.size(); j++) {
                 if (i != j) {
-                    double Xsensor2 = listSensoresDisp_Sink.get(j).getX();
-                    double Ysensor2 = listSensoresDisp_Sink.get(j).getY();
+                    double Xsensor2 = listSensoresDisp_Sink.get(j).getPosition().getXCoord();
+                    double Ysensor2 = listSensoresDisp_Sink.get(j).getPosition().getYCoord();
                     double vDistancia = Math.sqrt(((Xsensor1 - Xsensor2) * (Xsensor1 - Xsensor2)) +
                             ((Ysensor1 - Ysensor2) * (Ysensor1 - Ysensor2)));
-                    matrizConectividade[i][j] = vDistancia;
+                    connectivityMatrix[i][j] = vDistancia;
                 } else
-                    matrizConectividade[i][j] = -1;
+                    connectivityMatrix[i][j] = -1;
             }
         }
     }
 
     private void constroiVetCobertura() {
 
-        vetCobertura = new int[pontosDemanda.size()];
+        coverageMatrix = new int[pontosDemanda.size()];
 
         for (Sensor sens : listSensores) {
 
-            ArrayList<Integer> listPontosCobertos = new ArrayList<>();
-            double Xsensor = sens.getX();
-            double Ysensor = sens.getY();
+            Set<Integer> listPontosCobertos = sens.getCoveredPoints();
+            listPontosCobertos.clear();
+            double Xsensor = sens.getPosition().getXCoord();
+            double Ysensor = sens.getPosition().getYCoord();
 
             for (int j = 0; j < pontosDemanda.size(); j++) {
 
@@ -200,7 +140,6 @@ public class RedeSensor {
                     listPontosCobertos.add(j);
                 }
             }
-            sens.setCoveredPoints(listPontosCobertos);
 
         }
     }
@@ -225,10 +164,11 @@ public class RedeSensor {
 
     public void criaListVizinhosRC() {
         for (int i = 0; i < listSensoresDisp_Sink.size(); i++) {
-            ArrayList<Sensor> listSensVizinhos = new ArrayList<>();
+            List<Sensor> listSensVizinhos = listSensoresDisp_Sink.get(i).getNeighbors();
+            listSensVizinhos.clear();
             for (int j = 0; j < listSensoresDisp_Sink.size(); j++) {
                 if (i != j) {
-                    double vDistancia = matrizConectividade[i][j];
+                    double vDistancia = connectivityMatrix[i][j];
                     double vRaio = (float) listSensoresDisp_Sink.get(i).getCommRadius();
 
                     if (vDistancia <= vRaio) {
@@ -236,27 +176,26 @@ public class RedeSensor {
                     }
                 }
             }
-            listSensoresDisp_Sink.get(i).setNeighbors(listSensVizinhos);
 
         }
     }
 
     public double CalculaEnergiaConsPer() {
-        return CalculaEnergiaConsPer(listSensoresAtivos);
+        return CalculaEnergiaConsPer(activeSensors);
     }
 
-    public double CalculaEnergiaConsPer(ArrayList<Sensor> listSens) {
+    public double CalculaEnergiaConsPer(List<Sensor> listSens) {
 
         double EnergiaGastaAcum = 0;
 
         for (Sensor s : listSens) {
-            int idSens = s.getId();
-            int sensPai = s.getParent().getId();
-            int vNumeroFilhos = s.queryDescendants();
+            long idSens = s.getID();
+            long sensPai = s.getParent().getID();
+            long vNumeroFilhos = s.queryDescendants();
 
             double ER = s.getReceivePower() * vNumeroFilhos;
 
-            double vDistanciaAoPai = matrizConectividade[idSens][sensPai];
+            double vDistanciaAoPai = connectivityMatrix[(int) idSens][(int) sensPai];
 
             double ET = s.getEnergySpentInTransmission(vDistanciaAoPai, vNumeroFilhos);
             double EM = s.getMaintenancePower();
@@ -271,7 +210,7 @@ public class RedeSensor {
 
         double enAtivAcum = 0;
 
-        for (Sensor aListSensoresDisp : listSensoresDisp) {
+        for (Sensor aListSensoresDisp : availableSensors) {
             if (aListSensoresDisp.isBitEA() && aListSensoresDisp.isActive()) {
                 enAtivAcum += aListSensoresDisp.getActivationPower();
                 aListSensoresDisp.setBitEA(false);
@@ -283,12 +222,12 @@ public class RedeSensor {
 
     public void desligarSensoresDesconexos() {
         // TODO Auto-generated method stub
-		/*for (Sensor s : listSensoresAtivos){
+		/*for (Sensor s : activeSensors){
 			s.setConnected(false);
 		}
 
 		int numSensDesligados = 0;
-		for (Sensor s : listSensoresDisp){
+		for (Sensor s : availableSensors){
 			if (s.isActive()){
 				verificarConectividade(s);
 				if (!s.isConnected()){
@@ -300,7 +239,7 @@ public class RedeSensor {
 		}*/
 
         int numSensDesligados = 0;
-        for (Sensor s : listSensoresAtivos) {
+        for (Sensor s : activeSensors) {
             if (!s.isConnected()) {
                 desligarSensor(s);
                 numSensDesligados++;
@@ -348,19 +287,19 @@ public class RedeSensor {
         // TODO Auto-generated method stub
         //desligarSensoresDesconexos();
         retirarCoberturaDesconexos();
-        porcCobAtual = (double) numPontosCobertos / (double) vetCobertura.length;
+        porcCobAtual = (double) numPontosCobertos / (double) coverageMatrix.length;
 
         return porcCobAtual;
     }
 
     private void retirarCoberturaDesconexos() {
         // TODO Auto-generated method stub
-        for (Sensor s : listSensoresAtivos) {
+        for (Sensor s : activeSensors) {
             if (!s.isConnected()) {
-                ArrayList<Integer> listPontosCobertos = s.getCoveredPoints();
+                Set<Integer> listPontosCobertos = s.getCoveredPoints();
                 for (Integer listPontosCoberto : listPontosCobertos) {
-                    vetCobertura[listPontosCoberto]--;
-                    if (vetCobertura[listPontosCoberto] == 0)
+                    coverageMatrix[listPontosCoberto]--;
+                    if (coverageMatrix[listPontosCoberto] == 0)
                         numPontosCobertos--;
                 }
             }
@@ -370,11 +309,11 @@ public class RedeSensor {
 
     public void calcCoberturaInicial() {
         // TODO Auto-generated method stub
-        vetCobertura = new int[pontosDemanda.size()];
+        coverageMatrix = new int[pontosDemanda.size()];
         ;
         this.numPontosCobertos = 0;
 
-        for (Sensor sens : listSensoresAtivos) {
+        for (Sensor sens : activeSensors) {
             atualizaCoberturaSemConec(sens);
         }
 
@@ -383,18 +322,18 @@ public class RedeSensor {
     }
 
     public int getNumSensAtivos() {
-        return listSensoresAtivos.size();
+        return activeSensors.size();
 
     }
 
     public void CalculaEnergiaPeriodo() {
 
-        for (Sensor s : listSensoresAtivos) {
+        for (Sensor s : activeSensors) {
 
-            int vNumeroFilhos = s.queryDescendants();
+            long vNumeroFilhos = s.queryDescendants();
             double ER = s.getReceivePower() * vNumeroFilhos;
 
-            double vDistanciaAoPai = matrizConectividade[s.getId()][s.getParent().getId()];
+            double vDistanciaAoPai = connectivityMatrix[(int) s.getID()][(int) s.getParent().getID()];
             double vCorrente = s.queryDistances(vDistanciaAoPai);
 
             double ET = s.getCommRatio() * vCorrente * (vNumeroFilhos + 1);
@@ -411,7 +350,7 @@ public class RedeSensor {
         // TODO Auto-generated method stub
         boolean falha = false;
 
-        for (Sensor s : listSensoresAtivos) {
+        for (Sensor s : activeSensors) {
 
             double enB = s.getOriginalEnergy();
 
@@ -430,13 +369,13 @@ public class RedeSensor {
         for (Sensor sens : listSensFalhosNoPer) {
             this.desligarSensor(sens);
             sens.getParent().getChildren().remove(sens);
-            listSensoresAtivos.remove(sens);
-            listSensoresDisp.remove(sens);
+            activeSensors.remove(sens);
+            availableSensors.remove(sens);
             listSensoresDisp_Sink.remove(sens);
         }
 
         if (falha) {
-            //criarConect();
+            //createConnection();
             calcCobertura();
         }
 
@@ -463,7 +402,7 @@ public class RedeSensor {
     private int atualizaCoberturaSemConec(Sensor sensor, int[] vetCoberturaAux) {
         // TODO Auto-generated method stub
         int numPontosCobertosAux = 0;
-        ArrayList<Integer> listPontosCobertos = sensor.getCoveredPoints();
+        Set<Integer> listPontosCobertos = sensor.getCoveredPoints();
 
         for (Integer listPontosCoberto : listPontosCobertos) {
             if (vetCoberturaAux[listPontosCoberto] == 0) {
@@ -476,18 +415,18 @@ public class RedeSensor {
 
     private int atualizaCoberturaSemConec(Sensor sensor) {
         // TODO Auto-generated method stub
-        ArrayList<Integer> listPontosCobertos = sensor.getCoveredPoints();
+        Set<Integer> listPontosCobertos = sensor.getCoveredPoints();
 
         if (sensor.isActive()) {
             for (Integer listPontosCoberto : listPontosCobertos) {
-                if (vetCobertura[listPontosCoberto] == 0)
+                if (coverageMatrix[listPontosCoberto] == 0)
                     numPontosCobertos++;
-                vetCobertura[listPontosCoberto]++;
+                coverageMatrix[listPontosCoberto]++;
             }
         } else {
             for (Integer listPontosCoberto : listPontosCobertos) {
-                vetCobertura[listPontosCoberto]--;
-                if (vetCobertura[listPontosCoberto] == 0)
+                coverageMatrix[listPontosCoberto]--;
+                if (coverageMatrix[listPontosCoberto] == 0)
                     numPontosCobertos--;
             }
         }
@@ -496,8 +435,7 @@ public class RedeSensor {
 
 
     public void calCustosCaminho() {
-
-        Grafo grafoCM = new Grafo(listSensoresDisp_Sink, matrizConectividade);
+        Grafo grafoCM = new Grafo(listSensoresDisp_Sink, connectivityMatrix);
         grafoCM.construirGrafo();
         grafoCM.caminhosMinimosPara(listSink.get(0));
 
@@ -507,13 +445,13 @@ public class RedeSensor {
     public void ativarSensoresVetBits(boolean[] vetBoolean) {
         // TODO Auto-generated method stub
 
-        listSensoresAtivos.clear();
+        activeSensors.clear();
         for (int i = 0; i < vetBoolean.length; i++) {
             if (vetBoolean[i]) {
-                listSensoresDisp.get(i).setActive(true);
-                listSensoresAtivos.add(listSensoresDisp.get(i));
+                availableSensors.get(i).setActive(true);
+                activeSensors.add(availableSensors.get(i));
             } else
-                listSensoresDisp.get(i).setActive(false);
+                availableSensors.get(i).setActive(false);
         }
 
     }
@@ -521,81 +459,67 @@ public class RedeSensor {
     public void ativarSensoresVetBits(int[] vetBoolean) {
         // TODO Auto-generated method stub
 
-        listSensoresAtivos.clear();
+        activeSensors.clear();
         for (int i = 0; i < vetBoolean.length; i++) {
             if (vetBoolean[i] == 1) {
-                listSensoresDisp.get(i).setActive(true);
-                listSensoresAtivos.add(listSensoresDisp.get(i));
+                availableSensors.get(i).setActive(true);
+                activeSensors.add(availableSensors.get(i));
             } else
-                listSensoresDisp.get(i).setActive(false);
+                availableSensors.get(i).setActive(false);
         }
 
     }
 
 
-    public void criarConect() {
-        // TODO Auto-generated method stub
-
+    public void createConnection() {
         //refazendo as conexoes
         for (Sensor sens : listSensoresDisp_Sink) {
-            sens.reiniciarSensorParaConectividade();
+            sens.resetConnectivity();
         }
 
-        Grafo grafoCM = new Grafo(listSensoresDisp_Sink, matrizConectividade);
+        Grafo grafoCM = new Grafo(listSensoresDisp_Sink, connectivityMatrix);
         grafoCM.construirGrafoConect();
         grafoCM.caminhosMinimosPara(listSink.get(0));
-        ativarPaisDesativados();
-        geraListFilhos();
-        for (Sensor s : listSensoresAtivos) {
+        reactivateParents();
+        fillChildrenList();
+        for (Sensor s : activeSensors) {
             verificarConectividade(s);
         }
 
     }
 
-    public void criarConect(int[] listSensPai) {
-        // TODO Auto-generated method stub
-
+    public void createConnection(int[] parentSensors) {
         //refazendo as conexoes
-        for (Sensor sens : listSensoresDisp) {
-            sens.reiniciarSensorParaConectividade();
-            int indSensPai = listSensPai[sens.getId()];
-            sens.setParent(listSensores.get(indSensPai));
+        for (Sensor sensor : this.availableSensors) {
+            sensor.resetConnectivity();
+            sensor.addConnectionTo(listSensores.get(parentSensors[(int) sensor.getID()]));
         }
-
-        geraListFilhos();
-
+        fillChildrenList();
     }
 
-    private void geraListFilhos() {
-        // TODO Auto-generated method stub
-
-        for (Sensor sens : listSensoresAtivos) {
-
-            Sensor pai = sens.getParent();
-            if (pai != null)
-                pai.addChild(sens);
-
+    private void fillChildrenList() {
+        for (Sensor sensor : this.activeSensors) {
+            Sensor parent = sensor.getParent();
+            if (parent != null)
+                parent.addChild(sensor);
         }
-
     }
 
-
-    private void ativarPaisDesativados() {
-        // TODO Auto-generated method stub
-        ArrayList<Sensor> sensAtivos = new ArrayList<>();
+    private void reactivateParents() {
+        List<Sensor> newActiveSensors = new ArrayList<>();
         int numSensCox = 0;
-        for (Sensor sens : listSensoresAtivos) {
+        for (Sensor sens : activeSensors) {
             Sensor sensAux = sens;
             while (sensAux.getParent() != null && !sensAux.getParent().isActive() && !(sensAux instanceof Sink)) {
                 sensAux.getParent().setActive(true);
-                sensAtivos.add(sensAux.getParent());
+                newActiveSensors.add(sensAux.getParent());
                 atualizaCoberturaSemConec(sensAux.getParent());
                 sensAux = sensAux.getParent();
                 numSensCox++;
             }
         }
 
-        listSensoresAtivos.addAll(sensAtivos);
+        activeSensors.addAll(newActiveSensors);
 
         if (numSensCox > 0) {
             System.out.println("Numero de Sensores Ativos na Conectividade: " + numSensCox);
@@ -608,14 +532,14 @@ public class RedeSensor {
         // TODO Auto-generated method stub
         // Utilizado na vers�o OnlineH�brido
 
-        for (Sensor s : listSensoresAtivos) {
+        for (Sensor s : activeSensors) {
             if (!s.isConnected())
                 atualizaCoberturaSemConec(s);
         }
 
         boolean retorno = true;
 
-        double nPontoDemanda = vetCobertura.length;
+        double nPontoDemanda = coverageMatrix.length;
 
         ArrayList<Sensor> listSensorDesconex = new ArrayList<>();
 
@@ -627,7 +551,7 @@ public class RedeSensor {
 
             if (sensEscolhido != null) {
                 ligaSensor(sensEscolhido);
-                criarConect();
+                createConnection();
 
                 if (sensEscolhido.getParent() == null) {
                     //Impossivel conectar o sensor na rede
@@ -671,7 +595,7 @@ public class RedeSensor {
         // TODO Auto-generated method stub
         Sensor sensEscolhido = null;
         int maiorNumPontCobDescob = 0;
-        for (Sensor sens : listSensoresDisp) {
+        for (Sensor sens : availableSensors) {
 
             if (!listSensorDesconex.contains(sens)) {
                 if (!sens.isActive()) {
@@ -697,40 +621,32 @@ public class RedeSensor {
     private void ligaSensor(Sensor sensEscolhido) {
         // TODO Auto-generated method stub
         sensEscolhido.setActive(true);
-        listSensoresAtivos.add(sensEscolhido);
+        activeSensors.add(sensEscolhido);
         atualizaCoberturaSemConec(sensEscolhido);
 
     }
 
     private int atualizarListaPontosCobExclusivo(Sensor sens) {
-        // TODO Auto-generated method stub
+        Set<Integer> exclusivelyCoveredPoints = sens.getExclusivelyCoveredPoints();
+        Set<Integer> coveredPoints = sens.getCoveredPoints();
 
-        ArrayList<Integer> listPontosCobExclusivo = sens.getExclusivelyCoveredPoints();
-        listPontosCobExclusivo.clear();
-
-        ArrayList<Integer> listPontosCob = sens.getCoveredPoints();
-
-        int numPontCobDescob = 0;
-        for (int pont : listPontosCob) {
-
-            if (vetCobertura[pont] == 0) {
-                numPontCobDescob++;
-                listPontosCobExclusivo.add(pont);
+        exclusivelyCoveredPoints.clear();
+        int uncoveredPointsCount = 0;
+        for (int point : coveredPoints) {
+            if (coverageMatrix[point] == 0) {
+                uncoveredPointsCount++;
+                exclusivelyCoveredPoints.add(point);
             }
         }
-        sens.setExclusivelyCoveredPoints(listPontosCobExclusivo);
 
-        return numPontCobDescob;
+        return uncoveredPointsCount;
     }
 
-    public void constroiRedeInicial(boolean[] vetBoolean) {
-        // TODO Auto-generated method stub
-
+    public void createInitialNetwork(boolean[] vetBoolean) {
         ativarSensoresVetBits(vetBoolean);
 
-
         // criando a conectividade inicial das redes e atualizando a cobertura.
-        criarConect();
+        createConnection();
         // calculo da cobertura sem conectividade.
         calcCoberturaInicial();
         //calcCobertura();
@@ -743,18 +659,14 @@ public class RedeSensor {
 
 
     public boolean suprirOnline() {
-        // TODO Auto-generated method stub
-
-        Sensor sensorEscolhido;
-
         for (Sensor sensFalho : listSensFalhosNoPer) {
-            sensorEscolhido = escolherSubs(sensFalho);
+            Sensor sensorEscolhido = escolherSubs(sensFalho);
             if (sensorEscolhido == null)
                 break;
             ligaSensor(sensorEscolhido);
-            boolean fezConex = conectarSensorOnline(sensorEscolhido, sensFalho);
+            boolean fezConex = connectOnlineSensor(sensorEscolhido, sensFalho);
             if (!fezConex) {
-                criarConect();
+                createConnection();
             }
         }
         calcCobertura();
@@ -767,65 +679,55 @@ public class RedeSensor {
     }
 
 
-    private boolean conectarSensorOnline(Sensor sensorEscolhido, Sensor sensFalho) {
-        // TODO Auto-generated method stub
-
-        boolean retorno = true;
+    private boolean connectOnlineSensor(Sensor sensorEscolhido, Sensor sensFalho) {
+        boolean result = true;
         if (sensorEscolhido.getNeighbors().contains(sensFalho.getParent())) {
-            sensorEscolhido.setParent(sensFalho.getParent());
+            sensorEscolhido.addConnectionTo(sensFalho.getParent());
             sensFalho.getParent().addChild(sensorEscolhido);
             if (sensFalho.getParent().isConnected() || sensFalho.getParent() instanceof Sink)
                 sensorEscolhido.setConnected(true);
         } else {
-            retorno = false;
+            result = false;
         }
 
-        ArrayList<Sensor> listSensorReconex = new ArrayList<>();
+        List<Sensor> listSensorReconex = new ArrayList<>();
         for (Sensor sensFilho : sensFalho.getChildren()) {
             if (!sensFilho.isConnected())
                 if (sensorEscolhido.getNeighbors().contains(sensFilho)) {
                     sensorEscolhido.addChild(sensFilho);
-                    sensFilho.setParent(sensorEscolhido);
+                    sensFilho.addConnectionTo(sensorEscolhido);
                     sensFilho.setConnected(true);
-                    listSensorReconex.add(sensFilho);
-                    sensFilho.connectChildren(listSensorReconex);
+                    listSensorReconex.addAll(sensFilho.connectChildren());
                 } else
-                    retorno = false;
+                    result = false;
         }
 
         for (Sensor sensReconex : listSensorReconex) {
             atualizaCoberturaSemConec(sensReconex);
         }
 
-        return retorno;
+        return result;
     }
 
 
     private Sensor escolherSubs(Sensor sensFalho) {
-        // TODO Auto-generated method stub
-
         Sensor sensEsc = null;
+        double squaredDist = Double.MAX_VALUE;
+        for (Sensor candidate : sensFalho.getNeighbors()) {
+            if (!candidate.isActive() && !candidate.isFailed()) {
+                double auxDist = 0;
+                double parentDist = connectivityMatrix[(int) candidate.getID()][(int) sensFalho.getParent().getID()];
 
-        double distQuad = Double.MAX_VALUE;
+                auxDist = auxDist + Math.pow(parentDist, 2);
 
-
-        for (Edge edge : sensFalho.getOutgoingConnections()) {
-            Sensor sensCand = (Sensor) edge.getEndNode();
-            if (!sensCand.isActive() && !sensCand.isFailed()) {
-                double distAux = 0;
-                double distPai = matrizConectividade[(int) sensCand.getID()][(int) sensFalho.getParent().getID()];
-
-                distAux = distAux + Math.pow(distPai, 2);
-
-                double distFilho;
                 for (Sensor sensFilho : sensFalho.getChildren()) {
-                    distFilho = matrizConectividade[(int) sensCand.getID()][(int) sensFilho.getID()];
-                    distAux = distAux + Math.pow(distFilho, 2);
+                    double distFilho = connectivityMatrix[(int) candidate.getID()][(int) sensFilho.getID()];
+                    auxDist = auxDist + Math.pow(distFilho, 2);
                 }
 
-                if (distAux < distQuad) {
-                    distQuad = distAux;
-                    sensEsc = sensCand;
+                if (Double.compare(auxDist, squaredDist) < 0) {
+                    squaredDist = auxDist;
+                    sensEsc = candidate;
                 }
 
             }
