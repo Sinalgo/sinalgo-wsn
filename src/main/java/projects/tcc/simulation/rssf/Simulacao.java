@@ -3,6 +3,7 @@ package projects.tcc.simulation.rssf;
 import projects.tcc.simulation.principal.Saidas;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Simulacao {
 
@@ -21,14 +22,14 @@ public class Simulacao {
     private int contChamadaReest;
 
 
-    private ArrayList<Sensor> listSensores;
+    private List<Sensor> listSensores;
 
     private RedeSensor rede;
 
-    private ArrayList<Integer> nSensorAtivos;
-    private ArrayList<Integer> nEstagio;
+    private List<Integer> nSensorAtivos;
+    private List<Integer> nEstagio;
 
-    private ArrayList<Sensor> listSensFalhosNoPer;
+    private List<Sensor> listSensFalhosNoPer;
 
     public Simulacao(RedeSensor rede) {
 
@@ -60,17 +61,17 @@ public class Simulacao {
     }
 
 
-    public ArrayList<Double> getvEnResRede() {
+    public List<Double> getvEnResRede() {
         return vEnResRede;
     }
 
 
-    public ArrayList<Double> getvEnConsRede() {
+    public List<Double> getvEnConsRede() {
         return vEnConsRede;
     }
 
 
-    public ArrayList<Double> getVpCobertura() {
+    public List<Double> getVpCobertura() {
         return vpCobertura;
     }
 
@@ -162,7 +163,6 @@ public class Simulacao {
     }
 
     public boolean testeReestruturarRede(int estagioAtual) {
-        // TODO Auto-generated method stub
         reestrutrarRede = false;
         //testando se ira reestruturar - nao considerar EA ///////////////////////////
         if (enConsRede - energiaResAnt > limAumentoEnergiaCons * energiaResAnt) {

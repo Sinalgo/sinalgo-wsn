@@ -1,6 +1,9 @@
 package projects.tcc.simulation.algorithms.genetic;
 
+import lombok.Getter;
+
 import java.util.ArrayList;
+import java.util.List;
 
 public class Cromossomo {
 
@@ -19,11 +22,14 @@ public class Cromossomo {
     private int np;
     private ArrayList<Cromossomo> sp;
     private boolean extremoPareto;
-    private int[] vetIds;
+
+    @Getter
+    private long[] vetIds;
+
     private boolean avaliarFO;
 
 
-    public Cromossomo(int pTamanhoCromossomo, int[] vetIds) {
+    public Cromossomo(int pTamanhoCromossomo, long[] vetIds) {
         mTamanhoCromossomo = pTamanhoCromossomo;
         mBits = new int[mTamanhoCromossomo];
         mNumeroAtivos = 0;
@@ -47,9 +53,8 @@ public class Cromossomo {
         //copiando o vetor de bits
         int[] vetBitsCromo = cromo.getVetorBits();
 
-        for (int k = 0; k < vetBitsCromo.length; k++) {
-            mBits[k] = vetBitsCromo[k];
-        }
+        System.arraycopy(vetBitsCromo, 0, mBits, 0, vetBitsCromo.length);
+
         mNumeroAtivos = cromo.getNumeroAtivos();
         mFitness = cromo.getFitness();
         mFitness2 = cromo.getFitness2();
@@ -70,10 +75,8 @@ public class Cromossomo {
     }
 
 
-    public ArrayList<Integer> getListIdsAtivo() {
-
-        ArrayList<Integer> listIdsAtivo = new ArrayList<>();
-
+    public List<Long> getListIdsAtivo() {
+        List<Long> listIdsAtivo = new ArrayList<>();
         for (int i = 0; i < mBits.length; i++) {
             if (mBits[i] == 1) {
                 listIdsAtivo.add(vetIds[i]);
@@ -81,11 +84,6 @@ public class Cromossomo {
         }
 
         return listIdsAtivo;
-    }
-
-
-    public int[] getVetIds() {
-        return vetIds;
     }
 
     public boolean isAvaliarFO() {

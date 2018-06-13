@@ -1,6 +1,5 @@
 package projects.tcc.simulation.algorithms.graph;
 
-import projects.tcc.nodes.edges.GraphEdge;
 import projects.tcc.simulation.rssf.Sensor;
 import projects.tcc.simulation.rssf.Sink;
 
@@ -22,16 +21,13 @@ public class Grafo {
     public void construirGrafo() {
         for (Sensor vertA : listSensores_Sink) {
             for (Sensor vertB : vertA.getNeighbors()) {
-                double vDistancia = matrizConectividade[(int) vertA.getID()][(int) vertB.getID()];
-                double peso = vertA.queryDistances(vDistancia);
-                vertA.getAdjacencies().add(new GraphEdge(vertB, peso));
+                vertA.addConnectionTo(vertB);
             }
         }
 
     }
 
     public void caminhosMinimosPara(Sensor sens) {
-
         if (sens instanceof Sink) {
             Dijkstra.computePaths(sens);
             registrarCustoCaminhoSens();
@@ -64,9 +60,6 @@ public class Grafo {
                     double vDistancia = matrizConectividade[(int) vertA.getID()][(int) vertB.getID()];
                     double peso = vertA.queryDistances(vDistancia);
 
-                    //	if (vertA.isActive() && vertB.isActive())
-                    //		peso = peso;
-
                     if ((vertA.isActive() && !vertB.isActive()) ||
                             (!vertA.isActive() && vertB.isActive()))
                         peso = peso * penalidade;
@@ -74,7 +67,7 @@ public class Grafo {
                     if (!vertA.isActive() && !vertB.isActive())
                         peso = peso * penalidade * penalidade;
 
-                    vertA.getAdjacencies().add(new GraphEdge(vertB, peso));
+                    vertA.addConnectionTo(vertB, peso);
                 }
             }
         }

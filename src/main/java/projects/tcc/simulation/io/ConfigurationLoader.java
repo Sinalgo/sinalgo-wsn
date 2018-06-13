@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 @Log
 public class ConfigurationLoader {
 
-
     @Setter(AccessLevel.PRIVATE)
     private static SimulationConfiguration configuration;
 
@@ -26,6 +25,10 @@ public class ConfigurationLoader {
             load();
         }
         return configuration;
+    }
+
+    public static void overrideConfiguration(SimulationConfiguration configuration) {
+        setConfiguration(configuration);
     }
 
     private static void load() {

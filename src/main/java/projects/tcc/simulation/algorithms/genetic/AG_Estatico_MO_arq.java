@@ -4,12 +4,13 @@ import projects.tcc.simulation.rssf.RedeSensor;
 import projects.tcc.simulation.rssf.Sensor;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class AG_Estatico_MO_arq {
 
     public static boolean[] resolveAG_Estatico_MO(RedeSensor rede, int numeroGeracoes, int tamanhoPopulacao, double txCruzamento, double txMutacao) throws Exception {
 
-        ArrayList<Sensor> listSensensores = rede.getAvailableSensors();
+        List<Sensor> listSensensores = rede.getAvailableSensors();
 
         rede.calCustosCaminho(); //atulizando o custo de caminho de cada sensor ao sink;
 
@@ -214,9 +215,9 @@ public class AG_Estatico_MO_arq {
 
 
     /*evaluates objective function for each chromossome*/
-    static void calculaFuncaoObjetivo(RedeSensor rede, ArrayList<Cromossomo> pCromossomos) {
+    static void calculaFuncaoObjetivo(RedeSensor rede, List<Cromossomo> pCromossomos) {
 
-        ArrayList<Sensor> popSensores = rede.getAvailableSensors();
+        List<Sensor> popSensores = rede.getAvailableSensors();
 
         double penAtiv = popSensores.get(0).getActivationPower() + popSensores.get(0).getMaintenancePower();
         int penNCob = 0;//100000 utilizado no mono-objetivo;
@@ -231,7 +232,6 @@ public class AG_Estatico_MO_arq {
 
 
     public static void avaliarIndividuo(RedeSensor rede, Cromossomo individuo, double penAtiv, int penNCob) {
-        // TODO Auto-generated method stub
 
         int naoCoberturaAuxiliar = rede.avaliaNaoCoberturaSemConect(individuo.getListIdsAtivo());
         individuo.setNaoCobertura(naoCoberturaAuxiliar);
@@ -574,8 +574,8 @@ public class AG_Estatico_MO_arq {
 
     }
 
-    public static Cromossomo decSolPareto(ArrayList<Cromossomo> conjSolPareto,
-                                          ArrayList<Sensor> popSensores, RedeSensor rede) throws Exception {
+    public static Cromossomo decSolPareto(List<Cromossomo> conjSolPareto,
+                                          List<Sensor> popSensores, RedeSensor rede) throws Exception {
 
         //Ajuste de coordenadas.
 

@@ -8,7 +8,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
+import java.util.List;
 
 public class Saidas {
 
@@ -28,7 +28,6 @@ public class Saidas {
 
 
     private void apagarArqSimulacao() {
-        // TODO Auto-generated method stub
         File arquivoSimulacao = new File(pasta + "simulacao");
         try {
             //Apagar um arquivo
@@ -53,7 +52,6 @@ public class Saidas {
     }
 
     public void geraArquivoSimulador(int estagioAtual) throws IOException {
-        // TODO Auto-generated method stub
         String pastaSaida = pasta + "simulacao";
 
 
@@ -76,9 +74,9 @@ public class Saidas {
 
             double bateria = s.getBatteryEnergy();
 
-            int pai;
+            long pai;
             if (s.isActive() && s.getParent() != null)
-                pai = s.getParent().getId();
+                pai = s.getParent().getID();
             else
                 pai = -1;
 
@@ -94,9 +92,9 @@ public class Saidas {
 
     public void gerarArqSimulacao(int numTeste, String nomeAlg) throws IOException {
 
-        ArrayList<Double> vpCobertura = mSimulacao.getVpCobertura();
-        ArrayList<Double> vEnConsRede = mSimulacao.getvEnConsRede();
-        ArrayList<Double> vEnResRede = mSimulacao.getvEnResRede();
+        List<Double> vpCobertura = mSimulacao.getVpCobertura();
+        List<Double> vEnConsRede = mSimulacao.getvEnConsRede();
+        List<Double> vEnResRede = mSimulacao.getvEnResRede();
 
         String nomeArq;
 

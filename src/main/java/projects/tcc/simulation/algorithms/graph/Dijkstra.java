@@ -1,6 +1,7 @@
 package projects.tcc.simulation.algorithms.graph;
 
-import projects.tcc.nodes.edges.GraphEdge;
+import projects.tcc.simulation.io.ConfigurationLoader;
+import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.rssf.Sensor;
 import sinalgo.nodes.edges.Edge;
 
@@ -21,9 +22,9 @@ public class Dijkstra {
 
             // Visit each edge exiting u
             if (u != null) {
-                for (Edge edge : u.getOutgoingConnections()) {
-                    Sensor v = (Sensor) edge.getEndNode();
-                    double weight = ((GraphEdge) edge).getWeight();
+                for (Edge e : u.getOutgoingConnections()) {
+                    Sensor v = (Sensor) e.getEndNode();
+                    double weight = v.getAdjacenciesMatrix().get(e.getEndNode().getID());
                     double distanceThroughU = u.getMinDistance() + weight;
                     if (distanceThroughU < v.getMinDistance()) {
                         vertexQueue.remove(v);
@@ -47,31 +48,41 @@ public class Dijkstra {
     }
 
     public static void main(String[] args) {
-        Sensor s0 = new Sensor(1., 1., 15, 0.25);
-        Sensor s1 = new Sensor(1., 5., 15, 0.25);
-        Sensor s2 = new Sensor(5., 1., 15, 0.25);
-        Sensor s3 = new Sensor(5., 5., 15, 0.25);
-        Sensor s4 = new Sensor(5., 15., 15, 0.25);
+
+        ConfigurationLoader.overrideConfiguration(SimulationConfiguration.builder()
+                .commRadius(15)
+                .commRatio(0.25)
+                .build());
+
+        Sensor s0 = new Sensor();
+        Sensor s1 = new Sensor();
+        Sensor s2 = new Sensor();
+        Sensor s3 = new Sensor();
+        Sensor s4 = new Sensor();
+
+        s0.setPosition(1, 1, 0);
+        s1.setPosition(1, 5, 0);
+        s2.setPosition(5, 1, 0);
+        s3.setPosition(5, 15, 0);
+        s4.setPosition(5, 15, 0);
 
         s0.addConnectionTo(s1);
+        s0.addConnectionTo(s2);
+        s0.addConnectionTo(s3);
+        s0.addConnectionTo(s3);
 
-        s0.getAdjacencies().add(new Edge(s1, 5));
-        s0.getAdjacencies().add(new Edge(s2, 10));
-        s0.getAdjacencies().add(new Edge(s3, 9));
-        s0.getAdjacencies().add(new Edge(s3, 8));
+        s1.addConnectionTo(s0);
+        s1.addConnectionTo(s2);
+        s1.addConnectionTo(s4);
 
-        s1.getAdjacencies().add(new Edge(s0, 5));
-        s1.getAdjacencies().add(new Edge(s2, 3));
-        s1.getAdjacencies().add(new Edge(s4, 7));
+        s2.addConnectionTo(s0);
+        s2.addConnectionTo(s1);
 
-        s2.getAdjacencies().add(new Edge(s0, 10));
-        s2.getAdjacencies().add(new Edge(s1, 3));
+        s3.addConnectionTo(s0);
+        s3.addConnectionTo(s4);
 
-        s3.getAdjacencies().add(new Edge(s0, 8));
-        s3.getAdjacencies().add(new Edge(s4, 2));
-
-        s4.getAdjacencies().add(new Edge(s1, 7));
-        s4.getAdjacencies().add(new Edge(s3, 2));
+        s4.addConnectionTo(s1);
+        s4.addConnectionTo(s3);
 
 
         Sensor[] vertices = {s0, s1, s2, s3, s4};
@@ -79,8 +90,6 @@ public class Dijkstra {
 
         for (Sensor v : vertices) {
             System.out.println("Distance to " + v + ": " + v.getMinDistance());
-
-
             System.out.println("Sensor: " + v + " - tem o pai o Sensor: " + v.getParent());
             List<Sensor> path = getShortestPathTo(v);
             System.out.println("Path: " + path);

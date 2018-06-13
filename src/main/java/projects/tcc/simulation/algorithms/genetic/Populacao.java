@@ -12,11 +12,11 @@ public class Populacao {
     private ArrayList<Cromossomo> popCromossomo;
     private Cromossomo melhorCromo;
     private ArrayList<Cromossomo> melhorPareto;
-    private int[] idsVetBits;
+    private long[] idsVetBits;
     private ArrayList<Pareto> solPareto;
     private int minSensAtiv;
 
-    public Populacao(int vTamPop, int vNumBits, int[] vetIds, double mProbCruz) {
+    public Populacao(int vTamPop, int vNumBits, long[] vetIds, double mProbCruz) {
 
         this.mProbCruz = mProbCruz;
         mProbCruzIndv = 0.7;
@@ -844,7 +844,6 @@ public class Populacao {
 
 
     public void inserirPopArq(ArrayList<Cromossomo> popArq) {
-        // TODO Auto-generated method stub
         for (Cromossomo aPopArq : popArq) {
             popCromossomo.add(new Cromossomo(aPopArq));
         }
@@ -853,7 +852,6 @@ public class Populacao {
 
 
     public void incrementarValorPareto() {
-        // TODO Auto-generated method stub
         /* Ajustando o valor dos paretos para priorizar o pareto arquivo */
         for (Cromossomo aPopCromossomo : popCromossomo) {
             int idPareto = aPopCromossomo.getIdPareto();
@@ -863,7 +861,6 @@ public class Populacao {
     }
 
     public void ajustarValorPareto() {
-        // TODO Auto-generated method stub
         /* Ajustando o valor dos paretos para priorizar o pareto arquivo */
         for (Cromossomo aPopCromossomo : popCromossomo) {
             if (aPopCromossomo.getIdPareto() > 1) {

@@ -2,7 +2,6 @@ package projects.tcc.simulation.rssf;
 
 import lombok.Getter;
 import lombok.Setter;
-import projects.tcc.nodes.edges.GraphEdge;
 import sinalgo.exception.WrongConfigurationException;
 import sinalgo.nodes.Node;
 import sinalgo.nodes.edges.Edge;
@@ -11,9 +10,11 @@ import sinalgo.tools.storage.ReusableIterator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static projects.tcc.simulation.io.ConfigurationLoader.getConfiguration;
@@ -99,9 +100,9 @@ public class Sensor extends SimulationNode {
     private double maintenancePower;
     private double commRatio; //Taxa de comunicação durante a transmissão em uma u.t.
 
+    private final Map<Long, Double> adjacenciesMatrix;
     private final List<Sensor> children;
     private final List<Sensor> neighbors;
-    private final List<GraphEdge> adjacencies;
     private final Set<Integer> coveredPoints;
     private final Set<Integer> exclusivelyCoveredPoints;
     private double pathToSinkCost;
@@ -109,24 +110,22 @@ public class Sensor extends SimulationNode {
     private double minDistance;
     private Sensor previous;
 
-    public Sensor(double x, double y, double commRadius, double commRatio) {
-        this(x, y, commRadius, commRatio, getConfiguration().getBatteryEnergy(),
+    public Sensor() {
+        this(getConfiguration().getCommRadius(), getConfiguration().getCommRatio(), getConfiguration().getBatteryEnergy(),
                 getConfiguration().getActivationPower(), getConfiguration().getReceivePower(),
                 getConfiguration().getMaintenancePower(), getConfiguration().getSensorRadius());
     }
 
-    private Sensor(double x, double y, double commRadius, double commRatio,
+    private Sensor(double commRadius, double commRatio,
                    double batteryEnergy, double activationPower, double receivePower,
                    double maintenancePower, double sensorRadius) {
         super();
-
-        this.setPosition(x, y, 0);
         this.setCommRadius(commRadius);
         this.setActive(true);
         this.setMinDistance(Double.POSITIVE_INFINITY);
         this.setCommRatio(commRatio);
         this.neighbors = new ArrayList<>();
-        this.adjacencies = new ArrayList<>();
+        this.adjacenciesMatrix = new HashMap<>();
         this.children = new ArrayList<>();
         this.coveredPoints = new LinkedHashSet<>();
         this.exclusivelyCoveredPoints = new LinkedHashSet<>();
@@ -148,6 +147,7 @@ public class Sensor extends SimulationNode {
         this.setPrevious(null);
         this.setConnected(false);
         this.setMinDistance(Double.POSITIVE_INFINITY);
+        this.getAdjacenciesMatrix().clear();
         this.children.clear();
     }
 
@@ -257,6 +257,17 @@ public class Sensor extends SimulationNode {
             return (Sensor) iterator.next().getEndNode();
         }
         return null;
+    }
+
+    @Override
+    public void addConnectionTo(Node n) {
+        super.addConnectionTo(n);
+        this.getAdjacenciesMatrix().put(n.getID(), this.queryDistances(this.getPosition().distanceTo(n.getPosition())));
+    }
+
+    public void addConnectionTo(Node n, double customWeight) {
+        super.addConnectionTo(n);
+        this.getAdjacenciesMatrix().put(n.getID(), customWeight);
     }
 
 }
