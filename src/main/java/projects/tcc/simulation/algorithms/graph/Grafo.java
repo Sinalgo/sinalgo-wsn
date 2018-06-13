@@ -3,8 +3,6 @@ package projects.tcc.simulation.algorithms.graph;
 import projects.tcc.simulation.rssf.Sensor;
 import projects.tcc.simulation.rssf.Sink;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 
@@ -40,14 +38,6 @@ public class Grafo {
         for (Sensor vert : listSensores_Sink) {
             vert.setPathToSinkCost(vert.getMinDistance());
         }
-    }
-
-    public static List<Sensor> getShortestPathTo(Sensor target) {
-        List<Sensor> path = new ArrayList<>();
-        for (Sensor vertex = target; vertex != null; vertex = vertex.getPrevious())
-            path.add(vertex);
-        Collections.reverse(path);
-        return path;
     }
 
     public void construirGrafoConect() {
