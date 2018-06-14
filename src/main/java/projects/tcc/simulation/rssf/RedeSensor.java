@@ -3,7 +3,7 @@ package projects.tcc.simulation.rssf;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import projects.tcc.simulation.algorithms.graph.Grafo;
+import projects.tcc.simulation.algorithms.graph.GraphHolder;
 import sinalgo.nodes.Position;
 
 import java.io.IOException;
@@ -23,7 +23,7 @@ public class RedeSensor {
     private List<Sensor> listSensoresDisp_Sink;
     private List<Sensor> activeSensors;
     private List<Sensor> listSensFalhosNoPer;
-    private List<Sink> listSink;
+    private Sink sink;
     private int[] coverageMatrix;
     private int numPontosCobertos;
 
@@ -43,7 +43,6 @@ public class RedeSensor {
         listSensoresDisp_Sink = new ArrayList<>();
         availableSensors = new ArrayList<>();
         activeSensors = new ArrayList<>();
-        listSink = new ArrayList<>();
         setPontosDemanda(largura, comprimento);
         constroiVetCobertura();
         numPontosCobertos = 0;
@@ -78,9 +77,8 @@ public class RedeSensor {
     }
 
     public void addSink() {
-        Sink vSink = new Sink();
-        listSensoresDisp_Sink.add(vSink);
-        listSink.add(vSink);
+        this.sink = new Sink();
+        listSensoresDisp_Sink.add(sink);
     }
 
     public void prepararRede() throws Exception {
@@ -318,7 +316,6 @@ public class RedeSensor {
             sens.getParent().getChildren().remove(sens);
             activeSensors.remove(sens);
             availableSensors.remove(sens);
-            listSensoresDisp_Sink.remove(sens);
         }
 
         if (falha) {
@@ -377,14 +374,6 @@ public class RedeSensor {
         return numPontosCobertos;
     }
 
-
-    public void calCustosCaminho() {
-        Grafo grafoCM = new Grafo(listSensoresDisp_Sink, connectivityMatrix);
-        grafoCM.construirGrafo();
-        grafoCM.caminhosMinimosPara(listSink.get(0));
-    }
-
-
     public void ativarSensoresVetBits(boolean[] vetBoolean) {
 
         activeSensors.clear();
@@ -418,9 +407,8 @@ public class RedeSensor {
             sens.resetConnectivity();
         }
 
-        Grafo grafoCM = new Grafo(listSensoresDisp_Sink, connectivityMatrix);
-        grafoCM.construirGrafoConect();
-        grafoCM.caminhosMinimosPara(listSink.get(0));
+        GraphHolder grafoCM = new GraphHolder(listSensoresDisp_Sink, sink, connectivityMatrix);
+        grafoCM.update();
         reactivateParents();
         fillChildrenList();
         for (Sensor s : activeSensors) {
