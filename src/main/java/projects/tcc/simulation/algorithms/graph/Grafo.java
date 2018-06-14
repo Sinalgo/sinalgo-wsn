@@ -1,5 +1,8 @@
 package projects.tcc.simulation.algorithms.graph;
 
+import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
+import org.jgrapht.graph.DefaultDirectedWeightedGraph;
+import org.jgrapht.graph.DefaultWeightedEdge;
 import projects.tcc.simulation.rssf.Sensor;
 import projects.tcc.simulation.rssf.Sink;
 
@@ -10,6 +13,8 @@ public class Grafo {
 
     private List<Sensor> listSensores_Sink;
     private double[][] matrizConectividade;
+
+    private static final double PENALIDADE = 2500;
 
     public Grafo(List<Sensor> listSensores, double[][] matrizConectividade) {
         this.listSensores_Sink = listSensores;
@@ -41,9 +46,9 @@ public class Grafo {
     }
 
     public void construirGrafoConect() {
-
-        double penalidade = 2500;
-
+        DefaultDirectedWeightedGraph<Long, DefaultWeightedEdge> graph =
+                new DefaultDirectedWeightedGraph<>(DefaultWeightedEdge.class);
+        listSensores_Sink.forEach(s -> graph.addVertex(s.getID()));
         for (Sensor vertA : listSensores_Sink) {
             for (Sensor vertB : vertA.getNeighbors()) {
                 if (!vertB.isFailed()) {
@@ -52,16 +57,20 @@ public class Grafo {
 
                     if ((vertA.isActive() && !vertB.isActive()) ||
                             (!vertA.isActive() && vertB.isActive()))
-                        peso = peso * penalidade;
+                        peso = peso * PENALIDADE;
 
                     if (!vertA.isActive() && !vertB.isActive())
-                        peso = peso * penalidade * penalidade;
+                        peso = peso * PENALIDADE * PENALIDADE;
 
-                    vertA.addConnectionTo(vertB, peso);
+                    graph.setEdgeWeight(graph.addEdge(vertA.getID(), vertB.getID()), peso);
                 }
             }
         }
 
+        DijkstraShortestPath<Long, DefaultWeightedEdge> dijkstra = new DijkstraShortestPath<>(graph);
+        Sink sink = (Sink) listSensores_Sink.get(0);
+        listSensores_Sink.subList(1, listSensores_Sink.size())
+                .forEach(s -> s.setMinDistance(dijkstra.getPathWeight(s.getID(), sink.getID())));
     }
 
 }
