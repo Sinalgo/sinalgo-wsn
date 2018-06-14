@@ -48,12 +48,11 @@ public class GraphHolder {
                             double distance = connectivityMatrix[(int) s.getID()][(int) s2.getID()];
                             double weight = s.queryDistances(distance);
 
-                            if ((s.isActive() && !s2.isActive()) ||
-                                    (!s.isActive() && s2.isActive()))
+                            if ((s.isActive() && !s2.isActive()) || (!s.isActive() && s2.isActive())) {
                                 weight = weight * PENALTY;
-
-                            if (!s.isActive() && !s2.isActive())
+                            } else if (!s.isActive() && !s2.isActive()) {
                                 weight = weight * PENALTY * PENALTY;
+                            }
 
                             graph.setEdgeWeight(graph.getEdge(s.getID(), s2.getID()), weight);
                         }
