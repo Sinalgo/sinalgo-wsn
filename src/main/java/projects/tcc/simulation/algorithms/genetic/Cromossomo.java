@@ -1,6 +1,8 @@
 package projects.tcc.simulation.algorithms.genetic;
 
 import lombok.Getter;
+import lombok.Setter;
+import sinalgo.exception.SinalgoFatalException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,8 +12,15 @@ public class Cromossomo {
     private int mTamanhoCromossomo;
     private int mBits[];
     private int mNumeroAtivos;
-    private double mFitness;
-    private double mFitness2;
+
+    @Getter
+    @Setter
+    private double fitness;
+
+    @Getter
+    @Setter
+    private double fitness2;
+
     private double crowdingDist;
     private double mFitnessMO;
     private double mNaoCobertura;
@@ -33,8 +42,8 @@ public class Cromossomo {
         mTamanhoCromossomo = pTamanhoCromossomo;
         mBits = new int[mTamanhoCromossomo];
         mNumeroAtivos = 0;
-        mFitness = -1;
-        mFitness2 = -1;
+        fitness = -1;
+        fitness2 = -1;
         crowdingDist = -1;
         mNaoCobertura = -1;
         mProbMutAle = 0.2;
@@ -56,8 +65,8 @@ public class Cromossomo {
         System.arraycopy(vetBitsCromo, 0, mBits, 0, vetBitsCromo.length);
 
         mNumeroAtivos = cromo.getNumeroAtivos();
-        mFitness = cromo.getFitness();
-        mFitness2 = cromo.getFitness2();
+        fitness = cromo.getFitness();
+        fitness2 = cromo.getFitness2();
         crowdingDist = cromo.getCrowdingDist();
         mNaoCobertura = cromo.getNaoCobertura();
         idPareto = cromo.getIdPareto();
@@ -146,58 +155,52 @@ public class Cromossomo {
         return (int) mNaoCobertura;
     }
 
-    public double getFitness() {
-        return mFitness;
-    }
-
-    public double getFitness2() {
-        return mFitness2;
-    }
-
     public void setNaoCobertura(int pNaoCobertura) {
         mNaoCobertura = pNaoCobertura;
     }
 
-    public void setFitness() {
-        mFitness = mNumeroAtivos + mNaoCobertura;
+    public void calculateFitness() {
+        fitness = mNumeroAtivos + mNaoCobertura;
     }
 
-    public void setFitness(double pPenalidadeAtivacao, double vCustoCaminho, int pPenalidadeNaoCobertura) {
+    public void calculateFitness(double pPenalidadeAtivacao, double vCustoCaminho, int pPenalidadeNaoCobertura) {
 //		System.out.println("pPenalidadeAtivacao*mNumeroAtivos = " + pPenalidadeAtivacao*mNumeroAtivos);
 //		System.out.println("vCustoCaminho = " + vCustoCaminho);
 //		System.out.println("pPenalidadeNaoCobertura*mNaoCobertura = " + pPenalidadeNaoCobertura*mNaoCobertura);
-        mFitness = pPenalidadeAtivacao * mNumeroAtivos + pPenalidadeNaoCobertura * mNaoCobertura + vCustoCaminho;
+        this.setFitness(pPenalidadeAtivacao * mNumeroAtivos + pPenalidadeNaoCobertura * mNaoCobertura + vCustoCaminho);
     }
 
-    public void setFitness(double pPenalidadeAtivacao, double vCustoCaminho, int pPenalidadeNaoCobertura, double enRes) {
-        mFitness = (pPenalidadeAtivacao * mNumeroAtivos + vCustoCaminho) / enRes + pPenalidadeNaoCobertura * mNaoCobertura;
+    public void calculateFitness(double pPenalidadeAtivacao, double vCustoCaminho, int pPenalidadeNaoCobertura, double enRes) {
+        this.setFitness((pPenalidadeAtivacao * mNumeroAtivos + vCustoCaminho) / enRes + pPenalidadeNaoCobertura * mNaoCobertura);
     }
 
-    public void setFitness(double pFitness) {
-        mFitness = pFitness;
-    }
-
-    public void setFitness2(double raioSens, int penNCob, int redCob) {
+    public void calculateFitness2(double raioSens, int penNCob, int redCob) {
 //		System.out.println("nSensAtivos*(Math.PI*(Math.pow(raioSens, 2))) = " + nSensAtivos*(Math.PI*(Math.pow(raioSens, 2))));
 //		System.out.println("penNCob*mNaoCobertura = " + penNCob*mNaoCobertura);
 //		System.out.println("mNaoCobertura*redCob = " + (mNaoCobertura*redCob)/1000);
-//		mFitness2 = mNumeroAtivos*(Math.PI*(Math.pow(raioSens, 2))) + penNCob*mNaoCobertura + redCob;
-        mFitness2 = penNCob * mNaoCobertura + ((mNaoCobertura + 10) * redCob) / 100 + 100 * mNumeroAtivos; //Usada!!!
-        //mFitness2 = mFitness2/5000000000.; // ajuste...
+//		fitness2 = mNumeroAtivos*(Math.PI*(Math.pow(raioSens, 2))) + penNCob*mNaoCobertura + redCob;
+        this.setFitness2(penNCob * mNaoCobertura + ((mNaoCobertura + 10) * redCob) / 100 + 100 * mNumeroAtivos); //Usada!!!
+        //fitness2 = fitness2/5000000000.; // ajuste...
     }
 
-    public void setFitness2(double raioSens, int penNCob, double penAtiv) {
+    public void calculateFitness2(double raioSens, int penNCob, double penAtiv) {
 //		System.out.println("nSensAtivos*(Math.PI*(Math.pow(raioSens, 2))) = " + nSensAtivos*(Math.PI*(Math.pow(raioSens, 2))));
 //		System.out.println("penNCob*mNaoCobertura = " + penNCob*mNaoCobertura);
 //		System.out.println("mNaoCobertura*redCob = " + (mNaoCobertura*redCob)/1000);
-//		mFitness2 = mNumeroAtivos*(Math.PI*(Math.pow(raioSens, 2))) + penNCob*mNaoCobertura + redCob;
+//		fitness2 = mNumeroAtivos*(Math.PI*(Math.pow(raioSens, 2))) + penNCob*mNaoCobertura + redCob;
         //System.out.println("penNCob*mNaoCobertura = " + penNCob*mNaoCobertura + "  -  penAtiv*mNumeroAtivos = " + penAtiv*mNumeroAtivos);
-        mFitness2 = penNCob * mNaoCobertura + penAtiv * mNumeroAtivos; //Usada!!!
-        //mFitness2 = mFitness2/5000000000.; // ajuste...
+        this.setFitness2(penNCob * mNaoCobertura + penAtiv * mNumeroAtivos); //Usada!!!
+        //fitness2 = fitness2/5000000000.; // ajuste...
     }
 
-    public void setFitness2(double pFitness2) {
-        mFitness2 = pFitness2;
+    public double getFitnessOfType(ComparatorFitness.FitnessType type) {
+        if (type == ComparatorFitness.FitnessType.TYPE_1) {
+            return this.getFitness();
+        } else if (type == ComparatorFitness.FitnessType.TYPE_2) {
+            return this.getFitness2();
+        } else {
+            throw new SinalgoFatalException("Invalid fitness type: " + type);
+        }
     }
 
     public int getTamanhoCromossomo() {
@@ -302,7 +305,7 @@ public class Cromossomo {
         for (cContador = 0; cContador < mTamanhoCromossomo; cContador++)
             System.out.print(mBits[cContador]);
 
-        System.out.println("\t" + mFitness);
+        System.out.println("\t" + fitness);
     }
 
     public void printCompleto() {
@@ -310,7 +313,7 @@ public class Cromossomo {
         for (cContador = 0; cContador < mTamanhoCromossomo; cContador++)
             System.out.print(mBits[cContador]);
 
-        System.out.print("\t" + mNumeroAtivos + "\t" + mNaoCobertura + "\t" + mFitness);
+        System.out.print("\t" + mNumeroAtivos + "\t" + mNaoCobertura + "\t" + fitness);
 
         System.out.println();
     }

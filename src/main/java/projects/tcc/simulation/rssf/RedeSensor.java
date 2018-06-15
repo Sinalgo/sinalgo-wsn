@@ -23,7 +23,6 @@ public class RedeSensor {
     private List<Sensor> listSensoresDisp_Sink;
     private List<Sensor> activeSensors;
     private List<Sensor> listSensFalhosNoPer;
-    private Sink sink;
     private int[] coverageMatrix;
     private int numPontosCobertos;
 
@@ -74,11 +73,6 @@ public class RedeSensor {
                 pontosDemanda[i * largura + j] = new Position(i + 0.5, j + 0.5, 0);
             }
         }
-    }
-
-    public void addSink() {
-        this.sink = new Sink();
-        listSensoresDisp_Sink.add(sink);
     }
 
     public void prepararRede() throws Exception {
@@ -407,7 +401,7 @@ public class RedeSensor {
             sens.resetConnectivity();
         }
 
-        GraphHolder grafoCM = new GraphHolder(listSensoresDisp_Sink, sink, connectivityMatrix);
+        GraphHolder grafoCM = new GraphHolder(listSensoresDisp_Sink, connectivityMatrix);
         grafoCM.update();
         reactivateParents();
         fillChildrenList();

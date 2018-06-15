@@ -39,6 +39,7 @@ package projects.tcc;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import projects.tcc.simulation.rssf.Sink;
 import sinalgo.exception.SinalgoFatalException;
 import sinalgo.runtime.AbstractCustomGlobal;
 import sinalgo.runtime.Global;
@@ -66,6 +67,10 @@ import sinalgo.tools.logging.Logging;
 @Getter(AccessLevel.PRIVATE)
 @Setter(AccessLevel.PRIVATE)
 public class CustomGlobal extends AbstractCustomGlobal {
+
+    @Getter
+    @Setter
+    private static Sink currentSink;
 
     private Logging log = Logging.getLogger("tcc_log.txt");
 

@@ -21,6 +21,10 @@ public class SimulationFilesPositionModel extends DistributionModel {
 
     @Override
     public Position getNextPosition() {
-        return this.configurationIterator.hasNext() ? this.configurationIterator.next().toPosition() : null;
+        if (this.configurationIterator.hasNext()) {
+            return this.configurationIterator.next().toPosition();
+        }
+        return new Position(ConfigurationLoader.getConfiguration().getSinkPosX(),
+                ConfigurationLoader.getConfiguration().getSinkPosY(), 0);
     }
 }

@@ -245,7 +245,7 @@ public class AG_Estatico_MO_arq {
 
         int penCustoCaminho = 100;
 
-        individuo.setFitness(penAtiv, custoCaminhoTotal * penCustoCaminho, penNCob);
+        individuo.calculateFitness(penAtiv, custoCaminhoTotal * penCustoCaminho, penNCob);
 
     }
 
@@ -265,7 +265,7 @@ public class AG_Estatico_MO_arq {
 
             // avalia apenas quem precisa
             if (vFitness2 < 0) {
-                indiv.setFitness2(raioSens, penNCob, penAtiv);
+                indiv.calculateFitness2(raioSens, penNCob, penAtiv);
 
             }
         }

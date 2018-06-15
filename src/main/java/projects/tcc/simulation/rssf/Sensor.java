@@ -98,14 +98,10 @@ public class Sensor extends SimulationNode {
     private double maintenancePower;
     private double commRatio; //Taxa de comunicação durante a transmissão em uma u.t.
 
-    private final List<Sensor> children;
     private final List<Sensor> neighbors;
     private final Set<Integer> coveredPoints;
     private final Set<Integer> exclusivelyCoveredPoints;
     private double pathToSinkCost;
-
-    private double minDistance;
-    private Sensor previous;
 
     public Sensor() {
         this(getConfiguration().getCommRadius(), getConfiguration().getCommRatio(), getConfiguration().getBatteryEnergy(),
@@ -122,7 +118,6 @@ public class Sensor extends SimulationNode {
         this.setMinDistance(Double.POSITIVE_INFINITY);
         this.setCommRatio(commRatio);
         this.neighbors = new ArrayList<>();
-        this.children = new ArrayList<>();
         this.coveredPoints = new LinkedHashSet<>();
         this.exclusivelyCoveredPoints = new LinkedHashSet<>();
 
@@ -137,13 +132,6 @@ public class Sensor extends SimulationNode {
         this.setActive(false);
         this.setFailed(false);
         this.setConnected(false);
-    }
-
-    public void resetConnectivity() {
-        this.setPrevious(null);
-        this.setConnected(false);
-        this.setMinDistance(Double.POSITIVE_INFINITY);
-        this.children.clear();
     }
 
     @Override

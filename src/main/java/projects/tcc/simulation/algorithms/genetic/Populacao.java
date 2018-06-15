@@ -478,8 +478,8 @@ public class Populacao {
             Cromossomo cromoCopy = new Cromossomo(cromoPareto.getTamanhoCromossomo(), idsVetBits);
 
             //copiando os campos
-            cromoCopy.setFitness(cromoPareto.getFitness());
-            cromoCopy.setFitness2(cromoPareto.getFitness2());
+            cromoCopy.calculateFitness(cromoPareto.getFitness());
+            cromoCopy.calculateFitness2(cromoPareto.getFitness2());
             cromoCopy.setIdPareto(cromoPareto.getIdPareto());
             cromoCopy.setNumeroAtivos(cromoPareto.getNumeroAtivos());
             cromoCopy.setPresPareto(cromoPareto.getPresPareto());

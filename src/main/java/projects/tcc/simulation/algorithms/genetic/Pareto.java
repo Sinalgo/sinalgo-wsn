@@ -1,11 +1,17 @@
 
 package projects.tcc.simulation.algorithms.genetic;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.ArrayList;
+import java.util.List;
 
 public class Pareto {
 
-    private ArrayList<Cromossomo> popCromoPareto;
+    @Getter
+    @Setter
+    private List<Cromossomo> popCromoPareto;
 
     public Pareto() {
         popCromoPareto = new ArrayList<>();
@@ -13,14 +19,6 @@ public class Pareto {
 
     public void inserirSolPareto(Cromossomo solPareto) {
         popCromoPareto.add(solPareto);
-    }
-
-    public ArrayList<Cromossomo> getPopCromoPareto() {
-        return popCromoPareto;
-    }
-
-    public void setPopCromoPareto(ArrayList<Cromossomo> popCromoPareto) {
-        this.popCromoPareto = popCromoPareto;
     }
 
     public int getNumIndv() {
@@ -31,9 +29,8 @@ public class Pareto {
 
         double INF = 1.7976931348623157e+308;
         double iDist, iDistAtual, fmax = 0, fmin = 0, fauxAnt = 0, fauxPos = 0;
-        int numFOs = 2;
 
-        int numIndv = popCromoPareto.size();
+        int numIndv = this.getNumIndv();
 
         for (Cromossomo aPopCromoPareto : popCromoPareto) {
             aPopCromoPareto.setCrowdingDist(0);
@@ -42,37 +39,26 @@ public class Pareto {
         popCromoPareto.get(0).setCrowdingDist(INF);
         popCromoPareto.get(numIndv - 1).setCrowdingDist(INF);
 
-        for (int k = 0; k < numFOs; k++) {
+        for (ComparatorFitness.FitnessType type : ComparatorFitness.FitnessType.values()) {
 
             //Ordenar as solu��es presente no Pareto segundo a fitness k+1
-            popCromoPareto.sort(new ComparatorFitness(k + 1));
+            popCromoPareto.sort(new ComparatorFitness(type));
             /////////////////////////////////////////////////////////////
 
             //Calculos para F1
-            if (k == 0) {
-                fmin = popCromoPareto.get(0).getFitness();
-                fmax = popCromoPareto.get(numIndv - 1).getFitness();
-            } else if (k == 1) {
-                fmin = popCromoPareto.get(0).getFitness2();
-                fmax = popCromoPareto.get(numIndv - 1).getFitness2();
-            }
-
+            fmin = popCromoPareto.get(0).getFitnessOfType(type);
+            fmax = popCromoPareto.get(numIndv - 1).getFitnessOfType(type);
 
             for (int i = 1; i < numIndv - 1; i++) {
+                fauxAnt = popCromoPareto.get(i - 1).getFitnessOfType(type);
+                fauxPos = popCromoPareto.get(i + 1).getFitnessOfType(type);
 
-                if (k == 0) {
-                    fauxAnt = popCromoPareto.get(i - 1).getFitness();
-                    fauxPos = popCromoPareto.get(i + 1).getFitness();
-                } else if (k == 1) {
-                    fauxAnt = popCromoPareto.get(i - 1).getFitness2();
-                    fauxPos = popCromoPareto.get(i + 1).getFitness2();
-                }
+                Cromossomo thisChromosome = popCromoPareto.get(i);
 
                 iDist = (fauxPos - fauxAnt) / (fmax - fmin);
-                iDistAtual = popCromoPareto.get(i).getCrowdingDist();
+                iDistAtual = thisChromosome.getCrowdingDist();
 
-                popCromoPareto.get(i).setCrowdingDist(iDist + iDistAtual);
-
+                thisChromosome.setCrowdingDist(iDist + iDistAtual);
             }
 
         }
@@ -83,44 +69,33 @@ public class Pareto {
     public void crowdingDistanceRoleta() {
 
         double iDist, iDistAtual, fmax = 0, fmin = 0, fauxAnt = 0, fauxPos = 0;
-        int numFOs = 2;
 
-        int numIndv = popCromoPareto.size();
+        int numIndv = this.getNumIndv();
 
         for (Cromossomo aPopCromoPareto : popCromoPareto) {
             aPopCromoPareto.setCrowdingDist(0);
         }
 
-        for (int k = 0; k < numFOs; k++) {
+        for (ComparatorFitness.FitnessType type : ComparatorFitness.FitnessType.values()) {
 
             //Ordenar as solu��es presente no Pareto segundo a fitness k+1
-            popCromoPareto.sort(new ComparatorFitness(k + 1));
+            popCromoPareto.sort(new ComparatorFitness(type));
             /////////////////////////////////////////////////////////////
 
             //Calculos para F1
-            if (k == 0) {
-                fmin = popCromoPareto.get(0).getFitness();
-                fmax = popCromoPareto.get(numIndv - 1).getFitness();
-            } else if (k == 1) {
-                fmin = popCromoPareto.get(0).getFitness2();
-                fmax = popCromoPareto.get(numIndv - 1).getFitness2();
-            }
-
+            fmin = popCromoPareto.get(0).getFitnessOfType(type);
+            fmax = popCromoPareto.get(numIndv - 1).getFitnessOfType(type);
 
             for (int i = 1; i < numIndv - 1; i++) {
+                fauxAnt = popCromoPareto.get(i - 1).getFitnessOfType(type);
+                fauxPos = popCromoPareto.get(i + 1).getFitnessOfType(type);
 
-                if (k == 0) {
-                    fauxAnt = popCromoPareto.get(i - 1).getFitness();
-                    fauxPos = popCromoPareto.get(i + 1).getFitness();
-                } else if (k == 1) {
-                    fauxAnt = popCromoPareto.get(i - 1).getFitness2();
-                    fauxPos = popCromoPareto.get(i + 1).getFitness2();
-                }
+                Cromossomo thisChromosome = popCromoPareto.get(i);
 
                 iDist = (fauxPos - fauxAnt) / (fmax - fmin);
-                iDistAtual = popCromoPareto.get(i).getCrowdingDist();
+                iDistAtual = thisChromosome.getCrowdingDist();
 
-                popCromoPareto.get(i).setCrowdingDist(iDist + iDistAtual);
+                thisChromosome.setCrowdingDist(iDist + iDistAtual);
 
             }
 

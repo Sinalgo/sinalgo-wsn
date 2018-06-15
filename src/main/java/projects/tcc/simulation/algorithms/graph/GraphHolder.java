@@ -3,8 +3,8 @@ package projects.tcc.simulation.algorithms.graph;
 import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.DefaultDirectedWeightedGraph;
 import org.jgrapht.graph.DefaultWeightedEdge;
+import projects.tcc.CustomGlobal;
 import projects.tcc.simulation.rssf.Sensor;
-import projects.tcc.simulation.rssf.Sink;
 
 import java.util.List;
 
@@ -16,12 +16,10 @@ public class GraphHolder {
     private DefaultDirectedWeightedGraph<Long, DefaultWeightedEdge> graph;
 
     private List<Sensor> sensors;
-    private Sink sink;
     private double[][] connectivityMatrix;
 
-    public GraphHolder(List<Sensor> sensors, Sink sink, double[][] connectivityMatrix) {
+    public GraphHolder(List<Sensor> sensors, double[][] connectivityMatrix) {
         this.sensors = sensors;
-        this.sink = sink;
         this.connectivityMatrix = connectivityMatrix;
     }
 
@@ -66,7 +64,7 @@ public class GraphHolder {
 
     private void updateCostsToSink() {
         DijkstraShortestPath<Long, DefaultWeightedEdge> dijkstra = new DijkstraShortestPath<>(graph);
-        sensors.forEach(s -> s.setMinDistance(dijkstra.getPathWeight(s.getID(), sink.getID())));
+        sensors.forEach(s -> s.setMinDistance(dijkstra.getPathWeight(s.getID(), CustomGlobal.getCurrentSink().getID())));
     }
 
 }
