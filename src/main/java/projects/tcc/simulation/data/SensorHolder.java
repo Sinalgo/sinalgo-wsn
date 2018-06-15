@@ -64,4 +64,11 @@ public class SensorHolder {
         getActiveSensors().values().removeIf(INACTIVATED_PREDICATE);
     }
 
+    public static void clear() {
+        getAvailableSensors().clear();
+        getActiveSensors().clear();
+        getInactiveSensors().clear();
+        getFailedSensors().clear();
+    }
+
 }
