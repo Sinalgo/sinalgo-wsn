@@ -2,8 +2,8 @@ package projects.tcc.simulation.rssf;
 
 import lombok.Getter;
 import lombok.Setter;
+import projects.tcc.simulation.data.SensorHolder;
 import sinalgo.exception.WrongConfigurationException;
-import sinalgo.nodes.Node;
 import sinalgo.nodes.edges.Edge;
 import sinalgo.nodes.messages.Inbox;
 import sinalgo.tools.storage.ReusableIterator;
@@ -115,7 +115,6 @@ public class Sensor extends SimulationNode {
         super();
         this.setCommRadius(commRadius);
         this.setActive(true);
-        this.setMinDistance(Double.POSITIVE_INFINITY);
         this.setCommRatio(commRatio);
         this.neighbors = new ArrayList<>();
         this.coveredPoints = new LinkedHashSet<>();
@@ -132,11 +131,10 @@ public class Sensor extends SimulationNode {
         this.setActive(false);
         this.setFailed(false);
         this.setConnected(false);
-    }
 
-    @Override
-    public int compareTo(Node other) {
-        return Double.compare(this.getMinDistance(), ((Sensor) other).getMinDistance());
+        if (!(this instanceof Sink)) {
+            SensorHolder.addSensors(this);
+        }
     }
 
     @Override

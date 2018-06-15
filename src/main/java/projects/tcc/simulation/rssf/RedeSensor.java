@@ -16,13 +16,6 @@ import java.util.Set;
 @Setter(AccessLevel.PRIVATE)
 public class RedeSensor {
 
-    @Getter
-    private List<Sensor> listSensores;
-    @Getter
-    private List<Sensor> availableSensors;
-    private List<Sensor> listSensoresDisp_Sink;
-    private List<Sensor> activeSensors;
-    private List<Sensor> listSensFalhosNoPer;
     private int[] coverageMatrix;
     private int numPontosCobertos;
 
@@ -38,10 +31,6 @@ public class RedeSensor {
     private double fatorCob;
 
     public RedeSensor(String nomeArq, int largura, int comprimento, double fatorCob) throws IOException {
-        listSensores = new ArrayList<>();
-        listSensoresDisp_Sink = new ArrayList<>();
-        availableSensors = new ArrayList<>();
-        activeSensors = new ArrayList<>();
         setPontosDemanda(largura, comprimento);
         constroiVetCobertura();
         numPontosCobertos = 0;
@@ -50,20 +39,8 @@ public class RedeSensor {
         this.fatorCob = fatorCob;
     }
 
-    public void setListSensFalhosNoPer(List<Sensor> listSensFalhosNoPer) {
-        this.listSensFalhosNoPer = listSensFalhosNoPer;
-    }
-
     public int getNumPontosDemanda() {
         return pontosDemanda.length;
-    }
-
-    public long[] getVetIdsSensDisp() {
-        long[] vetIds = new long[availableSensors.size()];
-        for (int i = 0; i < availableSensors.size(); i++) {
-            vetIds[i] = availableSensors.get(i).getID();
-        }
-        return vetIds;
     }
 
     private void setPontosDemanda(int largura, int comprimento) {
