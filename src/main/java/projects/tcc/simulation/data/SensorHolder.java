@@ -1,8 +1,6 @@
 package projects.tcc.simulation.data;
 
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
 import projects.tcc.simulation.rssf.Sensor;
 import projects.tcc.simulation.rssf.Sink;
 
@@ -11,10 +9,6 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 public class SensorHolder {
-
-    @Getter
-    @Setter
-    private static Sink currentSink;
 
     private static final Predicate<Sensor> FAILED_PREDICATE = s -> {
         if (s.isFailed()) {
@@ -40,23 +34,30 @@ public class SensorHolder {
         return false;
     };
 
-    @Getter(AccessLevel.PRIVATE)
+    @Getter
+    private static final Map<Long, Sink> sinks = new HashMap<>();
+
+    @Getter
     private static final Map<Long, Sensor> availableSensors = new HashMap<>();
 
-    @Getter(AccessLevel.PRIVATE)
+    @Getter
     private static final Map<Long, Sensor> activeSensors = new HashMap<>();
 
-    @Getter(AccessLevel.PRIVATE)
+    @Getter
     private static final Map<Long, Sensor> inactiveSensors = new HashMap<>();
 
-    @Getter(AccessLevel.PRIVATE)
+    @Getter
     private static final Map<Long, Sensor> failedSensors = new HashMap<>();
 
     public static void addSensors(Sensor sensor) {
-        getAvailableSensors().put(sensor.getID(), sensor);
+        if (sensor instanceof Sink) {
+            getSinks().put(sensor.getID(), (Sink) sensor);
+        } else {
+            getAvailableSensors().put(sensor.getID(), sensor);
+        }
     }
 
-    public static void updateSensorsState() {
+    public static void updateSensors() {
         getAvailableSensors().values().removeIf(FAILED_PREDICATE);
         getActiveSensors().values().removeIf(FAILED_PREDICATE);
         getInactiveSensors().values().removeIf(FAILED_PREDICATE);

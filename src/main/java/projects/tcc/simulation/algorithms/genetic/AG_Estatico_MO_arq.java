@@ -1,5 +1,6 @@
 package projects.tcc.simulation.algorithms.genetic;
 
+import projects.tcc.simulation.data.SensorHolder;
 import projects.tcc.simulation.rssf.RedeSensor;
 import projects.tcc.simulation.rssf.Sensor;
 
@@ -251,13 +252,13 @@ public class AG_Estatico_MO_arq {
 
 
     /*evaluates objective function for each chromossome*/
-    static void calculaFuncaoObjetivo2(RedeSensor rede, ArrayList<Cromossomo> pCromossomos) {
+    static void calculaFuncaoObjetivo2(ArrayList<Cromossomo> pCromossomos) {
 
         double raioSens;
         int penNCob = 100000;
         double penAtiv = 100000;
 
-        raioSens = rede.getAvailableSensors().get(0).getSensorRadius();
+        raioSens = SensorHolder.getAvailableSensors().get(0).getSensorRadius();
 
         for (Cromossomo indiv : pCromossomos) {
 
