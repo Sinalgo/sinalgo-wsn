@@ -487,7 +487,6 @@ public class Cromossomo {
 	/*
 	random between 0 and pTamanhoMaximo
 	 */
-
     int getIntRandom(int pTamanhoMaximo) {
         int vRand = (int) (pTamanhoMaximo * (Math.random()));
         return vRand;
