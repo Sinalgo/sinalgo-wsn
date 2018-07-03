@@ -1,7 +1,6 @@
 package projects.tcc.simulation.algorithms.genetic;
 
 import projects.tcc.simulation.data.SensorHolder;
-import projects.tcc.simulation.rssf.RedeSensor;
 import projects.tcc.simulation.rssf.Sensor;
 
 import java.util.ArrayList;
@@ -9,9 +8,9 @@ import java.util.List;
 
 public class AG_Estatico_MO_arq {
 
-    public static boolean[] resolveAG_Estatico_MO(RedeSensor rede, int numeroGeracoes, int tamanhoPopulacao, double txCruzamento, double txMutacao) throws Exception {
+    public static boolean[] resolveAG_Estatico_MO(int numeroGeracoes, int tamanhoPopulacao, double txCruzamento, double txMutacao) throws Exception {
 
-        List<Sensor> listSensensores = rede.getAvailableSensors();
+        List<Sensor> listSensensores = new ArrayList<>(SensorHolder.getAvailableSensors().values());
 
         rede.calCustosCaminho(); //atulizando o custo de caminho de cada sensor ao sink;
 
@@ -164,7 +163,7 @@ public class AG_Estatico_MO_arq {
 
 
     // Prepara��o para uma nova chamada do AG_Estatico
-	/*public static int [] novaSolucao (Ambiente mAmbiente, RedeSensor rede, Saidas output) throws Exception{
+	/*public static int [] novaSolucao (Ambiente mAmbiente, Saidas output) throws Exception{
 
 		ArrayList<Sensor> popTotal;
 		ArrayList<Sensor> popAG;
@@ -216,7 +215,7 @@ public class AG_Estatico_MO_arq {
 
 
     /*evaluates objective function for each chromossome*/
-    static void calculaFuncaoObjetivo(RedeSensor rede, List<Cromossomo> pCromossomos) {
+    static void calculaFuncaoObjetivo(List<Cromossomo> pCromossomos) {
 
         List<Sensor> popSensores = rede.getAvailableSensors();
 
@@ -232,7 +231,7 @@ public class AG_Estatico_MO_arq {
     }
 
 
-    public static void avaliarIndividuo(RedeSensor rede, Cromossomo individuo, double penAtiv, int penNCob) {
+    public static void avaliarIndividuo(Cromossomo individuo, double penAtiv, int penNCob) {
 
         int naoCoberturaAuxiliar = rede.avaliaNaoCoberturaSemConect(individuo.getListIdsAtivo());
         individuo.setNaoCobertura(naoCoberturaAuxiliar);
@@ -576,7 +575,7 @@ public class AG_Estatico_MO_arq {
     }
 
     public static Cromossomo decSolPareto(List<Cromossomo> conjSolPareto,
-                                          List<Sensor> popSensores, RedeSensor rede) throws Exception {
+                                          List<Sensor> popSensores) throws Exception {
 
         //Ajuste de coordenadas.
 
