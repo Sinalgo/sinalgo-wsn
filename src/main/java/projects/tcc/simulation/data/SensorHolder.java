@@ -35,6 +35,9 @@ public class SensorHolder {
     };
 
     @Getter
+    private static final Map<Long, Sensor> allSensorsAndSinks = new HashMap<>();
+
+    @Getter
     private static final Map<Long, Sink> sinks = new HashMap<>();
 
     @Getter
@@ -50,6 +53,7 @@ public class SensorHolder {
     private static final Map<Long, Sensor> failedSensors = new HashMap<>();
 
     public static void addSensors(Sensor sensor) {
+        getAllSensorsAndSinks().put(sensor.getID(), sensor);
         if (sensor instanceof Sink) {
             getSinks().put(sensor.getID(), (Sink) sensor);
         } else {

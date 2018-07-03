@@ -10,9 +10,12 @@ import sinalgo.tools.storage.ReusableIterator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static projects.tcc.simulation.io.ConfigurationLoader.getConfiguration;
@@ -98,10 +101,11 @@ public class Sensor extends SimulationNode {
     private double maintenancePower;
     private double commRatio; //Taxa de comunicação durante a transmissão em uma u.t.
 
-    private final List<Sensor> neighbors;
+    private final Map<Long, Double> neighbors;
     private final Set<Integer> coveredPoints;
     private final Set<Integer> exclusivelyCoveredPoints;
-    private double pathToSinkCost;
+    private final Map<Long, Double> pathToSinkCost;
+    private final Map<Long, Double> distances;
 
     public Sensor() {
         this(getConfiguration().getCommRadius(), getConfiguration().getCommRatio(), getConfiguration().getBatteryEnergy(),
@@ -116,9 +120,11 @@ public class Sensor extends SimulationNode {
         this.setCommRadius(commRadius);
         this.setActive(true);
         this.setCommRatio(commRatio);
-        this.neighbors = new ArrayList<>();
+        this.pathToSinkCost = new LinkedHashMap<>();
+        this.neighbors = new LinkedHashMap<>();
         this.coveredPoints = new LinkedHashSet<>();
         this.exclusivelyCoveredPoints = new LinkedHashSet<>();
+        this.distances = new HashMap<>();
 
         this.setActivationPower(activationPower);
         this.setReceivePower(receivePower);
@@ -131,10 +137,6 @@ public class Sensor extends SimulationNode {
         this.setActive(false);
         this.setFailed(false);
         this.setConnected(false);
-
-        if (!(this instanceof Sink)) {
-            SensorHolder.addSensors(this);
-        }
     }
 
     @Override
@@ -149,7 +151,7 @@ public class Sensor extends SimulationNode {
 
     @Override
     public void init() {
-
+        SensorHolder.addSensors(this);
     }
 
     @Override
@@ -165,6 +167,13 @@ public class Sensor extends SimulationNode {
     @Override
     public void checkRequirements() throws WrongConfigurationException {
 
+    }
+
+    public void reset() {
+        this.getNeighbors().clear();
+        this.getCoveredPoints().clear();
+        this.getExclusivelyCoveredPoints().clear();
+        this.getPathToSinkCost().clear();
     }
 
     public void addChild(Sensor child) {
@@ -187,7 +196,7 @@ public class Sensor extends SimulationNode {
     }
 
     //Vetor de Corrente x distância
-    public double queryDistances(double distance) {
+    public double getCurrentForDistance(double distance) {
         if (Double.compare(distance, DISTANCES[DISTANCES.length - 1]) > 0) {
             throw new RuntimeException("Distância ao Pai não informada corretamente: " + distance);
         }
@@ -205,7 +214,7 @@ public class Sensor extends SimulationNode {
     }
 
     public double getEnergySpentInTransmission(double distanceToParent, long numberOfChildren) {
-        double vCorrente = this.queryDistances(distanceToParent);
+        double vCorrente = this.getCurrentForDistance(distanceToParent);
         return commRatio * vCorrente * (numberOfChildren + 1);
     }
 

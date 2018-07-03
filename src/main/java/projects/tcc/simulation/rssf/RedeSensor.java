@@ -251,7 +251,7 @@ public class RedeSensor {
             double ER = s.getReceivePower() * vNumeroFilhos;
 
             double vDistanciaAoPai = connectivityMatrix[(int) s.getID()][(int) s.getParent().getID()];
-            double vCorrente = s.queryDistances(vDistanciaAoPai);
+            double vCorrente = s.getCurrentForDistance(vDistanciaAoPai);
 
             double ET = s.getCommRatio() * vCorrente * (vNumeroFilhos + 1);
             double EM = s.getMaintenancePower();
@@ -378,8 +378,7 @@ public class RedeSensor {
             sens.resetConnectivity();
         }
 
-        GraphHolder grafoCM = new GraphHolder(listSensoresDisp_Sink, connectivityMatrix);
-        grafoCM.update();
+        GraphHolder.update();
         reactivateParents();
         fillChildrenList();
         for (Sensor s : activeSensors) {
