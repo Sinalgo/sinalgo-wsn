@@ -19,6 +19,7 @@ public class SensorHolder {
     private static final Predicate<Sensor> FAILED_PREDICATE = s -> {
         if (s.isFailed()) {
             getFailedSensors().put(s.getID(), s);
+            getFailedSensorsThisRound().put(s.getID(), s);
             return true;
         }
         return false;
@@ -27,6 +28,7 @@ public class SensorHolder {
     private static final Predicate<Sensor> ACTIVATED_PREDICATE = s -> {
         if (s.isActive()) {
             getActiveSensors().put(s.getID(), s);
+            getActivatedSensorsThisRound().put(s.getID(), s);
             return true;
         }
         return false;
@@ -35,6 +37,7 @@ public class SensorHolder {
     private static final Predicate<Sensor> INACTIVATED_PREDICATE = s -> {
         if (!s.isActive()) {
             getInactiveSensors().put(s.getID(), s);
+            getDeactivatedSensorsThisRound().put(s.getID(), s);
             return true;
         }
         return false;
@@ -58,6 +61,16 @@ public class SensorHolder {
     @Getter
     private static final Map<Long, Sensor> failedSensors = new HashMap<>();
 
+    @Getter
+    private static final Map<Long, Sensor> activatedSensorsThisRound = new HashMap<>();
+
+    @Getter
+    private static final Map<Long, Sensor> deactivatedSensorsThisRound = new HashMap<>();
+
+    @Getter
+    private static final Map<Long, Sensor> failedSensorsThisRound = new HashMap<>();
+
+
     public static void addSensors(Sensor sensor) {
         getAllSensorsAndSinks().put(sensor.getID(), sensor);
         if (sensor instanceof Sink) {
@@ -68,13 +81,28 @@ public class SensorHolder {
     }
 
     public static void updateSensors() {
+        clearRoundSpecificMaps();
         getActiveSensors().values().forEach(Sensor::updateState);
         getAvailableSensors().values().removeIf(FAILED_PREDICATE);
         getActiveSensors().values().removeIf(FAILED_PREDICATE);
         getInactiveSensors().values().removeIf(FAILED_PREDICATE);
         getInactiveSensors().values().removeIf(ACTIVATED_PREDICATE);
         getActiveSensors().values().removeIf(INACTIVATED_PREDICATE);
+        removeFailedSensorsFromNeighborhoods();
         updateAggregateEnergy();
+    }
+
+    private static void clearRoundSpecificMaps() {
+        getActivatedSensorsThisRound().clear();
+        getDeactivatedSensorsThisRound().clear();
+        getFailedSensorsThisRound().clear();
+    }
+
+    private static void removeFailedSensorsFromNeighborhoods() {
+        if (!getFailedSensorsThisRound().isEmpty()) {
+            getAvailableSensors().values()
+                    .forEach(s -> s.getNeighbors().keySet().removeAll(getFailedSensorsThisRound().keySet()));
+        }
     }
 
     private static void updateAggregateEnergy() {
@@ -83,6 +111,7 @@ public class SensorHolder {
     }
 
     public static void clear() {
+        clearRoundSpecificMaps();
         setAvailableEnergy(0);
         getAvailableSensors().clear();
         getActiveSensors().clear();
