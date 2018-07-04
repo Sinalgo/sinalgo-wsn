@@ -8,8 +8,10 @@ import sinalgo.nodes.Position;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Getter
 public class Environment {
@@ -19,6 +21,7 @@ public class Environment {
     private final double coverageFactor;
 
     private final List<Position> points;
+    private final Set<Position> coveredPoints;
 
     @Setter(AccessLevel.NONE)
     private double currentCoverage;
@@ -29,6 +32,7 @@ public class Environment {
         this.coverageFactor = coverageFactor;
         this.area = height * width;
         this.points = new ArrayList<>();
+        this.coveredPoints = new HashSet<>();
         this.currentCoverage = 0;
         this.generatePoints();
     }
@@ -55,6 +59,12 @@ public class Environment {
         if (Double.compare(s.getPosition().distanceTo(p), s.getSensorRadius()) <= 0) {
             s.getCoveredPoints().add(p);
         }
+    }
+
+    public void updateCoverage() {
+        this.getCoveredPoints().clear();
+        SensorHolder.getActiveSensors().values().forEach(s -> this.getCoveredPoints().addAll(s.getCoveredPoints()));
+        this.currentCoverage = ((double) this.getCoveredPoints().size()) / ((double) this.getPoints().size());
     }
 
     public void updateExclusivelyCoveredPoints() {

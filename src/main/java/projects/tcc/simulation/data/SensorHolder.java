@@ -62,6 +62,7 @@ public class SensorHolder {
     }
 
     public static void updateSensors() {
+        getActiveSensors().values().forEach(Sensor::updateState);
         getAvailableSensors().values().removeIf(FAILED_PREDICATE);
         getActiveSensors().values().removeIf(FAILED_PREDICATE);
         getInactiveSensors().values().removeIf(FAILED_PREDICATE);

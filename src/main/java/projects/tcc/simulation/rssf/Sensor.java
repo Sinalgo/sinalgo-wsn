@@ -25,6 +25,8 @@ import static projects.tcc.simulation.io.ConfigurationLoader.getConfiguration;
 @Setter
 public class Sensor extends SimulationNode {
 
+    private final static double MINIMUM_BATTERY_LEVEL = 0.1;
+
     private final static double DISTANCES[] = {
             5.142,
             5.769,
@@ -90,10 +92,11 @@ public class Sensor extends SimulationNode {
 
     private double batteryEnergy;
     private double originalEnergy;
+    private double minimumEnergy;
     private double sensorRadius;
     private double commRadius;
     private boolean active;
-    private boolean bitEA;
+    private boolean stateChangedToActive;
     private boolean connected;
     private boolean failed;
 
@@ -133,6 +136,7 @@ public class Sensor extends SimulationNode {
 
         this.setBatteryEnergy(batteryEnergy);
         this.setOriginalEnergy(batteryEnergy);
+        this.setMinimumEnergy(batteryEnergy * MINIMUM_BATTERY_LEVEL);
         this.setSensorRadius(sensorRadius);
 
         this.setActive(false);
@@ -170,6 +174,14 @@ public class Sensor extends SimulationNode {
 
     }
 
+    public void updateState() {
+        this.setFailed(Double.compare(this.getBatteryEnergy(), this.getMinimumEnergy()) <= 0);
+        if (this.isFailed()) {
+            this.setActive(false);
+            this.setConnected(false);
+        }
+    }
+
     public void reset() {
         this.getNeighbors().clear();
         this.getCoveredPoints().clear();
@@ -183,7 +195,7 @@ public class Sensor extends SimulationNode {
 
     public void setActive(boolean active) {
         if (!this.active && active) {
-            this.setBitEA(true);
+            this.setStateChangedToActive(true);
         }
         this.active = active;
     }

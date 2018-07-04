@@ -6,7 +6,6 @@ import lombok.Setter;
 import projects.tcc.simulation.algorithms.graph.GraphHolder;
 import sinalgo.nodes.Position;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -15,29 +14,6 @@ import java.util.Set;
 @Getter(AccessLevel.PRIVATE)
 @Setter(AccessLevel.PRIVATE)
 public class RedeSensor {
-
-    private int[] coverageMatrix;
-    private int numPontosCobertos;
-
-    @Getter
-    private double porcCobAtual;
-    private double[][] connectivityMatrix;
-    private Position[] pontosDemanda;
-
-    @Getter
-    private double area;
-
-    @Getter
-    private double fatorCob;
-
-    public RedeSensor(String nomeArq, int largura, int comprimento, double fatorCob) throws IOException {
-        setPontosDemanda(largura, comprimento);
-        constroiVetCobertura();
-        numPontosCobertos = 0;
-        porcCobAtual = 0.;
-        area = largura * comprimento;
-        this.fatorCob = fatorCob;
-    }
 
     public int getNumPontosDemanda() {
         return pontosDemanda.length;
@@ -98,9 +74,9 @@ public class RedeSensor {
         double enAtivAcum = 0;
 
         for (Sensor aListSensoresDisp : availableSensors) {
-            if (aListSensoresDisp.isBitEA() && aListSensoresDisp.isActive()) {
+            if (aListSensoresDisp.isStateChangedToActive() && aListSensoresDisp.isActive()) {
                 enAtivAcum += aListSensoresDisp.getActivationPower();
-                aListSensoresDisp.setBitEA(false);
+                aListSensoresDisp.setStateChangedToActive(false);
             }
         }
 
