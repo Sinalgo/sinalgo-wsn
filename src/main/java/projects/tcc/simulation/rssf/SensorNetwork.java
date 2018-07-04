@@ -2,6 +2,7 @@ package projects.tcc.simulation.rssf;
 
 import projects.tcc.simulation.data.SensorHolder;
 
+import java.util.Collection;
 import java.util.Objects;
 
 public class SensorNetwork {
@@ -12,14 +13,16 @@ public class SensorNetwork {
     }
 
     private static void computeDistances() {
-        SensorHolder.getAllSensorsAndSinks().values().forEach(s -> SensorHolder.getAllSensorsAndSinks().values()
-                .forEach(s2 -> {
-                    if (!Objects.equals(s, s2)) {
-                        s.getDistances().computeIfAbsent(s2.getID(), v ->
-                                s2.getDistances().computeIfAbsent(s.getID(), v2 ->
-                                        s.getPosition().distanceTo(s2.getPosition())));
-                    }
-                }));
+        Collection<Sensor> allSensorsAndSinks = SensorHolder.getAllSensorsAndSinks().values();
+        allSensorsAndSinks.forEach(s1 -> allSensorsAndSinks.forEach(s2 -> computeDistance(s1, s2)));
+    }
+
+    private static void computeDistance(Sensor s1, Sensor s2) {
+        if (!Objects.equals(s1, s2)) {
+            s1.getDistances().computeIfAbsent(s2.getID(), v ->
+                    s2.getDistances().computeIfAbsent(s1.getID(), v2 ->
+                            s1.getPosition().distanceTo(s2.getPosition())));
+        }
     }
 
     private static void computeNeighbors() {

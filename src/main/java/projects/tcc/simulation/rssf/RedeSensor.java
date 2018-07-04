@@ -52,29 +52,6 @@ public class RedeSensor {
         }
     }
 
-    public void prepararRede() throws Exception {
-        constroiMatrizConectividade();
-        criaListVizinhosRC();
-    }
-
-    public void constroiMatrizConectividade() {
-
-        int vLinhas = listSensoresDisp_Sink.size();
-        int vColunas = listSensoresDisp_Sink.size();
-
-        this.connectivityMatrix = new double[vLinhas][vColunas];
-
-        for (int i = 0; i < listSensoresDisp_Sink.size(); i++) {
-            for (int j = 0; j < listSensoresDisp_Sink.size(); j++) {
-                if (i != j) {
-                    double vDistancia = listSensoresDisp_Sink.get(i).getPosition().distanceTo(listSensoresDisp_Sink.get(j).getPosition());
-                    connectivityMatrix[i][j] = vDistancia;
-                } else
-                    connectivityMatrix[i][j] = -1;
-            }
-        }
-    }
-
     private void constroiVetCobertura() {
         this.coverageMatrix = new int[this.pontosDemanda.length];
         for (Sensor sens : listSensores) {
@@ -84,24 +61,6 @@ public class RedeSensor {
                 double vDistancia = sens.getPosition().distanceTo(this.pontosDemanda[j]);
                 if (Double.compare(vDistancia, sens.getSensorRadius()) <= 0) {
                     listPontosCobertos.add(j);
-                }
-            }
-
-        }
-    }
-
-    public void criaListVizinhosRC() {
-        for (int i = 0; i < listSensoresDisp_Sink.size(); i++) {
-            List<Sensor> listSensVizinhos = listSensoresDisp_Sink.get(i).getNeighbors();
-            listSensVizinhos.clear();
-            for (int j = 0; j < listSensoresDisp_Sink.size(); j++) {
-                if (i != j) {
-                    double vDistancia = connectivityMatrix[i][j];
-                    double vRaio = (float) listSensoresDisp_Sink.get(i).getCommRadius();
-
-                    if (vDistancia <= vRaio) {
-                        listSensVizinhos.add(listSensoresDisp_Sink.get(j));
-                    }
                 }
             }
 
