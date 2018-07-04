@@ -32,7 +32,7 @@ public class SolucaoViaAGMO {
     public void simularRede(int testNum) throws Exception {
 
         //gerando a POP de Cromossomos inicial para o AG
-        boolean[] vetSensAtiv = AG_Estatico_MO_arq.resolveAG_Estatico_MO(rede, numeroGeracoes, tamanhoPopulacao, txCruzamento, txMutacao);
+        boolean[] vetSensAtiv = AG_Estatico_MO_arq.resolveAG_Estatico_MO(numeroGeracoes, tamanhoPopulacao, txCruzamento, txMutacao);
         /////////////////////////// REDE INICIAL ///////////////////////////////
 
         for (boolean i : vetSensAtiv) {

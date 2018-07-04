@@ -114,27 +114,6 @@ public class RedeSensor {
 
     }
 
-    public double calcCobertura() {
-        //desligarSensoresDesconexos();
-        this.retirarCoberturaDesconexos();
-        porcCobAtual = (double) numPontosCobertos / (double) coverageMatrix.length;
-
-        return porcCobAtual;
-    }
-
-    private void retirarCoberturaDesconexos() {
-        for (Sensor s : activeSensors) {
-            if (!s.isConnected()) {
-                Set<Integer> listPontosCobertos = s.getCoveredPoints();
-                for (Integer listPontosCoberto : listPontosCobertos) {
-                    coverageMatrix[listPontosCoberto]--;
-                    if (coverageMatrix[listPontosCoberto] == 0)
-                        numPontosCobertos--;
-                }
-            }
-        }
-    }
-
 
     public void calcCoberturaInicial() {
         this.coverageMatrix = new int[pontosDemanda.length];
@@ -230,25 +209,6 @@ public class RedeSensor {
             vetCoberturaAux[listPontosCoberto]++;
         }
         return numPontosCobertosAux;
-    }
-
-    private int atualizaCoberturaSemConec(Sensor sensor) {
-        Set<Integer> listPontosCobertos = sensor.getCoveredPoints();
-
-        if (sensor.isActive()) {
-            for (Integer listPontosCoberto : listPontosCobertos) {
-                if (coverageMatrix[listPontosCoberto] == 0)
-                    numPontosCobertos++;
-                coverageMatrix[listPontosCoberto]++;
-            }
-        } else {
-            for (Integer listPontosCoberto : listPontosCobertos) {
-                coverageMatrix[listPontosCoberto]--;
-                if (coverageMatrix[listPontosCoberto] == 0)
-                    numPontosCobertos--;
-            }
-        }
-        return numPontosCobertos;
     }
 
     public void ativarSensoresVetBits(boolean[] vetBoolean) {
@@ -428,21 +388,6 @@ public class RedeSensor {
 
     }
 
-    private int atualizarListaPontosCobExclusivo(Sensor sens) {
-        Set<Integer> exclusivelyCoveredPoints = sens.getExclusivelyCoveredPoints();
-        Set<Integer> coveredPoints = sens.getCoveredPoints();
-
-        exclusivelyCoveredPoints.clear();
-        int uncoveredPointsCount = 0;
-        for (int point : coveredPoints) {
-            if (coverageMatrix[point] == 0) {
-                uncoveredPointsCount++;
-                exclusivelyCoveredPoints.add(point);
-            }
-        }
-
-        return uncoveredPointsCount;
-    }
 
     public void createInitialNetwork(boolean[] vetBoolean) {
         ativarSensoresVetBits(vetBoolean);

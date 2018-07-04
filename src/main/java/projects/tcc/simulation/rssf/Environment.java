@@ -22,9 +22,13 @@ public class Environment {
 
     private final List<Position> points;
     private final Set<Position> coveredPoints;
+    private final Set<Position> disconnectedCoveredPoints;
 
     @Setter(AccessLevel.NONE)
     private double currentCoverage;
+
+    @Setter(AccessLevel.NONE)
+    private double disconnectedCoverage;
 
     public Environment(long height, long width, double coverageFactor) {
         this.height = height;
@@ -33,6 +37,7 @@ public class Environment {
         this.area = height * width;
         this.points = new ArrayList<>();
         this.coveredPoints = new HashSet<>();
+        this.disconnectedCoveredPoints = new HashSet<>();
         this.currentCoverage = 0;
         this.generatePoints();
     }
@@ -61,13 +66,31 @@ public class Environment {
         }
     }
 
-    public void updateCoverage() {
-        this.getCoveredPoints().clear();
-        SensorHolder.getActiveSensors().values().forEach(s -> this.getCoveredPoints().addAll(s.getCoveredPoints()));
-        this.currentCoverage = ((double) this.getCoveredPoints().size()) / ((double) this.getPoints().size());
+    public void update() {
+        updateExclusivelyCoveredPoints();
+        updateCoverage();
+        updateDisconnectedCoverage();
     }
 
-    public void updateExclusivelyCoveredPoints() {
+    private void updateCoverage() {
+        this.getCoveredPoints().clear();
+        SensorHolder.getActiveSensors().values().stream()
+                .filter(Sensor::isConnected)
+                .map(Sensor::getCoveredPoints)
+                .forEach(this.getCoveredPoints()::addAll);
+        this.currentCoverage =
+                ((double) this.getCoveredPoints().size()) / ((double) this.getPoints().size());
+    }
+
+    private void updateDisconnectedCoverage() {
+        this.getDisconnectedCoveredPoints().clear();
+        SensorHolder.getActiveSensors().values()
+                .forEach(s -> this.getDisconnectedCoveredPoints().addAll(s.getCoveredPoints()));
+        this.disconnectedCoverage =
+                ((double) this.getDisconnectedCoveredPoints().size()) / ((double) this.getPoints().size());
+    }
+
+    private void updateExclusivelyCoveredPoints() {
         Collection<Sensor> availableSensors = SensorHolder.getAvailableSensors().values();
         availableSensors.forEach(s -> {
             s.getExclusivelyCoveredPoints().clear();
@@ -76,7 +99,7 @@ public class Environment {
         availableSensors.forEach(s1 -> availableSensors.forEach(s2 -> this.filterOutCoveredPoints(s1, s2)));
     }
 
-    public void filterOutCoveredPoints(Sensor s1, Sensor s2) {
+    private void filterOutCoveredPoints(Sensor s1, Sensor s2) {
         if (!Objects.equals(s1, s2)) {
             s1.getExclusivelyCoveredPoints().removeAll(s2.getCoveredPoints());
         }

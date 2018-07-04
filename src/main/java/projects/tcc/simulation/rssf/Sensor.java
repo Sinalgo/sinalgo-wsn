@@ -5,14 +5,11 @@ import lombok.Setter;
 import projects.tcc.simulation.data.SensorHolder;
 import sinalgo.exception.WrongConfigurationException;
 import sinalgo.nodes.Position;
-import sinalgo.nodes.edges.Edge;
 import sinalgo.nodes.messages.Inbox;
-import sinalgo.tools.storage.ReusableIterator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -90,6 +87,9 @@ public class Sensor extends SimulationNode {
         Arrays.sort(CURRENTS);
     }
 
+    private Sensor parent;
+    private final Map<Long, Sensor> children;
+
     private double batteryEnergy;
     private double originalEnergy;
     private double minimumEnergy;
@@ -128,6 +128,8 @@ public class Sensor extends SimulationNode {
         this.coveredPoints = new LinkedHashSet<>();
         this.exclusivelyCoveredPoints = new LinkedHashSet<>();
         this.distances = new HashMap<>();
+
+        this.children = new LinkedHashMap<>();
 
         this.setActivationPower(activationPower);
         this.setReceivePower(receivePower);
@@ -182,6 +184,8 @@ public class Sensor extends SimulationNode {
     }
 
     public void reset() {
+        this.setParent(null);
+        this.getChildren().clear();
         this.getNeighbors().clear();
         this.getCoveredPoints().clear();
         this.getExclusivelyCoveredPoints().clear();
@@ -189,15 +193,15 @@ public class Sensor extends SimulationNode {
     }
 
     public void addChild(Sensor child) {
-        children.add(child);
+        getChildren().put(child.getID(), child);
     }
 
     public long queryDescendants() {
-        long totalChildren = this.children.size();
-        for (Sensor sensFilho : children) {
-            totalChildren += sensFilho.queryDescendants();
+        long sum = this.getChildren().size();
+        for (Sensor child : this.getChildren().values()) {
+            sum += child.queryDescendants();
         }
-        return totalChildren;
+        return sum;
     }
 
     //Vetor de Corrente x distância
@@ -224,34 +228,25 @@ public class Sensor extends SimulationNode {
     }
 
     public void disconnectChildren() {
-        for (Sensor child : this.getChildren()) {
-            child.setConnected(false);
-            child.disconnectChildren();
-        }
+        this.getChildren().values().forEach(c -> {
+            c.setConnected(false);
+            c.disconnectChildren();
+        });
     }
 
     public List<Sensor> connectChildren() {
         List<Sensor> connectedChildren = new ArrayList<>();
-        connectedChildren.add(this);
         this.connectChildren(connectedChildren);
         return connectedChildren;
     }
 
-    private void connectChildren(List<Sensor> reconnectedSensors) {
-        for (Sensor child : this.getChildren()) {
-            child.setConnected(true);
-            reconnectedSensors.add(child);
-            child.connectChildren(reconnectedSensors);
-        }
-    }
-
-    public Sensor getParent() {
-        Iterator<Edge> iterator = this.getOutgoingConnections().iterator();
-        ((ReusableIterator<?>) iterator).reset();
-        if (iterator.hasNext()) {
-            return (Sensor) iterator.next().getEndNode();
-        }
-        return null;
+    private void connectChildren(List<Sensor> connectedChildren) {
+        connectedChildren.add(this);
+        this.getChildren().values().forEach(c -> {
+            c.setConnected(true);
+            connectedChildren.add(c);
+            c.connectChildren(connectedChildren);
+        });
     }
 
 }

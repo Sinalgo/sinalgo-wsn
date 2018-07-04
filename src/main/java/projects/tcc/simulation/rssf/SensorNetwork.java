@@ -40,7 +40,7 @@ public class SensorNetwork {
         }));
     }
 
-    private static void updateAggregateEnergy() {
+    public static void updateAvailableEnergy() {
         setAvailableEnergy(0);
         SensorHolder.getAvailableSensors().values()
                 .forEach(s -> setAvailableEnergy(getAvailableEnergy() + s.getBatteryEnergy()));
