@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import projects.tcc.simulation.data.SensorHolder;
 import sinalgo.exception.WrongConfigurationException;
+import sinalgo.nodes.Position;
 import sinalgo.nodes.edges.Edge;
 import sinalgo.nodes.messages.Inbox;
 import sinalgo.tools.storage.ReusableIterator;
@@ -102,8 +103,8 @@ public class Sensor extends SimulationNode {
     private double commRatio; //Taxa de comunicação durante a transmissão em uma u.t.
 
     private final Map<Long, Double> neighbors;
-    private final Set<Integer> coveredPoints;
-    private final Set<Integer> exclusivelyCoveredPoints;
+    private final Set<Position> coveredPoints;
+    private final Set<Position> exclusivelyCoveredPoints;
     private final Map<Long, Double> pathToSinkCost;
     private final Map<Long, Double> distances;
 
