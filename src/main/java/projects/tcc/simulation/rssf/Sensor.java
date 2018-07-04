@@ -96,7 +96,6 @@ public class Sensor extends SimulationNode {
     private double sensorRadius;
     private double commRadius;
     private boolean active;
-    private boolean stateChangedToActive;
     private boolean connected;
     private boolean failed;
 
@@ -191,13 +190,6 @@ public class Sensor extends SimulationNode {
 
     public void addChild(Sensor child) {
         children.add(child);
-    }
-
-    public void setActive(boolean active) {
-        if (!this.active && active) {
-            this.setStateChangedToActive(true);
-        }
-        this.active = active;
     }
 
     public long queryDescendants() {

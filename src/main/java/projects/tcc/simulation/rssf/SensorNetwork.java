@@ -1,11 +1,18 @@
 package projects.tcc.simulation.rssf;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 import projects.tcc.simulation.data.SensorHolder;
 
 import java.util.Collection;
 import java.util.Objects;
 
 public class SensorNetwork {
+
+    @Getter
+    @Setter(AccessLevel.PRIVATE)
+    private static double availableEnergy;
 
     public static void init() {
         computeDistances();
@@ -31,6 +38,12 @@ public class SensorNetwork {
                 s.getNeighbors().put(k, v);
             }
         }));
+    }
+
+    private static void updateAggregateEnergy() {
+        setAvailableEnergy(0);
+        SensorHolder.getAvailableSensors().values()
+                .forEach(s -> setAvailableEnergy(getAvailableEnergy() + s.getBatteryEnergy()));
     }
 
 }

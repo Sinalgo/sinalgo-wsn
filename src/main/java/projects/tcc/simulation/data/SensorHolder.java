@@ -1,8 +1,6 @@
 package projects.tcc.simulation.data;
 
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
 import projects.tcc.simulation.rssf.Sensor;
 import projects.tcc.simulation.rssf.Sink;
 
@@ -12,14 +10,10 @@ import java.util.function.Predicate;
 
 public class SensorHolder {
 
-    @Getter
-    @Setter(AccessLevel.PRIVATE)
-    private static double availableEnergy;
-
     private static final Predicate<Sensor> FAILED_PREDICATE = s -> {
         if (s.isFailed()) {
             getFailedSensors().put(s.getID(), s);
-            getFailedSensorsThisRound().put(s.getID(), s);
+            getPreviousRoundFailedSensors().put(s.getID(), s);
             return true;
         }
         return false;
@@ -28,7 +22,7 @@ public class SensorHolder {
     private static final Predicate<Sensor> ACTIVATED_PREDICATE = s -> {
         if (s.isActive()) {
             getActiveSensors().put(s.getID(), s);
-            getActivatedSensorsThisRound().put(s.getID(), s);
+            getPreviousRoundActivatedSensors().put(s.getID(), s);
             return true;
         }
         return false;
@@ -37,7 +31,7 @@ public class SensorHolder {
     private static final Predicate<Sensor> INACTIVATED_PREDICATE = s -> {
         if (!s.isActive()) {
             getInactiveSensors().put(s.getID(), s);
-            getDeactivatedSensorsThisRound().put(s.getID(), s);
+            getPreviousRoundDeactivatedSensors().put(s.getID(), s);
             return true;
         }
         return false;
@@ -62,13 +56,13 @@ public class SensorHolder {
     private static final Map<Long, Sensor> failedSensors = new HashMap<>();
 
     @Getter
-    private static final Map<Long, Sensor> activatedSensorsThisRound = new HashMap<>();
+    private static final Map<Long, Sensor> previousRoundActivatedSensors = new HashMap<>();
 
     @Getter
-    private static final Map<Long, Sensor> deactivatedSensorsThisRound = new HashMap<>();
+    private static final Map<Long, Sensor> previousRoundDeactivatedSensors = new HashMap<>();
 
     @Getter
-    private static final Map<Long, Sensor> failedSensorsThisRound = new HashMap<>();
+    private static final Map<Long, Sensor> previousRoundFailedSensors = new HashMap<>();
 
 
     public static void addSensors(Sensor sensor) {
@@ -89,30 +83,23 @@ public class SensorHolder {
         getInactiveSensors().values().removeIf(ACTIVATED_PREDICATE);
         getActiveSensors().values().removeIf(INACTIVATED_PREDICATE);
         removeFailedSensorsFromNeighborhoods();
-        updateAggregateEnergy();
     }
 
     private static void clearRoundSpecificMaps() {
-        getActivatedSensorsThisRound().clear();
-        getDeactivatedSensorsThisRound().clear();
-        getFailedSensorsThisRound().clear();
+        getPreviousRoundActivatedSensors().clear();
+        getPreviousRoundDeactivatedSensors().clear();
+        getPreviousRoundFailedSensors().clear();
     }
 
     private static void removeFailedSensorsFromNeighborhoods() {
-        if (!getFailedSensorsThisRound().isEmpty()) {
+        if (!getPreviousRoundFailedSensors().isEmpty()) {
             getAvailableSensors().values()
-                    .forEach(s -> s.getNeighbors().keySet().removeAll(getFailedSensorsThisRound().keySet()));
+                    .forEach(s -> s.getNeighbors().keySet().removeAll(getPreviousRoundFailedSensors().keySet()));
         }
-    }
-
-    private static void updateAggregateEnergy() {
-        setAvailableEnergy(0);
-        getAvailableSensors().values().forEach(s -> setAvailableEnergy(getAvailableEnergy() + s.getBatteryEnergy()));
     }
 
     public static void clear() {
         clearRoundSpecificMaps();
-        setAvailableEnergy(0);
         getAvailableSensors().clear();
         getActiveSensors().clear();
         getInactiveSensors().clear();
