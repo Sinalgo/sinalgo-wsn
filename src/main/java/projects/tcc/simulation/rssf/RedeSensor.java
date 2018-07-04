@@ -4,7 +4,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import projects.tcc.simulation.algorithms.graph.GraphHolder;
-import sinalgo.nodes.Position;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,34 +13,6 @@ import java.util.Set;
 @Getter(AccessLevel.PRIVATE)
 @Setter(AccessLevel.PRIVATE)
 public class RedeSensor {
-
-    public int getNumPontosDemanda() {
-        return pontosDemanda.length;
-    }
-
-    private void setPontosDemanda(int largura, int comprimento) {
-        this.pontosDemanda = new Position[largura * comprimento];
-        for (int i = 0; i < largura; i++) {
-            for (int j = 0; j < comprimento; j++) {
-                pontosDemanda[i * largura + j] = new Position(i + 0.5, j + 0.5, 0);
-            }
-        }
-    }
-
-    private void constroiVetCobertura() {
-        this.coverageMatrix = new int[this.pontosDemanda.length];
-        for (Sensor sens : listSensores) {
-            Set<Integer> listPontosCobertos = sens.getCoveredPoints();
-            listPontosCobertos.clear();
-            for (int j = 0; j < this.pontosDemanda.length; j++) {
-                double vDistancia = sens.getPosition().distanceTo(this.pontosDemanda[j]);
-                if (Double.compare(vDistancia, sens.getSensorRadius()) <= 0) {
-                    listPontosCobertos.add(j);
-                }
-            }
-
-        }
-    }
 
     public double CalculaEnergiaConsPer() {
         return CalculaEnergiaConsPer(activeSensors);

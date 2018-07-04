@@ -227,8 +227,8 @@ public class Sensor extends SimulationNode {
     }
 
     public double getEnergySpentInTransmission(double distanceToParent, long numberOfChildren) {
-        double vCorrente = this.getCurrentForDistance(distanceToParent);
-        return commRatio * vCorrente * (numberOfChildren + 1);
+        double current = this.getCurrentForDistance(distanceToParent);
+        return commRatio * current * (numberOfChildren + 1);
     }
 
     public void disconnectChildren() {

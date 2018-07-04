@@ -1,6 +1,8 @@
 package projects.tcc.simulation.data;
 
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Setter;
 import projects.tcc.simulation.rssf.Sensor;
 import projects.tcc.simulation.rssf.Sink;
 
@@ -9,6 +11,10 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 public class SensorHolder {
+
+    @Getter
+    @Setter(AccessLevel.PRIVATE)
+    private static double availableEnergy;
 
     private static final Predicate<Sensor> FAILED_PREDICATE = s -> {
         if (s.isFailed()) {
@@ -68,9 +74,16 @@ public class SensorHolder {
         getInactiveSensors().values().removeIf(FAILED_PREDICATE);
         getInactiveSensors().values().removeIf(ACTIVATED_PREDICATE);
         getActiveSensors().values().removeIf(INACTIVATED_PREDICATE);
+        updateAggregateEnergy();
+    }
+
+    private static void updateAggregateEnergy() {
+        setAvailableEnergy(0);
+        getAvailableSensors().values().forEach(s -> setAvailableEnergy(getAvailableEnergy() + s.getBatteryEnergy()));
     }
 
     public static void clear() {
+        setAvailableEnergy(0);
         getAvailableSensors().clear();
         getActiveSensors().clear();
         getInactiveSensors().clear();
