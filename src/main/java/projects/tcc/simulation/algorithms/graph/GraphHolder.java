@@ -42,30 +42,27 @@ public class GraphHolder {
 
     private static void init() {
         setGraph(new DefaultDirectedWeightedGraph<>(DefaultWeightedEdge.class));
-        SensorHolder.getAvailableSensors().values().forEach(s -> getGraph().addVertex(s.getID()));
-        SensorHolder.getAvailableSensors().values().forEach(s -> s.getNeighbors().keySet()
+        SensorHolder.getAllSensorsAndSinks().values().forEach(s -> getGraph().addVertex(s.getID()));
+        SensorHolder.getAllSensorsAndSinks().values().forEach(s -> s.getNeighbors().keySet()
                 .forEach(s2 -> getGraph().addEdge(s.getID(), s2)));
     }
 
     private static void updateConnections() {
+        SensorHolder.getAvailableSensors().values().forEach(s -> s.getGraphNodeProperties().reset());
+        SensorHolder.getSinks().values().forEach(s -> s.getGraphNodeProperties().reset());
+        SensorHolder.getFailedSensors().keySet().forEach(graph::removeVertex);
         SensorHolder.getAvailableSensors().values().forEach(s -> {
             if (getGraph().containsVertex(s.getID())) {
-                if (!s.isFailed()) {
-                    s.getNeighbors().forEach((neighborId, distance) -> {
-                        Sensor neighbor = SensorHolder.getAllSensorsAndSinks().get(neighborId);
-                        if (!neighbor.isFailed()) {
-                            double weight = s.getCurrentForDistance(distance);
-
-                            if ((s.isActive() && !neighbor.isActive()) || (!s.isActive() && neighbor.isActive())) {
-                                weight = weight * PENALTY;
-                            } else if (!s.isActive() && !neighbor.isActive()) {
-                                weight = weight * PENALTY_SQUARED;
-                            }
-
-                            graph.setEdgeWeight(graph.getEdge(s.getID(), neighbor.getID()), weight);
-                        }
-                    });
-                }
+                s.getNeighbors().forEach((neighborId, distance) -> {
+                    Sensor neighbor = SensorHolder.getAllSensorsAndSinks().get(neighborId);
+                    double weight = s.getCurrentForDistance(distance);
+                    if ((s.isActive() && !neighbor.isActive()) || (!s.isActive() && neighbor.isActive())) {
+                        weight = weight * PENALTY;
+                    } else if (!s.isActive() && !neighbor.isActive()) {
+                        weight = weight * PENALTY_SQUARED;
+                    }
+                    graph.setEdgeWeight(graph.getEdge(s.getID(), neighbor.getID()), weight);
+                });
             }
         });
     }
@@ -82,11 +79,11 @@ public class GraphHolder {
 
     private static void setParentSensor(Sensor s, GraphPath<Long, DefaultWeightedEdge> path) {
         List<Long> vertexList = path.getVertexList();
-        s.setParent(vertexList.size() <= 1 ? null : SensorHolder.getAllSensorsAndSinks().get(vertexList.get(1)));
+        s.getGraphNodeProperties().setParentId(vertexList.size() <= 1 ? null : vertexList.get(1));
     }
 
     private static void setPathToSinkCost(Sensor s, Sink s2, GraphPath<Long, DefaultWeightedEdge> path) {
-        s.getPathToSinkCost().put(s2.getID(), path.getWeight());
+        s.getGraphNodeProperties().getPathToSinkCost().put(s2.getID(), path.getWeight());
     }
 
 }

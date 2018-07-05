@@ -51,4 +51,15 @@ public class SensorNetwork {
         SensorHolder.updateCollections();
     }
 
+    public static void updateConnections() {
+        SensorHolder.getActiveSensors().values().forEach(Sensor::resetConnectivity);
+        SensorHolder.getActiveSensors().values().forEach(s -> {
+            Sensor parent = SensorHolder.getActiveSensors().get(s.getGraphNodeProperties().getParentId());
+            s.setParent(parent);
+            if (parent != null) {
+                parent.addChild(s);
+            }
+        });
+    }
+
 }

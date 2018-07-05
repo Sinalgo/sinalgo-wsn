@@ -87,6 +87,20 @@ public class Sensor extends SimulationNode {
         Arrays.sort(CURRENTS);
     }
 
+    @Getter
+    @Setter
+    public static class GraphNodeProperties {
+        private Long parentId;
+        private final Map<Long, Double> pathToSinkCost = new HashMap<>();
+
+        public void reset() {
+            this.setParentId(null);
+            this.getPathToSinkCost().clear();
+        }
+    }
+
+    private final GraphNodeProperties graphNodeProperties;
+
     private Sensor parent;
     private final Map<Long, Sensor> children;
 
@@ -107,7 +121,6 @@ public class Sensor extends SimulationNode {
     private final Map<Long, Double> neighbors;
     private final Set<Position> coveredPoints;
     private final Set<Position> exclusivelyCoveredPoints;
-    private final Map<Long, Double> pathToSinkCost;
     private final Map<Long, Double> distances;
 
     public Sensor() {
@@ -123,12 +136,12 @@ public class Sensor extends SimulationNode {
         this.setCommRadius(commRadius);
         this.setActive(true);
         this.setCommRatio(commRatio);
-        this.pathToSinkCost = new LinkedHashMap<>();
+
+        this.graphNodeProperties = new GraphNodeProperties();
         this.neighbors = new LinkedHashMap<>();
         this.coveredPoints = new LinkedHashSet<>();
         this.exclusivelyCoveredPoints = new LinkedHashSet<>();
         this.distances = new HashMap<>();
-
         this.children = new LinkedHashMap<>();
 
         this.setActivationPower(activationPower);
@@ -184,12 +197,16 @@ public class Sensor extends SimulationNode {
     }
 
     public void reset() {
-        this.setParent(null);
-        this.getChildren().clear();
+        this.resetConnectivity();
         this.getNeighbors().clear();
         this.getCoveredPoints().clear();
         this.getExclusivelyCoveredPoints().clear();
-        this.getPathToSinkCost().clear();
+        this.getGraphNodeProperties().reset();
+    }
+
+    public void resetConnectivity() {
+        this.setParent(null);
+        this.getChildren().clear();
     }
 
     public void addChild(Sensor child) {
