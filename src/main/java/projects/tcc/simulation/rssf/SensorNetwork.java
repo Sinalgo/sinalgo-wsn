@@ -46,4 +46,9 @@ public class SensorNetwork {
                 .forEach(s -> setAvailableEnergy(getAvailableEnergy() + s.getBatteryEnergy()));
     }
 
+    public static void updateActiveSensors(boolean[] vetBoolean) {
+        SensorHolder.getAvailableSensors().forEach((k, v) -> v.setActive(vetBoolean[k.intValue()]));
+        SensorHolder.updateCollections();
+    }
+
 }

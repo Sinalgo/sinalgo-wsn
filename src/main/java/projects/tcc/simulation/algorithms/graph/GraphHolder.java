@@ -3,11 +3,15 @@ package projects.tcc.simulation.algorithms.graph;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import org.jgrapht.GraphPath;
 import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.DefaultDirectedWeightedGraph;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import projects.tcc.simulation.data.SensorHolder;
 import projects.tcc.simulation.rssf.Sensor;
+import projects.tcc.simulation.rssf.Sink;
+
+import java.util.List;
 
 
 public class GraphHolder {
@@ -69,7 +73,20 @@ public class GraphHolder {
     private static void updateCostsToSink() {
         DijkstraShortestPath<Long, DefaultWeightedEdge> dijkstra = new DijkstraShortestPath<>(graph);
         SensorHolder.getAvailableSensors().values().forEach(s -> SensorHolder.getSinks().values()
-                .forEach(s2 -> s.getPathToSinkCost().put(s2.getID(), dijkstra.getPathWeight(s.getID(), s2.getID()))));
+                .forEach(s2 -> {
+                    GraphPath<Long, DefaultWeightedEdge> path = dijkstra.getPath(s.getID(), s2.getID());
+                    setPathToSinkCost(s, s2, path);
+                    setParentSensor(s, path);
+                }));
+    }
+
+    private static void setParentSensor(Sensor s, GraphPath<Long, DefaultWeightedEdge> path) {
+        List<Long> vertexList = path.getVertexList();
+        s.setParent(vertexList.size() <= 1 ? null : SensorHolder.getAllSensorsAndSinks().get(vertexList.get(1)));
+    }
+
+    private static void setPathToSinkCost(Sensor s, Sink s2, GraphPath<Long, DefaultWeightedEdge> path) {
+        s.getPathToSinkCost().put(s2.getID(), path.getWeight());
     }
 
 }

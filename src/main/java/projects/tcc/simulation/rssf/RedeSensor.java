@@ -211,33 +211,6 @@ public class RedeSensor {
         return numPontosCobertosAux;
     }
 
-    public void ativarSensoresVetBits(boolean[] vetBoolean) {
-
-        activeSensors.clear();
-        for (int i = 0; i < vetBoolean.length; i++) {
-            if (vetBoolean[i]) {
-                availableSensors.get(i).setActive(true);
-                activeSensors.add(availableSensors.get(i));
-            } else
-                availableSensors.get(i).setActive(false);
-        }
-
-    }
-
-    public void ativarSensoresVetBits(int[] vetBoolean) {
-
-        activeSensors.clear();
-        for (int i = 0; i < vetBoolean.length; i++) {
-            if (vetBoolean[i] == 1) {
-                availableSensors.get(i).setActive(true);
-                activeSensors.add(availableSensors.get(i));
-            } else
-                availableSensors.get(i).setActive(false);
-        }
-
-    }
-
-
     public void createConnection() {
         //refazendo as conexoes
         for (Sensor sens : listSensoresDisp_Sink) {

@@ -74,15 +74,19 @@ public class SensorHolder {
         }
     }
 
-    public static void updateSensors() {
-        clearRoundSpecificMaps();
+    public static void updateStatesAndCollections() {
         getActiveSensors().values().forEach(Sensor::updateState);
+        updateCollections();
+        removeFailedSensorsFromNeighborhoods();
+    }
+
+    public static void updateCollections() {
+        clearRoundSpecificMaps();
         getAvailableSensors().values().removeIf(FAILED_PREDICATE);
         getActiveSensors().values().removeIf(FAILED_PREDICATE);
         getInactiveSensors().values().removeIf(FAILED_PREDICATE);
         getInactiveSensors().values().removeIf(ACTIVATED_PREDICATE);
         getActiveSensors().values().removeIf(INACTIVATED_PREDICATE);
-        removeFailedSensorsFromNeighborhoods();
     }
 
     private static void clearRoundSpecificMaps() {
