@@ -41,25 +41,61 @@ public class SensorNetwork {
     }
 
     public static void updateAvailableEnergy() {
-        setAvailableEnergy(0);
-        SensorHolder.getAvailableSensors().values()
-                .forEach(s -> setAvailableEnergy(getAvailableEnergy() + s.getBatteryEnergy()));
+        setAvailableEnergy(SensorHolder.getAvailableSensors().values().stream()
+                .mapToDouble(Sensor::getBatteryEnergy)
+                .sum());
     }
 
     public static void updateActiveSensors(boolean[] vetBoolean) {
-        SensorHolder.getAvailableSensors().forEach((k, v) -> v.setActive(vetBoolean[k.intValue()]));
+        SensorHolder.getAvailableSensors().values().forEach(s -> s.setActive(vetBoolean[(int) s.getID()]));
         SensorHolder.updateCollections();
     }
 
+    /**
+     * This should be executed AFTER the AG has decided which Sensors should be activated/connected.
+     * It needs to use the GraphNodeProperties of each Sensor in order to determine which ones will
+     * be used in this method.
+     */
     public static void updateConnections() {
         SensorHolder.getActiveSensors().values().forEach(Sensor::resetConnectivity);
+        SensorHolder.getSinks().values().forEach(Sensor::resetConnectivity);
         SensorHolder.getActiveSensors().values().forEach(s -> {
-            Sensor parent = SensorHolder.getActiveSensors().get(s.getGraphNodeProperties().getParentId());
-            s.setParent(parent);
-            if (parent != null) {
-                parent.addChild(s);
+            s.setParent(SensorHolder.getAllSensorsAndSinks().get(s.getGraphNodeProperties().getParentId()));
+            if (s.getParent() != null) {
+                s.getParent().addChild(s);
             }
         });
+        SensorHolder.getSinks().values().forEach(Sensor::connectAndPropagate);
+        SensorHolder.getSinks().values().forEach(Sensor::queryDescendants);
+        SensorHolder.getActiveSensors().values().forEach(s -> s.setActive(s.isActive() && s.isConnected()));
+        SensorHolder.updateCollections();
+    }
+
+    public static double getActivationEnergyForThisRound() {
+        return SensorHolder.getPreviousRoundActivatedSensors().values().stream()
+                .mapToDouble(Sensor::getActivationPower)
+                .sum();
+    }
+
+    private static double getEnergyConsumed(Sensor s) {
+        long totalChildrenCount = s.getTotalChildrenCount();
+        double receiveEnergy = s.getReceivePower() * totalChildrenCount;
+
+        double distanceToParent = s.getDistances().get(s.getParent().getID());
+        double current = s.getCurrentForDistance(distanceToParent);
+
+        double transmissionEnergy = s.getCommRatio() * current * (totalChildrenCount + 1);
+        double maintenanceEnergy = s.getMaintenancePower();
+
+        return receiveEnergy + transmissionEnergy + maintenanceEnergy;
+    }
+
+    public static void updateRemainingBatteryEnergy() {
+        SensorHolder.getActiveSensors().values().forEach(s -> s.subtractEnergySpent(getEnergyConsumed(s)));
+    }
+
+    public static double getTotalEnergyConsumed() {
+        return SensorHolder.getActiveSensors().values().stream().mapToDouble(SensorNetwork::getEnergyConsumed).sum();
     }
 
 }

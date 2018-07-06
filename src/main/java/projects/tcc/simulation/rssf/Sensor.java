@@ -7,12 +7,10 @@ import sinalgo.exception.WrongConfigurationException;
 import sinalgo.nodes.Position;
 import sinalgo.nodes.messages.Inbox;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -103,6 +101,7 @@ public class Sensor extends SimulationNode {
 
     private Sensor parent;
     private final Map<Long, Sensor> children;
+    private long totalChildrenCount;
 
     private double batteryEnergy;
     private double originalEnergy;
@@ -175,7 +174,7 @@ public class Sensor extends SimulationNode {
 
     @Override
     public void neighborhoodChange() {
-
+        // Do not use. We don't have a mobility model.
     }
 
     @Override
@@ -205,20 +204,14 @@ public class Sensor extends SimulationNode {
     }
 
     public void resetConnectivity() {
+        this.setTotalChildrenCount(0);
+        this.setConnected(false);
         this.setParent(null);
         this.getChildren().clear();
     }
 
     public void addChild(Sensor child) {
         getChildren().put(child.getID(), child);
-    }
-
-    public long queryDescendants() {
-        long sum = this.getChildren().size();
-        for (Sensor child : this.getChildren().values()) {
-            sum += child.queryDescendants();
-        }
-        return sum;
     }
 
     //Vetor de Corrente x distância
@@ -244,26 +237,26 @@ public class Sensor extends SimulationNode {
         return commRatio * current * (numberOfChildren + 1);
     }
 
-    public void disconnectChildren() {
-        this.getChildren().values().forEach(c -> {
-            c.setConnected(false);
-            c.disconnectChildren();
-        });
+    public void disconnectAndPropagate() {
+        this.setConnected(false);
+        this.getChildren().values().forEach(Sensor::disconnectAndPropagate);
     }
 
-    public List<Sensor> connectChildren() {
-        List<Sensor> connectedChildren = new ArrayList<>();
-        this.connectChildren(connectedChildren);
-        return connectedChildren;
+    public void connectAndPropagate() {
+        if (!this.isConnected()) {
+            this.setConnected(true);
+            this.setActive(true);
+            this.getChildren().values().forEach(Sensor::connectAndPropagate);
+        }
     }
 
-    private void connectChildren(List<Sensor> connectedChildren) {
-        connectedChildren.add(this);
-        this.getChildren().values().forEach(c -> {
-            c.setConnected(true);
-            connectedChildren.add(c);
-            c.connectChildren(connectedChildren);
-        });
+    public void queryDescendants() {
+        this.getChildren().values().forEach(Sensor::queryDescendants);
+        long sum = this.getChildren().size();
+        for (Sensor child : this.getChildren().values()) {
+            sum += child.getTotalChildrenCount();
+        }
+        this.setTotalChildrenCount(sum);
     }
 
 }

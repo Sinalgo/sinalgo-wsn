@@ -24,13 +24,13 @@ public class Environment {
     private final Set<Position> coveredPoints;
     private final Set<Position> disconnectedCoveredPoints;
 
-    @Setter(AccessLevel.NONE)
+    @Setter(AccessLevel.PRIVATE)
     private double currentCoverage;
 
-    @Setter(AccessLevel.NONE)
+    @Setter(AccessLevel.PRIVATE)
     private double disconnectedCoverage;
 
-    public Environment(long height, long width, double coverageFactor) {
+    Environment(long height, long width, double coverageFactor) {
         this.height = height;
         this.width = width;
         this.coverageFactor = coverageFactor;
@@ -38,7 +38,8 @@ public class Environment {
         this.points = new ArrayList<>();
         this.coveredPoints = new HashSet<>();
         this.disconnectedCoveredPoints = new HashSet<>();
-        this.currentCoverage = 0;
+        this.setCurrentCoverage(0);
+        this.setDisconnectedCoverage(0);
         this.generatePoints();
     }
 
@@ -78,16 +79,16 @@ public class Environment {
                 .filter(Sensor::isConnected)
                 .map(Sensor::getCoveredPoints)
                 .forEach(this.getCoveredPoints()::addAll);
-        this.currentCoverage =
-                ((double) this.getCoveredPoints().size()) / ((double) this.getPoints().size());
+        this.setCurrentCoverage(
+                ((double) this.getCoveredPoints().size()) / ((double) this.getPoints().size()));
     }
 
     private void updateDisconnectedCoverage() {
         this.getDisconnectedCoveredPoints().clear();
         SensorHolder.getActiveSensors().values()
                 .forEach(s -> this.getDisconnectedCoveredPoints().addAll(s.getCoveredPoints()));
-        this.disconnectedCoverage =
-                ((double) this.getDisconnectedCoveredPoints().size()) / ((double) this.getPoints().size());
+        this.setDisconnectedCoverage(
+                ((double) this.getDisconnectedCoveredPoints().size()) / ((double) this.getPoints().size()));
     }
 
     private void updateExclusivelyCoveredPoints() {

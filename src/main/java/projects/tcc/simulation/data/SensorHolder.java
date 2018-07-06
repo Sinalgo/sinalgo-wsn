@@ -14,6 +14,8 @@ public class SensorHolder {
         if (s.isFailed()) {
             getFailedSensors().put(s.getID(), s);
             getPreviousRoundFailedSensors().put(s.getID(), s);
+            getPreviousRoundActivatedSensors().remove(s.getID());
+            getPreviousRoundDeactivatedSensors().remove(s.getID());
             return true;
         }
         return false;
@@ -23,6 +25,7 @@ public class SensorHolder {
         if (s.isActive()) {
             getActiveSensors().put(s.getID(), s);
             getPreviousRoundActivatedSensors().put(s.getID(), s);
+            getPreviousRoundDeactivatedSensors().remove(s.getID(), s);
             return true;
         }
         return false;
@@ -32,6 +35,7 @@ public class SensorHolder {
         if (!s.isActive()) {
             getInactiveSensors().put(s.getID(), s);
             getPreviousRoundDeactivatedSensors().put(s.getID(), s);
+            getPreviousRoundActivatedSensors().remove(s.getID());
             return true;
         }
         return false;
@@ -74,14 +78,14 @@ public class SensorHolder {
         }
     }
 
-    public static void updateStatesAndCollections() {
+    public static void update() {
         getActiveSensors().values().forEach(Sensor::updateState);
+        clearRoundSpecificMaps();
         updateCollections();
         removeFailedSensorsFromNeighborhoods();
     }
 
     public static void updateCollections() {
-        clearRoundSpecificMaps();
         getAvailableSensors().values().removeIf(FAILED_PREDICATE);
         getActiveSensors().values().removeIf(FAILED_PREDICATE);
         getInactiveSensors().values().removeIf(FAILED_PREDICATE);
@@ -89,7 +93,7 @@ public class SensorHolder {
         getActiveSensors().values().removeIf(INACTIVATED_PREDICATE);
     }
 
-    private static void clearRoundSpecificMaps() {
+    public static void clearRoundSpecificMaps() {
         getPreviousRoundActivatedSensors().clear();
         getPreviousRoundDeactivatedSensors().clear();
         getPreviousRoundFailedSensors().clear();
