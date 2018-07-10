@@ -221,11 +221,11 @@ public class Sensor extends SimulationNode {
     }
 
     public void subtractEnergySpent(double value) {
-        batteryEnergy = Math.max(0, batteryEnergy - value);
+        this.setBatteryEnergy(Math.max(0, batteryEnergy - value));
     }
 
     public double getEnergySpentInTransmission(double distanceToParent, long numberOfChildren) {
-        return commRatio * getCurrentForDistance(distanceToParent) * (numberOfChildren + 1);
+        return this.getCommRatio() * getCurrentForDistance(distanceToParent) * (numberOfChildren + 1);
     }
 
     public void disconnectAndPropagate() {
