@@ -55,7 +55,7 @@ public class GraphHolder {
             if (getGraph().containsVertex(s.getID())) {
                 s.getNeighbors().keySet().forEach(neighborId -> {
                     Sensor neighbor = SensorHolder.getAllSensorsAndSinks().get(neighborId);
-                    double weight = s.getCurrentForDistance(s.getDistances().get(neighborId));
+                    double weight = Sensor.getCurrentForDistance(s.getDistances().get(neighborId));
                     if ((s.isActive() && !neighbor.isActive()) || (!s.isActive() && neighbor.isActive())) {
                         weight = weight * PENALTY;
                     } else if (!s.isActive() && !neighbor.isActive()) {

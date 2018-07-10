@@ -7,7 +7,6 @@ import sinalgo.exception.WrongConfigurationException;
 import sinalgo.nodes.Position;
 import sinalgo.nodes.messages.Inbox;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -80,9 +79,16 @@ public class Sensor extends SimulationNode {
             25.4
     };
 
-    static {
-        Arrays.sort(DISTANCES);
-        Arrays.sort(CURRENTS);
+    //Vetor de Corrente x distância
+    public static double getCurrentForDistance(double distance) {
+        if (Double.compare(distance, DISTANCES[DISTANCES.length - 1]) > 0) {
+            throw new RuntimeException("Distância ao Pai não informada corretamente: " + distance);
+        }
+        int i = 0;
+        while (Double.compare(DISTANCES[i], distance) <= 0) {
+            i++;
+        }
+        return CURRENTS[i];
     }
 
     @Getter
@@ -214,27 +220,12 @@ public class Sensor extends SimulationNode {
         getChildren().put(child.getID(), child);
     }
 
-    //Vetor de Corrente x distância
-    public double getCurrentForDistance(double distance) {
-        if (Double.compare(distance, DISTANCES[DISTANCES.length - 1]) > 0) {
-            throw new RuntimeException("Distância ao Pai não informada corretamente: " + distance);
-        }
-
-        int i = 0;
-        while (Double.compare(DISTANCES[i], distance) <= 0) {
-            i++;
-        }
-
-        return CURRENTS[i];
-    }
-
     public void subtractEnergySpent(double value) {
         batteryEnergy = Math.max(0, batteryEnergy - value);
     }
 
     public double getEnergySpentInTransmission(double distanceToParent, long numberOfChildren) {
-        double current = this.getCurrentForDistance(distanceToParent);
-        return commRatio * current * (numberOfChildren + 1);
+        return commRatio * getCurrentForDistance(distanceToParent) * (numberOfChildren + 1);
     }
 
     public void disconnectAndPropagate() {

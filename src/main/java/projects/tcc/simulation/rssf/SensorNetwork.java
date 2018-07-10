@@ -82,7 +82,7 @@ public class SensorNetwork {
         double receiveEnergy = s.getReceivePower() * totalChildrenCount;
 
         double distanceToParent = s.getDistances().get(s.getParent().getID());
-        double current = s.getCurrentForDistance(distanceToParent);
+        double current = Sensor.getCurrentForDistance(distanceToParent);
 
         double transmissionEnergy = s.getCommRatio() * current * (totalChildrenCount + 1);
         double maintenanceEnergy = s.getMaintenancePower();
