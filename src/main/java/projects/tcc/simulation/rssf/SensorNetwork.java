@@ -5,10 +5,13 @@ import lombok.Getter;
 import lombok.Setter;
 import projects.tcc.simulation.algorithms.graph.GraphHolder;
 import projects.tcc.simulation.data.SensorHolder;
+import sinalgo.nodes.Position;
 import sinalgo.tools.logging.Logging;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 public class SensorNetwork {
 
@@ -107,7 +110,7 @@ public class SensorNetwork {
 
     public static boolean supplyCoverageOnline() {
         for (Sensor failedSensor : SensorHolder.getPreviousRoundFailedSensors().values()) {
-            Sensor chosenReplacement = findReplacement(failedSensor);
+            Sensor chosenReplacement = findReplacementOnline(failedSensor);
             if (chosenReplacement == null) {
                 break;
             }
@@ -147,7 +150,7 @@ public class SensorNetwork {
         return result;
     }
 
-    private static Sensor findReplacement(Sensor failedSensor) {
+    private static Sensor findReplacementOnline(Sensor failedSensor) {
         Sensor chosen = null;
         double minDistance = Double.MAX_VALUE;
         for (Long candidateId : failedSensor.getNeighbors().keySet()) {
@@ -160,6 +163,23 @@ public class SensorNetwork {
                 if (Double.compare(totalDistanceToChildren, minDistance) < 0) {
                     minDistance = totalDistanceToChildren;
                     chosen = candidate;
+                }
+            }
+        }
+        return chosen;
+    }
+
+    private static Sensor findReplacement() {
+        int maxCoveredPoints = Integer.MIN_VALUE;
+        Sensor chosen = null;
+        getEnvironment().updateExclusivelyCoveredPoints();
+        for (Sensor sensor : SensorHolder.getInactiveSensors().values()) {
+            if (!SensorHolder.getPreviousRoundDeactivatedSensors().containsKey(sensor.getID())) {
+                Set<Position> coveredPoints = new HashSet<>(getEnvironment().getCoveredPoints());
+                if (coveredPoints.addAll(sensor.getExclusivelyCoveredPoints())
+                        && Integer.compare(maxCoveredPoints, coveredPoints.size()) < 0) {
+                    maxCoveredPoints = coveredPoints.size();
+                    chosen = sensor;
                 }
             }
         }
