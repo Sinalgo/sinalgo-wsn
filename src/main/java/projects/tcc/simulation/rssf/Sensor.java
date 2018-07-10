@@ -117,7 +117,7 @@ public class Sensor extends SimulationNode {
     private double maintenancePower;
     private double commRatio; //Taxa de comunicação durante a transmissão em uma u.t.
 
-    private final Map<Long, Double> neighbors;
+    private final Map<Long, Sensor> neighbors;
     private final Set<Position> coveredPoints;
     private final Set<Position> exclusivelyCoveredPoints;
     private final Map<Long, Double> distances;

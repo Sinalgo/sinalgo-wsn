@@ -35,7 +35,7 @@ public class SensorNetwork {
     private static void computeNeighbors() {
         SensorHolder.getAvailableSensors().values().forEach(s -> s.getDistances().forEach((k, v) -> {
             if (Double.compare(v, s.getCommRadius()) < 0) {
-                s.getNeighbors().put(k, v);
+                s.getNeighbors().put(k, SensorHolder.getAllSensorsAndSinks().get(k));
             }
         }));
     }
@@ -77,7 +77,7 @@ public class SensorNetwork {
                 .sum();
     }
 
-    private static double getEnergyConsumed(Sensor s) {
+    private static double getConsumedEnergy(Sensor s) {
         long totalChildrenCount = s.getTotalChildrenCount();
         double receiveEnergy = s.getReceivePower() * totalChildrenCount;
 
@@ -91,11 +91,31 @@ public class SensorNetwork {
     }
 
     public static void updateRemainingBatteryEnergy() {
-        SensorHolder.getActiveSensors().values().forEach(s -> s.subtractEnergySpent(getEnergyConsumed(s)));
+        SensorHolder.getActiveSensors().values().forEach(s -> s.subtractEnergySpent(getConsumedEnergy(s)));
     }
 
-    public static double getTotalEnergyConsumed() {
-        return SensorHolder.getActiveSensors().values().stream().mapToDouble(SensorNetwork::getEnergyConsumed).sum();
+    public static double getTotalConsumedEnergy() {
+        return SensorHolder.getActiveSensors().values().stream().mapToDouble(SensorNetwork::getConsumedEnergy).sum();
     }
+
+    public static Sensor findReplacement(Sensor failedSensor) {
+        Sensor chosen = null;
+        double minDistance = Double.MAX_VALUE;
+        for (Long candidateId : failedSensor.getNeighbors().keySet()) {
+            Sensor candidate = SensorHolder.getAllSensorsAndSinks().get(candidateId);
+            if (!candidate.isActive() && !candidate.isFailed()) {
+                double totalDistanceToChildren = candidate.getDistances().get(failedSensor.getParent().getID());
+                for (Long childId : failedSensor.getChildren().keySet()) {
+                    totalDistanceToChildren += candidate.getDistances().get(childId);
+                }
+                if (Double.compare(totalDistanceToChildren, minDistance) < 0) {
+                    minDistance = totalDistanceToChildren;
+                    chosen = candidate;
+                }
+            }
+        }
+        return chosen;
+    }
+
 
 }
