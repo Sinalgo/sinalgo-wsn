@@ -3,6 +3,7 @@ package projects.tcc.simulation.rssf;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import projects.tcc.simulation.algorithms.graph.GraphHolder;
 import projects.tcc.simulation.data.SensorHolder;
 import sinalgo.tools.logging.Logging;
 
@@ -112,7 +113,7 @@ public class SensorNetwork {
             }
             chosenReplacement.setActive(true);
             if (!connectSensorOnline(chosenReplacement, failedSensor)) {
-                createConnection();
+                GraphHolder.update();
             }
         }
         getEnvironment().updateCoverage();

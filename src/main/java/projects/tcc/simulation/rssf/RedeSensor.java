@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayList;
-import java.util.List;
 
 
 @Getter(AccessLevel.PRIVATE)
@@ -100,13 +99,6 @@ public class RedeSensor {
         return sensEscolhido;
     }
 
-    private void ligaSensor(Sensor sensEscolhido) {
-        sensEscolhido.setActive(true);
-        activeSensors.add(sensEscolhido);
-        atualizaCoberturaSemConec(sensEscolhido);
-
-    }
-
 
     public void createInitialNetwork(boolean[] vetBoolean) {
         ativarSensoresVetBits(vetBoolean);
@@ -121,86 +113,6 @@ public class RedeSensor {
         if (porcCobAtual < fatorCob)
             suprirCobertura();
 
-    }
-
-
-    public boolean suprirOnline() {
-        for (Sensor sensFalho : listSensFalhosNoPer) {
-            Sensor sensorEscolhido = escolherSubs(sensFalho);
-            if (sensorEscolhido == null)
-                break;
-            ligaSensor(sensorEscolhido);
-            boolean fezConex = connectOnlineSensor(sensorEscolhido, sensFalho);
-            if (!fezConex) {
-                createConnection();
-            }
-        }
-        calcCobertura();
-        if (this.porcCobAtual >= this.fatorCob) {
-            return true;
-        } else {
-            System.out.println("Não foi possível suprimir cobertura Online");
-            return false;
-        }
-    }
-
-
-    private boolean connectOnlineSensor(Sensor sensorEscolhido, Sensor sensFalho) {
-        boolean result = true;
-        if (sensorEscolhido.getNeighbors().contains(sensFalho.getParent())) {
-            sensorEscolhido.addConnectionTo(sensFalho.getParent());
-            sensFalho.getParent().addChild(sensorEscolhido);
-            if (sensFalho.getParent().isConnected() || sensFalho.getParent() instanceof Sink)
-                sensorEscolhido.setConnected(true);
-        } else {
-            result = false;
-        }
-
-        List<Sensor> listSensorReconex = new ArrayList<>();
-        for (Sensor sensFilho : sensFalho.getChildren()) {
-            if (!sensFilho.isConnected())
-                if (sensorEscolhido.getNeighbors().contains(sensFilho)) {
-                    sensorEscolhido.addChild(sensFilho);
-                    sensFilho.addConnectionTo(sensorEscolhido);
-                    sensFilho.setConnected(true);
-                    listSensorReconex.addAll(sensFilho.connectChildren());
-                } else
-                    result = false;
-        }
-
-        for (Sensor sensReconex : listSensorReconex) {
-            atualizaCoberturaSemConec(sensReconex);
-        }
-
-        return result;
-    }
-
-
-    private Sensor escolherSubs(Sensor sensFalho) {
-        Sensor sensEsc = null;
-        double squaredDist = Double.MAX_VALUE;
-        for (Sensor candidate : sensFalho.getNeighbors()) {
-            if (!candidate.isActive() && !candidate.isFailed()) {
-                double auxDist = 0;
-                double parentDist = connectivityMatrix[(int) candidate.getID()][(int) sensFalho.getParent().getID()];
-
-                auxDist = auxDist + Math.pow(parentDist, 2);
-
-                for (Sensor sensFilho : sensFalho.getChildren()) {
-                    double distFilho = connectivityMatrix[(int) candidate.getID()][(int) sensFilho.getID()];
-                    auxDist = auxDist + Math.pow(distFilho, 2);
-                }
-
-                if (Double.compare(auxDist, squaredDist) < 0) {
-                    squaredDist = auxDist;
-                    sensEsc = candidate;
-                }
-
-            }
-
-        }
-
-        return sensEsc;
     }
 
 
