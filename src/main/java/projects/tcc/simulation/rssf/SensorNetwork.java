@@ -111,8 +111,7 @@ public class SensorNetwork {
                 break;
             }
             chosenReplacement.setActive(true);
-            boolean fezConex = connectOnlineSensor(chosenReplacement, failedSensor);
-            if (!fezConex) {
+            if (!connectSensorOnline(chosenReplacement, failedSensor)) {
                 createConnection();
             }
         }
@@ -125,7 +124,7 @@ public class SensorNetwork {
         }
     }
 
-    private static boolean connectOnlineSensor(Sensor chosenReplacement, Sensor failedSensor) {
+    private static boolean connectSensorOnline(Sensor chosenReplacement, Sensor failedSensor) {
         boolean result = chosenReplacement.getNeighbors().containsKey(failedSensor.getParent().getID());
         if (result) {
             failedSensor.getParent().addChild(chosenReplacement);
