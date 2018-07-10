@@ -153,8 +153,7 @@ public class SensorNetwork {
     private static Sensor findReplacementOnline(Sensor failedSensor) {
         Sensor chosen = null;
         double minDistance = Double.MAX_VALUE;
-        for (Long candidateId : failedSensor.getNeighbors().keySet()) {
-            Sensor candidate = SensorHolder.getAllSensorsAndSinks().get(candidateId);
+        for (Sensor candidate : failedSensor.getNeighbors().values()) {
             if (!candidate.isActive() && !candidate.isFailed()) {
                 double totalDistanceToChildren = candidate.getDistances().get(failedSensor.getParent().getID());
                 for (Long childId : failedSensor.getChildren().keySet()) {
