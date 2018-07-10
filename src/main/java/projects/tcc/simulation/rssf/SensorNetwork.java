@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import projects.tcc.simulation.data.SensorHolder;
+import sinalgo.tools.logging.Logging;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -14,9 +15,14 @@ public class SensorNetwork {
     @Setter(AccessLevel.PRIVATE)
     private static double availableEnergy;
 
-    public static void init() {
+    @Getter
+    @Setter(AccessLevel.PRIVATE)
+    private static Environment environment;
+
+    public static void init(Environment environment) {
         computeDistances();
         computeNeighbors();
+        setEnvironment(environment);
     }
 
     private static void computeDistances() {
@@ -98,7 +104,50 @@ public class SensorNetwork {
         return SensorHolder.getActiveSensors().values().stream().mapToDouble(SensorNetwork::getConsumedEnergy).sum();
     }
 
-    public static Sensor findReplacement(Sensor failedSensor) {
+    public static boolean supplyCoverageOnline() {
+        for (Sensor failedSensor : SensorHolder.getPreviousRoundFailedSensors().values()) {
+            Sensor chosenReplacement = findReplacement(failedSensor);
+            if (chosenReplacement == null) {
+                break;
+            }
+            chosenReplacement.setActive(true);
+            boolean fezConex = connectOnlineSensor(chosenReplacement, failedSensor);
+            if (!fezConex) {
+                createConnection();
+            }
+        }
+        getEnvironment().updateCoverage();
+        if (Double.compare(getEnvironment().getCurrentCoverage(), getEnvironment().getCoverageFactor()) >= 0) {
+            return true;
+        } else {
+            Logging.getLogger().logln("Couldn't supply online coverage");
+            return false;
+        }
+    }
+
+    private static boolean connectOnlineSensor(Sensor chosenReplacement, Sensor failedSensor) {
+        boolean result = chosenReplacement.getNeighbors().containsKey(failedSensor.getParent().getID());
+        if (result) {
+            failedSensor.getParent().addChild(chosenReplacement);
+            chosenReplacement.setConnected(failedSensor.getParent().isConnected()
+                    || failedSensor.getParent() instanceof Sink);
+        }
+
+        for (Sensor failedChild : failedSensor.getChildren().values()) {
+            if (!failedChild.isConnected()) {
+                if (chosenReplacement.getNeighbors().containsKey(failedChild.getID())) {
+                    chosenReplacement.addChild(failedChild);
+                    failedChild.setConnected(true);
+                } else {
+                    result = false;
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private static Sensor findReplacement(Sensor failedSensor) {
         Sensor chosen = null;
         double minDistance = Double.MAX_VALUE;
         for (Long candidateId : failedSensor.getNeighbors().keySet()) {

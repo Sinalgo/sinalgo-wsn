@@ -73,7 +73,7 @@ public class Environment {
         updateDisconnectedCoverage();
     }
 
-    private void updateCoverage() {
+    public void updateCoverage() {
         this.getCoveredPoints().clear();
         SensorHolder.getActiveSensors().values().stream()
                 .filter(Sensor::isConnected)
@@ -83,7 +83,7 @@ public class Environment {
                 ((double) this.getCoveredPoints().size()) / ((double) this.getPoints().size()));
     }
 
-    private void updateDisconnectedCoverage() {
+    public void updateDisconnectedCoverage() {
         this.getDisconnectedCoveredPoints().clear();
         SensorHolder.getActiveSensors().values()
                 .forEach(s -> this.getDisconnectedCoveredPoints().addAll(s.getCoveredPoints()));
@@ -91,7 +91,7 @@ public class Environment {
                 ((double) this.getDisconnectedCoveredPoints().size()) / ((double) this.getPoints().size()));
     }
 
-    private void updateExclusivelyCoveredPoints() {
+    public void updateExclusivelyCoveredPoints() {
         Collection<Sensor> availableSensors = SensorHolder.getAvailableSensors().values();
         availableSensors.forEach(s -> {
             s.getExclusivelyCoveredPoints().clear();

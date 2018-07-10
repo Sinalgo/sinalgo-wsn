@@ -217,6 +217,7 @@ public class Sensor extends SimulationNode {
     }
 
     public void addChild(Sensor child) {
+        child.setParent(this);
         getChildren().put(child.getID(), child);
     }
 
