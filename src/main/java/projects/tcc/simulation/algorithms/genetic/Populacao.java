@@ -1,6 +1,7 @@
 package projects.tcc.simulation.algorithms.genetic;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Populacao {
 
@@ -60,12 +61,11 @@ public class Populacao {
 
     public void ordenaF1() {
         //Ordenar as soluções presente no Pareto segundo a fitness 1
-        popCromossomo.sort(new ComparatorFitness(1));
+        popCromossomo.sort(new ComparatorFitness(ComparatorFitness.FitnessType.TYPE_1));
         /////////////////////////////////////////////////////////////
     }
 
     public void ordenaParetos() {
-
         //Ordenar as soluções de acordo com o Pareto
         popCromossomo.sort(new ComparatorPareto());
         /////////////////////////////////////////////////////////////
@@ -478,8 +478,8 @@ public class Populacao {
             Cromossomo cromoCopy = new Cromossomo(cromoPareto.getTamanhoCromossomo(), idsVetBits);
 
             //copiando os campos
-            cromoCopy.calculateFitness(cromoPareto.getFitness());
-            cromoCopy.calculateFitness2(cromoPareto.getFitness2());
+            cromoCopy.setFitness(cromoPareto.getFitness());
+            cromoCopy.setFitness2(cromoPareto.getFitness2());
             cromoCopy.setIdPareto(cromoPareto.getIdPareto());
             cromoCopy.setNumeroAtivos(cromoPareto.getNumeroAtivos());
             cromoCopy.setPresPareto(cromoPareto.getPresPareto());
@@ -490,9 +490,7 @@ public class Populacao {
             int[] vetBitsCromoPareto = cromoPareto.getVetorBits();
             int[] vetBitsCopy = new int[vetBitsCromoPareto.length];
 
-            for (int k = 0; k < vetBitsCromoPareto.length; k++) {
-                vetBitsCopy[k] = vetBitsCromoPareto[k];
-            }
+            System.arraycopy(vetBitsCromoPareto, 0, vetBitsCopy, 0, vetBitsCromoPareto.length);
 
             cromoCopy.setVetorBits(vetBitsCopy);
 
@@ -681,7 +679,7 @@ public class Populacao {
         popCromossomo.clear();
         for (Pareto aSolPareto : solPareto) {
             for (int j = 0; j < aSolPareto.getNumIndv(); j++) {
-                ArrayList<Cromossomo> cromoPareto = aSolPareto.getPopCromoPareto();
+                List<Cromossomo> cromoPareto = aSolPareto.getPopCromoPareto();
                 popCromossomo.add(cromoPareto.get(j));
             }
         }
@@ -690,7 +688,6 @@ public class Populacao {
             System.out.println("ERRO 1.2 - N�o selecionou todos os indiv�duos");
             System.exit(0);
         }
-
 
     }
 
@@ -772,7 +769,6 @@ public class Populacao {
 
         double INF = 1.7976931348623157e+308;
         double iDist, iDistAtual, fmax = 0, fmin = 0, fauxAnt = 0, fauxPos = 0;
-        int numFOs = 2;
 
         int numIndv = popCromossomo.size();
 
@@ -786,41 +782,27 @@ public class Populacao {
         popCromossomo.get(0).setCrowdingDist(INF);
         popCromossomo.get(numIndv - 1).setCrowdingDist(INF);
 
-        for (int k = 0; k < numFOs; k++) {
+        for (ComparatorFitness.FitnessType type : ComparatorFitness.FitnessType.values()) {
 
             //Ordenar as solu��es presente no Pareto segundo a fitness k+1
-            popCromossomo.sort(new ComparatorFitness(k + 1));
+            popCromossomo.sort(new ComparatorFitness(type));
             /////////////////////////////////////////////////////////////
 
             //Calculos para F1
-            if (k == 0) {
-                fmin = popCromossomo.get(0).getFitness();
-                fmax = popCromossomo.get(numIndv - 1).getFitness();
-            } else if (k == 1) {
-                fmin = popCromossomo.get(0).getFitness2();
-                fmax = popCromossomo.get(numIndv - 1).getFitness2();
-            }
-
+            fmin = popCromossomo.get(0).getFitnessOfType(type);
+            fmax = popCromossomo.get(numIndv - 1).getFitnessOfType(type);
 
             for (int i = 1; i < numIndv - 1; i++) {
 
-                if (k == 0) {
-                    fauxAnt = popCromossomo.get(i - 1).getFitness();
-                    fauxPos = popCromossomo.get(i + 1).getFitness();
-                } else if (k == 1) {
-                    fauxAnt = popCromossomo.get(i - 1).getFitness2();
-                    fauxPos = popCromossomo.get(i + 1).getFitness2();
-                }
+                fauxAnt = popCromossomo.get(i - 1).getFitnessOfType(type);
+                fauxPos = popCromossomo.get(i + 1).getFitnessOfType(type);
 
                 iDist = (fauxPos - fauxAnt) / (fmax - fmin);
                 iDistAtual = popCromossomo.get(i).getCrowdingDist();
 
                 popCromossomo.get(i).setCrowdingDist(iDist + iDistAtual);
-
             }
-
         }
-
     }
 
     public void addPopulacao(Populacao pop) {

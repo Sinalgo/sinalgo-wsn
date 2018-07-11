@@ -2,6 +2,8 @@ package projects.tcc.simulation.algorithms.genetic;
 
 import projects.tcc.nodes.nodeImplementations.Sensor;
 import projects.tcc.simulation.data.SensorHolder;
+import projects.tcc.simulation.graph.GraphHolder;
+import projects.tcc.simulation.rssf.SensorNetwork;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +14,7 @@ public class AG_Estatico_MO_arq {
 
         List<Sensor> listSensensores = new ArrayList<>(SensorHolder.getAvailableSensors().values());
 
-        rede.calCustosCaminho(); //atulizando o custo de caminho de cada sensor ao sink;
+        GraphHolder.update(); //atulizando o custo de caminho de cada sensor ao sink;
 
         ArrayList<Cromossomo> vMelhorPareto;
 
@@ -20,17 +22,18 @@ public class AG_Estatico_MO_arq {
         double medFitness = 0;
         int numSA = 0;
 
-        int vNumBits = rede.getAvailableSensors().size();
+        int vNumBits = SensorHolder.getAvailableSensors().size();
+        long[] vetIdsSensDisp = SensorHolder.getAvailableSensors().keySet().stream().mapToLong(Long::longValue).toArray();
 
-        Populacao popCromo = new Populacao(tamanhoPopulacao, vNumBits, rede.getVetIdsSensDisp(), txCruzamento);
+        Populacao popCromo = new Populacao(tamanhoPopulacao, vNumBits, vetIdsSensDisp, txCruzamento);
 
         double raioSens = listSensensores.get(0).getSensorRadius();
 
-        popCromo.startPop(rede.getArea(), raioSens, rede.getFatorCob());
+        popCromo.startPop(SensorNetwork.getEnvironment().getArea(), raioSens, SensorNetwork.getEnvironment().getCoverageFactor());
 
-        calculaFuncaoObjetivo(rede, popCromo.getPopCromossomo());
+        calculaFuncaoObjetivo(popCromo.getPopCromossomo());
 
-        calculaFuncaoObjetivo2(rede, popCromo.getPopCromossomo());
+        calculaFuncaoObjetivo2(popCromo.getPopCromossomo());
 
         limpaPareto(popCromo.getPopCromossomo());
         gerarParetos(popCromo.getPopCromossomo());
@@ -48,8 +51,8 @@ public class AG_Estatico_MO_arq {
             popCromo.realizaCasamento();
             popCromo.realizaMutacao();
 
-            calculaFuncaoObjetivo(rede, popCromo.getPopCromossomo());
-            calculaFuncaoObjetivo2(rede, popCromo.getPopCromossomo());
+            calculaFuncaoObjetivo(popCromo.getPopCromossomo());
+            calculaFuncaoObjetivo2(popCromo.getPopCromossomo());
 
             limpaPareto(popCromo.getPopCromossomo());
             gerarParetos(popCromo.getPopCromossomo());
@@ -118,7 +121,7 @@ public class AG_Estatico_MO_arq {
         //Escolher um resultado no pareto
         //			popCromo.ordenaFitness1(); //ordena pela fitness
 
-        popCromo.setMelhorCromo(decSolPareto(conjMelhorPareto, listSensensores, rede));
+        popCromo.setMelhorCromo(decSolPareto(conjMelhorPareto, listSensensores));
 
         //pegando o melhor indiv�duo (melhor Cromossomo)
         Cromossomo vMelhorCromossomo = popCromo.getMelhorIndv();
@@ -225,7 +228,7 @@ public class AG_Estatico_MO_arq {
         for (Cromossomo indv : pCromossomos) {
             // avalia apenas quem precisa
             if (indv.isAvaliarFO()) {
-                avaliarIndividuo(rede, indv, penAtiv, penNCob);
+                avaliarIndividuo(indv, penAtiv, penNCob);
             }
         }
     }
