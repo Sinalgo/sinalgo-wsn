@@ -1,7 +1,7 @@
 package projects.tcc.simulation.principal;
 
 import projects.tcc.nodes.nodeImplementations.Sensor;
-import projects.tcc.simulation.rssf.RedeSensor;
+import projects.tcc.simulation.data.SensorHolder;
 import projects.tcc.simulation.rssf.Simulacao;
 
 import java.io.File;
@@ -12,17 +12,13 @@ import java.util.List;
 
 public class Saidas {
 
-    private RedeSensor rede;
     private Simulacao mSimulacao;
     private String pasta;
 
 
-    public Saidas(RedeSensor rede, Simulacao mSimulacao, String pasta) {
-
-        this.rede = rede;
+    public Saidas(Simulacao mSimulacao, String pasta) {
         this.mSimulacao = mSimulacao;
         this.pasta = pasta;
-
         apagarArqSimulacao();
     }
 
@@ -44,7 +40,7 @@ public class Saidas {
         System.out.println("\n\n\n\n");
         System.out.println("Tempo = " + periodo);
 
-        System.out.println("Numero de Sensores Ativos: " + rede.getNumSensAtivos());
+        System.out.println("Numero de Sensores Ativos: " + SensorHolder.getActiveSensors().size());
         System.out.println("Energia Residual: " + mSimulacao.getEnResRede());
         System.out.println("Energia Consumida: " + mSimulacao.getEnConsRede());
         System.out.println("Cobertura Atual: " + mSimulacao.getpCobAtual());
@@ -62,7 +58,7 @@ public class Saidas {
         int pCob = (int) (mSimulacao.getpCobAtual() * 100);
         pw.println(pCob);
 
-        for (Sensor s : rede.getListSensores()) {
+        for (Sensor s : SensorHolder.getAllSensorsAndSinks().values()) {
             int estadoSensor;
             if (s.isActive())
                 estadoSensor = 1;

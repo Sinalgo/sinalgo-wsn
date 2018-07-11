@@ -39,15 +39,15 @@ public class SolucaoViaAGMO {
 
         SensorNetwork.createInitialNetwork(vetSensAtiv);
 
-        Simulacao redeSim;
-        redeSim = new Simulacao(rede);
+        Simulacao redeSim = new Simulacao();
         redeSim.setTesteNumero(testeNumero);
 
-        Saidas saida = new Saidas(rede, redeSim, caminhoSaida);
+        Saidas saida = new Saidas(redeSim, caminhoSaida);
 
         int perAtual = 0;
         boolean evento = true;
-        while (rede.getPorcCobAtual() >= rede.getFatorCob()) {
+        while (Double.compare(SensorNetwork.getEnvironment().getCurrentCoverage(),
+                SensorNetwork.getEnvironment().getCoverageFactor()) >= 0) {
 
             evento = redeSim.simulaUmPer(evento, perAtual++, saida);
 
@@ -55,17 +55,17 @@ public class SolucaoViaAGMO {
 
             if (reestruturar) {
                 //gerando a POP de Cromossomos inicial para o AG
-                vetSensAtiv = AG_Estatico_MO_arq.resolveAG_Estatico_MO(rede, numeroGeracoes, tamanhoPopulacao, txCruzamento, txMutacao);
-                rede.createInitialNetwork(vetSensAtiv);
+                vetSensAtiv = AG_Estatico_MO_arq.resolveAG_Estatico_MO(numeroGeracoes, tamanhoPopulacao, txCruzamento, txMutacao);
+                SensorNetwork.createInitialNetwork(vetSensAtiv);
                 System.out.println("===== EVENTO e REESTRUTUROU TEMPO = " + perAtual);
             }
 
             if (evento && !reestruturar) {
 
                 System.out.println("===== EVENTO TEMPO = " + perAtual);
-                if (!rede.suprirOnline()) {
-                    rede.suprirCobertura();
-                    rede.desligarSensoresDesconexos();
+                if (!SensorNetwork.supplyCoverageOnline()) {
+                    SensorNetwork.supplyCoverage();
+                    SensorNetwork.updateConnections();
                 }
 
             }

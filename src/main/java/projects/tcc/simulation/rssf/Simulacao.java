@@ -1,6 +1,7 @@
 package projects.tcc.simulation.rssf;
 
 import projects.tcc.nodes.nodeImplementations.Sensor;
+import projects.tcc.simulation.data.SensorHolder;
 import projects.tcc.simulation.principal.Saidas;
 
 import java.util.ArrayList;
@@ -25,14 +26,12 @@ public class Simulacao {
 
     private List<Sensor> listSensores;
 
-    private RedeSensor rede;
-
     private List<Integer> nSensorAtivos;
     private List<Integer> nEstagio;
 
     private List<Sensor> listSensFalhosNoPer;
 
-    public Simulacao(RedeSensor rede) {
+    public Simulacao() {
 
         vEnResRede = new ArrayList<>();
         vEnConsRede = new ArrayList<>();
@@ -41,8 +40,7 @@ public class Simulacao {
         nSensorAtivos = new ArrayList<>();
         nEstagio = new ArrayList<>();
 
-        this.rede = rede;
-        listSensores = rede.getAvailableSensors();
+        listSensores = new ArrayList<>(SensorHolder.getAvailableSensors().values());
 
         porcBatRet = 10;
 
@@ -86,7 +84,7 @@ public class Simulacao {
     }
 
     public double getpCobAtual() {
-        return rede.getPorcCobAtual();
+        return SensorNetwork.getEnvironment().getCurrentCoverage();
     }
 
     public double getEnResRede() {
@@ -97,24 +95,15 @@ public class Simulacao {
         return enConsRede;
     }
 
-    public RedeSensor getRede() {
-        return rede;
-    }
-
     public boolean simulaUmPer(boolean eventAnt, int estagioAtual, Saidas saida) throws Exception {
 
         saida.geraArquivoSimulador(estagioAtual);
-
-        boolean evento;
 
         listSensFalhosNoPer.clear();
 
         // ========= Verificacao e Calculo de Energia no Periodo de tempo =========
         enResRede = 0;
         enConsRede = 0;
-
-        int numSensores = listSensores.size();
-
 
 		/*int fimLista = vEnResRede.size()-1;
 		if (!eventAnt && vEnConsRede.size() > 2 && vEnConsRede.get(fimLista) == vEnConsRede.get(fimLista-1)){		
@@ -129,7 +118,7 @@ public class Simulacao {
         }
 
         //Calculando a energia consumida
-        enConsRede = rede.CalculaEnergiaConsPer();
+        enConsRede = SensorNetwork.getTotalConsumedEnergy();
 
         //////////////////////// necessario para algumas aplicacoes //////////////////
         if (testeReestruturarRede(estagioAtual))
@@ -137,13 +126,13 @@ public class Simulacao {
         ///////////////////////////////////////////////////////////////////////////////
 
         //Incluindo Energia consumida por Ativacao.
-        enConsRede += rede.enAtivPeriodo();
+        enConsRede += SensorNetwork.getAvailableEnergy();
         //-----------------------------------------
-        pCobAtual = rede.calcCobertura();
+        pCobAtual = SensorNetwork.getEnvironment().getCurrentCoverage();
 
         //}
 
-        nSensorAtivos.add(rede.getNumSensAtivos());
+        nSensorAtivos.add(SensorHolder.getActiveSensors().size());
         nEstagio.add(estagioAtual);
 
         vEnResRede.add(enResRede);
@@ -153,13 +142,13 @@ public class Simulacao {
         //gerar impressao na tela
         saida.gerarSaidaTela(estagioAtual);
 
-        rede.CalculaEnergiaPeriodo();
+        SensorNetwork.updateAvailableEnergy();
+        SensorNetwork.updateRemainingBatteryEnergy();
 
         //Verificando se algum sensor nao estara na proxima simulacao
-        evento = rede.retirarSensoresFalhaEnergia(listSensFalhosNoPer, (double) porcBatRet);
-        rede.setListSensFalhosNoPer(listSensFalhosNoPer);
+        SensorHolder.update();
 
-        return evento;
+        return !SensorHolder.getPreviousRoundFailedSensors().isEmpty();
 
     }
 
@@ -174,8 +163,8 @@ public class Simulacao {
             }
         }
         if (estagioAtual > 0) {
-            somaModDiffAtivos = Math.abs(nSensorAtivos.get(nSensorAtivos.size() - 1) - rede.getNumSensAtivos());
-            if (somaModDiffAtivos > limAumentoEnergiaCons * rede.getAvailableSensors().size()) {
+            somaModDiffAtivos = Math.abs(nSensorAtivos.get(nSensorAtivos.size() - 1) - SensorHolder.getActiveSensors().size());
+            if (somaModDiffAtivos > limAumentoEnergiaCons * SensorHolder.getAvailableSensors().size()) {
                 somaModDiffAtivos = 0;
                 reestrutrarRede = true;
             }
