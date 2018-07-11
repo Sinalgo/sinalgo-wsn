@@ -58,8 +58,13 @@ public class SensorNetwork {
                 .sum());
     }
 
-    public static void updateActiveSensors(boolean[] vetBoolean) {
-        SensorHolder.getAvailableSensors().values().forEach(s -> s.setActive(vetBoolean[(int) s.getID()]));
+    public static void updateActiveSensors(boolean[] booleanArray) {
+        SensorHolder.getAvailableSensors().values().forEach(s -> s.setActive(booleanArray[(int) s.getID()]));
+        SensorHolder.updateCollections();
+    }
+
+    public static void updateActiveSensors(int[] intArray) {
+        SensorHolder.getAvailableSensors().values().forEach(s -> s.setActive(intArray[(int) s.getID()] == 1));
         SensorHolder.updateCollections();
     }
 

@@ -1,6 +1,7 @@
 package projects.tcc.simulation.algorithms.genetic;
 
 import projects.tcc.nodes.nodeImplementations.Sensor;
+import projects.tcc.nodes.nodeImplementations.Sink;
 import projects.tcc.simulation.data.SensorHolder;
 import projects.tcc.simulation.graph.GraphHolder;
 import projects.tcc.simulation.rssf.SensorNetwork;
@@ -220,9 +221,9 @@ public class AG_Estatico_MO_arq {
     /*evaluates objective function for each chromossome*/
     static void calculaFuncaoObjetivo(List<Cromossomo> pCromossomos) {
 
-        List<Sensor> popSensores = rede.getAvailableSensors();
+        Sensor sensor = SensorHolder.getAvailableSensors().values().stream().findFirst().orElse(null);
 
-        double penAtiv = popSensores.get(0).getActivationPower() + popSensores.get(0).getMaintenancePower();
+        double penAtiv = sensor.getActivationPower() + sensor.getMaintenancePower();
         int penNCob = 0;//100000 utilizado no mono-objetivo;
 
         for (Cromossomo indv : pCromossomos) {
@@ -236,14 +237,17 @@ public class AG_Estatico_MO_arq {
 
     public static void avaliarIndividuo(Cromossomo individuo, double penAtiv, int penNCob) {
 
-        int naoCoberturaAuxiliar = rede.avaliaNaoCoberturaSemConect(individuo.getListIdsAtivo());
-        individuo.setNaoCobertura(naoCoberturaAuxiliar);
+        SensorNetwork.getEnvironment().updateDisconnectedCoverage();
+        individuo.setNaoCobertura((int) SensorNetwork.getEnvironment().getDisconnectedCoverage());
 
-        rede.ativarSensoresVetBits(individuo.getVetorBits());
+        SensorNetwork.updateActiveSensors(individuo.getVetorBits());
         double custoCaminhoTotal = 0;
-        for (Sensor sens : rede.getAvailableSensors()) {
-            if (sens.isActive())
-                custoCaminhoTotal += sens.getPathToSinkCost();
+        for (Sensor sens : SensorHolder.getAvailableSensors().values()) {
+            for (Sink sink : SensorHolder.getSinks().values()) {
+                if (sens.isActive()) {
+                    custoCaminhoTotal += sens.getGraphNodeProperties().getPathToSinkCost().get(sink.getID());
+                }
+            }
         }
 
         int penCustoCaminho = 100;
@@ -260,7 +264,7 @@ public class AG_Estatico_MO_arq {
         int penNCob = 100000;
         double penAtiv = 100000;
 
-        raioSens = SensorHolder.getAvailableSensors().get(0).getSensorRadius();
+        raioSens = SensorHolder.getAvailableSensors().values().stream().findFirst().orElse(null).getSensorRadius();
 
         for (Cromossomo indiv : pCromossomos) {
 
