@@ -591,17 +591,17 @@ public class AG_Estatico_MO_arq {
 
         index = conjSolPareto.size() - 1;
 
-        double fator = 1.0 - rede.getFatorCob(); //% n�o cobertura
+        double fator = 1.0 - SensorNetwork.getEnvironment().getCoverageFactor(); //% n�o cobertura
         for (int i = 0; i < conjSolPareto.size(); i++) {
             Cromossomo cromoAux = conjSolPareto.get(i);
             int pontosDescobertos = cromoAux.getNaoCobertura();
 
-            if ((double) pontosDescobertos / rede.getNumPontosDemanda() == 0) {
+            if (pontosDescobertos == 0) {
                 index = i;
                 break;
-            } else if ((double) pontosDescobertos / rede.getNumPontosDemanda() <= fator) {
+            } else if ((double) pontosDescobertos / SensorNetwork.getEnvironment().getPoints().size() <= fator) {
                 index = i;
-                fator = (double) pontosDescobertos / rede.getNumPontosDemanda();
+                fator = (double) pontosDescobertos / SensorNetwork.getEnvironment().getPoints().size();
                 break;
             }
 

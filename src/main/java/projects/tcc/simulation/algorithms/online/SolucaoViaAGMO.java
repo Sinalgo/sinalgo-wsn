@@ -3,12 +3,10 @@ package projects.tcc.simulation.algorithms.online;
 
 import projects.tcc.simulation.algorithms.genetic.AG_Estatico_MO_arq;
 import projects.tcc.simulation.principal.Saidas;
-import projects.tcc.simulation.rssf.RedeSensor;
+import projects.tcc.simulation.rssf.SensorNetwork;
 import projects.tcc.simulation.rssf.Simulacao;
 
 public class SolucaoViaAGMO {
-
-    private RedeSensor rede;
 
     private int numeroGeracoes;
     private int tamanhoPopulacao;
@@ -17,10 +15,7 @@ public class SolucaoViaAGMO {
     private int testeNumero;
     private String caminhoSaida;
 
-    public SolucaoViaAGMO(RedeSensor rede, int testeNumero, String caminhoSaida) {
-
-        this.rede = rede;
-
+    public SolucaoViaAGMO(int testeNumero, String caminhoSaida) {
         this.numeroGeracoes = 150;
         this.tamanhoPopulacao = 300;
         this.txCruzamento = 0.9;
@@ -42,7 +37,7 @@ public class SolucaoViaAGMO {
                 System.out.print("0 ");
         }
 
-        rede.createInitialNetwork(vetSensAtiv);
+        SensorNetwork.createInitialNetwork(vetSensAtiv);
 
         Simulacao redeSim;
         redeSim = new Simulacao(rede);
