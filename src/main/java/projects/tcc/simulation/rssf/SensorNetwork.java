@@ -168,12 +168,46 @@ public class SensorNetwork {
         return chosen;
     }
 
-    private static Sensor findReplacement() {
+    public static boolean supplyCoverage() {
+        boolean result = true;
+        Set<Long> blacklist = new HashSet<>();
+        getEnvironment().update();
+        while (result && isCoverageLow()) {
+            Sensor chosenReplacement = findReplacement(blacklist);
+            if (chosenReplacement != null) {
+                chosenReplacement.setActive(true);
+                SensorHolder.updateCollections();
+                updateConnections();
+                if (chosenReplacement.getParent() == null || chosenReplacement.getParent().isFailed()) {
+                    chosenReplacement.setActive(false);
+                    blacklist.add(chosenReplacement.getID());
+                    continue;
+                } else {
+                    Logging.getLogger().logln("Chosen replacement = " + chosenReplacement.getID());
+                }
+                getEnvironment().updateCoverage();
+                getEnvironment().updateDisconnectedCoverage();
+            } else {
+                Logging.getLogger().logln("There are no available sensors to supply the demanded coverage");
+                result = false;
+            }
+
+        }
+        getEnvironment().updateCoverage();
+        getEnvironment().updateDisconnectedCoverage();
+        return result;
+    }
+
+    private static boolean isCoverageLow() {
+        return Double.compare(getEnvironment().getCurrentCoverage(), getEnvironment().getCoverageFactor()) < 0;
+    }
+
+    private static Sensor findReplacement(Set<Long> blacklist) {
         int maxCoveredPoints = Integer.MIN_VALUE;
         Sensor chosen = null;
         getEnvironment().updateExclusivelyCoveredPoints();
         for (Sensor sensor : SensorHolder.getInactiveSensors().values()) {
-            if (!SensorHolder.getPreviousRoundDeactivatedSensors().containsKey(sensor.getID())) {
+            if (!blacklist.contains(sensor.getID())) {
                 Set<Position> coveredPoints = new HashSet<>(getEnvironment().getCoveredPoints());
                 if (coveredPoints.addAll(sensor.getExclusivelyCoveredPoints())
                         && Integer.compare(maxCoveredPoints, coveredPoints.size()) < 0) {
@@ -185,5 +219,13 @@ public class SensorNetwork {
         return chosen;
     }
 
+    public static void createInitialNetwork(boolean[] vetBoolean) {
+        updateActiveSensors(vetBoolean);
+        updateConnections();
+        getEnvironment().update();
+        if (isCoverageLow()) {
+            supplyCoverage();
+        }
+    }
 
 }
