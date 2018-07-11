@@ -1,8 +1,8 @@
 package projects.tcc.simulation.data;
 
 import lombok.Getter;
-import projects.tcc.simulation.rssf.Sensor;
-import projects.tcc.simulation.rssf.Sink;
+import projects.tcc.nodes.nodeImplementations.Sensor;
+import projects.tcc.nodes.nodeImplementations.Sink;
 
 import java.util.HashMap;
 import java.util.Map;

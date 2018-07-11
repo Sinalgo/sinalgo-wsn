@@ -3,6 +3,7 @@ package projects.tcc.simulation.rssf;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import projects.tcc.nodes.nodeImplementations.Sensor;
 import projects.tcc.simulation.data.SensorHolder;
 import sinalgo.nodes.Position;
 

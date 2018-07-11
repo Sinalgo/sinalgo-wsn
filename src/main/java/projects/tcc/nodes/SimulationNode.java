@@ -1,4 +1,4 @@
-package projects.tcc.simulation.rssf;
+package projects.tcc.nodes;
 
 import sinalgo.nodes.Node;
 

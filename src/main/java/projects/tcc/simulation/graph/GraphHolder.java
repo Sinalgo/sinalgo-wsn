@@ -1,4 +1,4 @@
-package projects.tcc.simulation.algorithms.graph;
+package projects.tcc.simulation.graph;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -7,9 +7,9 @@ import org.jgrapht.GraphPath;
 import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.DefaultDirectedWeightedGraph;
 import org.jgrapht.graph.DefaultWeightedEdge;
+import projects.tcc.nodes.nodeImplementations.Sensor;
+import projects.tcc.nodes.nodeImplementations.Sink;
 import projects.tcc.simulation.data.SensorHolder;
-import projects.tcc.simulation.rssf.Sensor;
-import projects.tcc.simulation.rssf.Sink;
 
 import java.util.List;
 

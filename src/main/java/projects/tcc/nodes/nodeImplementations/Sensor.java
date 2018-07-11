@@ -1,7 +1,8 @@
-package projects.tcc.simulation.rssf;
+package projects.tcc.nodes.nodeImplementations;
 
 import lombok.Getter;
 import lombok.Setter;
+import projects.tcc.nodes.SimulationNode;
 import projects.tcc.simulation.data.SensorHolder;
 import sinalgo.exception.WrongConfigurationException;
 import sinalgo.nodes.Position;

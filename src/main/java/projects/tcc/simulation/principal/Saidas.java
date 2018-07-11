@@ -1,7 +1,7 @@
 package projects.tcc.simulation.principal;
 
+import projects.tcc.nodes.nodeImplementations.Sensor;
 import projects.tcc.simulation.rssf.RedeSensor;
-import projects.tcc.simulation.rssf.Sensor;
 import projects.tcc.simulation.rssf.Simulacao;
 
 import java.io.File;

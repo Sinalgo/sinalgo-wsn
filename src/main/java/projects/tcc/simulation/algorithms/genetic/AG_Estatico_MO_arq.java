@@ -1,7 +1,7 @@
 package projects.tcc.simulation.algorithms.genetic;
 
+import projects.tcc.nodes.nodeImplementations.Sensor;
 import projects.tcc.simulation.data.SensorHolder;
-import projects.tcc.simulation.rssf.Sensor;
 
 import java.util.ArrayList;
 import java.util.List;

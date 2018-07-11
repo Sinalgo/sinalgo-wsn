@@ -1,5 +1,6 @@
 package projects.tcc.simulation.rssf;
 
+import projects.tcc.nodes.nodeImplementations.Sensor;
 import projects.tcc.simulation.principal.Saidas;
 
 import java.util.ArrayList;

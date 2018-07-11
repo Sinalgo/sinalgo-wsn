@@ -1,4 +1,4 @@
-package projects.tcc.simulation.rssf;
+package projects.tcc.nodes.nodeImplementations;
 
 import static projects.tcc.simulation.io.ConfigurationLoader.getConfiguration;
 

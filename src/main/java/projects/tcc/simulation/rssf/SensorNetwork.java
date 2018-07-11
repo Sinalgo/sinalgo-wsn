@@ -3,8 +3,10 @@ package projects.tcc.simulation.rssf;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import projects.tcc.simulation.algorithms.graph.GraphHolder;
+import projects.tcc.nodes.nodeImplementations.Sensor;
+import projects.tcc.nodes.nodeImplementations.Sink;
 import projects.tcc.simulation.data.SensorHolder;
+import projects.tcc.simulation.graph.GraphHolder;
 import sinalgo.nodes.Position;
 import sinalgo.tools.logging.Logging;
 
