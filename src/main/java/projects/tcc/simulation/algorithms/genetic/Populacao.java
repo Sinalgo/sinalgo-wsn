@@ -10,11 +10,11 @@ public class Populacao {
     private double mProbCruzIndv;
     private int tamPop;
     private int numBits;
-    private ArrayList<Cromossomo> popCromossomo;
+    private List<Cromossomo> popCromossomo;
     private Cromossomo melhorCromo;
-    private ArrayList<Cromossomo> melhorPareto;
+    private List<Cromossomo> melhorPareto;
     private long[] idsVetBits;
-    private ArrayList<Pareto> solPareto;
+    private List<Pareto> solPareto;
     private int minSensAtiv;
 
     public Populacao(int vTamPop, int vNumBits, long[] vetIds, double mProbCruz) {
@@ -47,11 +47,11 @@ public class Populacao {
         this.melhorCromo = mCromo;
     }
 
-    public ArrayList<Cromossomo> getPopCromossomo() {
+    public List<Cromossomo> getPopCromossomo() {
         return popCromossomo;
     }
 
-    public void setPopCromossomo(ArrayList<Cromossomo> novaPopCromo) {
+    public void setPopCromossomo(List<Cromossomo> novaPopCromo) {
         popCromossomo = novaPopCromo;
     }
 
@@ -218,28 +218,21 @@ public class Populacao {
     }
 
     public void setMelhorPareto() {
-
         this.melhorPareto.clear();
-
-        for (int i = 0; i < popCromossomo.size(); i++) {
-
-            if (popCromossomo.get(i).getIdPareto() == 1) {
+        for (Cromossomo aPopCromossomo : popCromossomo) {
+            if (aPopCromossomo.getIdPareto() == 1) {
                 boolean testeInserir = true;
-                for (int j = 0; j < melhorPareto.size(); j++) {
-
-                    if (popCromossomo.get(i).getFitness() == melhorPareto.get(j).getFitness() &&
-                            popCromossomo.get(i).getFitness2() == melhorPareto.get(j).getFitness2()) {
+                for (Cromossomo aMelhorPareto : melhorPareto) {
+                    if (aPopCromossomo.getFitness() == aMelhorPareto.getFitness() &&
+                            aPopCromossomo.getFitness2() == aMelhorPareto.getFitness2()) {
                         //System.out.println("testando = " + cont);
                         testeInserir = false;
                         break;
                     }
-
                 }
-
                 if (testeInserir) {
-                    this.melhorPareto.add(popCromossomo.get(i));
+                    this.melhorPareto.add(aPopCromossomo);
                 }
-
             }
 
 //			else
@@ -248,7 +241,7 @@ public class Populacao {
         }
     }
 
-    public ArrayList<Cromossomo> getMelhorPareto() {
+    public List<Cromossomo> getMelhorPareto() {
         return this.melhorPareto;
     }
 
@@ -356,7 +349,7 @@ public class Populacao {
         //Preparando a População para Cruzamento.
 
         //Criando uma poupulação paralela.
-        ArrayList<Cromossomo> popCromossomoAux = new ArrayList<>();
+        List<Cromossomo> popCromossomoAux = new ArrayList<>();
 
         for (Cromossomo aPopCromossomo : popCromossomo) {
             popCromossomoAux.add(new Cromossomo(aPopCromossomo));
@@ -364,8 +357,8 @@ public class Populacao {
 
 
         //Gerando os casais:
-        ArrayList<Cromossomo> filaPai = new ArrayList<>();
-        ArrayList<Cromossomo> filaMae = new ArrayList<>();
+        List<Cromossomo> filaPai = new ArrayList<>();
+        List<Cromossomo> filaMae = new ArrayList<>();
 
         //System.out.println("popCromossomoAux.size() = " + popCromossomoAux.size());
         while (popCromossomoAux.size() > 1) {
@@ -469,9 +462,9 @@ public class Populacao {
     }
 
 
-    public ArrayList<Cromossomo> copyMelhorPareto() {
+    public List<Cromossomo> copyMelhorPareto() {
 
-        ArrayList<Cromossomo> copyMelhorPareto = new ArrayList<>();
+        List<Cromossomo> copyMelhorPareto = new ArrayList<>();
 
         for (Cromossomo cromoPareto : melhorPareto) {
 
@@ -524,7 +517,7 @@ public class Populacao {
 
         //Conjunto das solu��es ordenadas por pareto
         Pareto paretoAux = new Pareto();
-        ArrayList<Cromossomo> sp;
+        List<Cromossomo> sp;
 
         this.solPareto.clear();
         for (int i = 0; i < popCromossomo.size(); i++) {
@@ -571,16 +564,13 @@ public class Populacao {
 
                 sp = solPareto.get(k).getPopCromoPareto().get(i).getSp();
 
-                for (int j = 0; j < sp.size(); j++) {
-
-                    int npAtual = sp.get(j).getNp();
-                    sp.get(j).setNp(npAtual - 1);
-
-                    if (sp.get(j).getNp() == 0) {
-                        paretoAux.inserirSolPareto(sp.get(j));
-                        sp.get(j).setIdPareto(k + 2);
+                for (Cromossomo aSp : sp) {
+                    int npAtual = aSp.getNp();
+                    aSp.setNp(npAtual - 1);
+                    if (aSp.getNp() == 0) {
+                        paretoAux.inserirSolPareto(aSp);
+                        aSp.setIdPareto(k + 2);
                     }
-
                 }
             }
 
@@ -599,7 +589,7 @@ public class Populacao {
 
         //Conjunto das solu��es ordenadas por pareto
         Pareto paretoAux = new Pareto();
-        ArrayList<Cromossomo> sp;
+        List<Cromossomo> sp;
 
         this.solPareto.clear();
         int cont = 0;
@@ -807,7 +797,7 @@ public class Populacao {
 
     public void addPopulacao(Populacao pop) {
 
-        ArrayList<Cromossomo> listCromosAdd = pop.getPopCromossomo();
+        List<Cromossomo> listCromosAdd = pop.getPopCromossomo();
 
         for (Cromossomo aListCromosAdd : listCromosAdd) {
             addIndiv(aListCromosAdd);
@@ -815,17 +805,17 @@ public class Populacao {
     }
 
 
-    public ArrayList<Pareto> getSolPareto() {
+    public List<Pareto> getSolPareto() {
         return solPareto;
     }
 
 
-    public void setSolPareto(ArrayList<Pareto> solPareto) {
+    public void setSolPareto(List<Pareto> solPareto) {
         this.solPareto = solPareto;
     }
 
 
-    public void inserirPopArq(ArrayList<Cromossomo> popArq) {
+    public void inserirPopArq(List<Cromossomo> popArq) {
         for (Cromossomo aPopArq : popArq) {
             popCromossomo.add(new Cromossomo(aPopArq));
         }

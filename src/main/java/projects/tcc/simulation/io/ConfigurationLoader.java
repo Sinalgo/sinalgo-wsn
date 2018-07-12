@@ -27,21 +27,20 @@ public class ConfigurationLoader {
         return configuration;
     }
 
-    public static void overrideConfiguration(SimulationConfiguration configuration) {
-        setConfiguration(configuration);
+    public static void overrideConfiguration(String filePath) {
+        setConfiguration(load(filePath));
     }
 
     private static void load() {
         try {
-            setConfiguration(load(Configuration.getStringParameter("inputFile")));
+            setConfiguration(load("projects/tcc/input/json/" + Configuration.getStringParameter("inputFile") + ".json"));
         } catch (CorruptConfigurationEntryException e) {
             throw new SinalgoFatalException("Corrupt configuration, could not find file " +
                     "to use as input for the simulation", e);
         }
     }
 
-    private static SimulationConfiguration load(String name) {
-        String filePath = "projects/tcc/input/json/" + name + ".json";
+    private static SimulationConfiguration load(String filePath) {
         log.info("Loading configuration from " + filePath);
         try (LineNumberReader reader = new LineNumberReader(new InputStreamReader(Thread.currentThread()
                 .getContextClassLoader()
@@ -52,5 +51,6 @@ public class ConfigurationLoader {
             throw new RuntimeException(e);
         }
     }
+
 
 }

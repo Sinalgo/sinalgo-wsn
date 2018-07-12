@@ -3,18 +3,19 @@ package projects.tcc.simulation.rssf;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.java.Log;
 import projects.tcc.nodes.nodeImplementations.Sensor;
 import projects.tcc.nodes.nodeImplementations.Sink;
 import projects.tcc.simulation.data.SensorHolder;
 import projects.tcc.simulation.graph.GraphHolder;
 import sinalgo.nodes.Position;
-import sinalgo.tools.logging.Logging;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+@Log
 public class SensorNetwork {
 
     @Getter
@@ -130,7 +131,7 @@ public class SensorNetwork {
         if (Double.compare(getEnvironment().getCurrentCoverage(), getEnvironment().getCoverageFactor()) >= 0) {
             return true;
         } else {
-            Logging.getLogger().logln("Couldn't supply online coverage");
+            log.warning("Couldn't supply online coverage");
             return false;
         }
     }
@@ -190,12 +191,12 @@ public class SensorNetwork {
                     blacklist.add(chosenReplacement.getID());
                     continue;
                 } else {
-                    Logging.getLogger().logln("Chosen replacement = " + chosenReplacement.getID());
+                    log.info("Chosen replacement = " + chosenReplacement.getID());
                 }
                 getEnvironment().updateCoverage();
                 getEnvironment().updateDisconnectedCoverage();
             } else {
-                Logging.getLogger().logln("There are no available sensors to supply the demanded coverage");
+                log.warning("There are no available sensors to supply the demanded coverage");
                 result = false;
             }
 

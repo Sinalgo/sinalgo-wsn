@@ -17,7 +17,7 @@ public class AG_Estatico_MO_arq {
 
         GraphHolder.update(); //atulizando o custo de caminho de cada sensor ao sink;
 
-        ArrayList<Cromossomo> vMelhorPareto;
+        List<Cromossomo> vMelhorPareto;
 
         int numGer = 0;
         double medFitness = 0;
@@ -110,7 +110,7 @@ public class AG_Estatico_MO_arq {
         vMelhorPareto = popCromo.copyMelhorPareto();
         //Separando os melhores paretos para uma m�dia.
 
-        ArrayList<Cromossomo> conjMelhorPareto = new ArrayList<>(vMelhorPareto);
+        List<Cromossomo> conjMelhorPareto = new ArrayList<>(vMelhorPareto);
 
 
         //			System.out.println("numero de geracaoes = " + cont);
@@ -258,7 +258,7 @@ public class AG_Estatico_MO_arq {
 
 
     /*evaluates objective function for each chromossome*/
-    static void calculaFuncaoObjetivo2(ArrayList<Cromossomo> pCromossomos) {
+    static void calculaFuncaoObjetivo2(List<Cromossomo> pCromossomos) {
 
         double raioSens;
         int penNCob = 100000;
@@ -273,15 +273,14 @@ public class AG_Estatico_MO_arq {
             // avalia apenas quem precisa
             if (vFitness2 < 0) {
                 indiv.calculateFitness2(raioSens, penNCob, penAtiv);
-
             }
         }
 
     }
 
-    public static ArrayList<Cromossomo> selecaoRoleta(ArrayList<Cromossomo> popCromo, int tamPopOrig) {
+    public static List<Cromossomo> selecaoRoleta(List<Cromossomo> popCromo, int tamPopOrig) {
 
-        ArrayList<Cromossomo> popCromoAux = new ArrayList<>();
+        List<Cromossomo> popCromoAux = new ArrayList<>();
 
         double totalFitness = 0;
 
@@ -315,7 +314,7 @@ public class AG_Estatico_MO_arq {
     }
 
 
-    public static int[][] gerarMatDomi(ArrayList<Cromossomo> popCromo) {
+    public static int[][] gerarMatDomi(List<Cromossomo> popCromo) {
 
         int tamPopCromo = popCromo.size();
         int[][] matDomin = new int[tamPopCromo][tamPopCromo];
@@ -369,7 +368,7 @@ public class AG_Estatico_MO_arq {
 
     }
 
-    public static void gerarParetos(ArrayList<Cromossomo> popCromo) {
+    public static void gerarParetos(List<Cromossomo> popCromo) {
 
         int tamPopCromo = popCromo.size();
         int[][] matDomin;
@@ -449,7 +448,7 @@ public class AG_Estatico_MO_arq {
 
     }
 
-    public static void limpaPareto(ArrayList<Cromossomo> popCromo) {
+    public static void limpaPareto(List<Cromossomo> popCromo) {
 
         for (Cromossomo aPopCromo : popCromo) {
             aPopCromo.setIdPareto(Integer.MAX_VALUE);
@@ -460,9 +459,9 @@ public class AG_Estatico_MO_arq {
 
 
     public static boolean elitismoMelhorPareto(Populacao popCromo,
-                                               ArrayList<Cromossomo> melhorPareto) {
+                                               List<Cromossomo> melhorPareto) {
 
-        ArrayList<Cromossomo> paretoPopCorrente = popCromo.getMelhorPareto();
+        List<Cromossomo> paretoPopCorrente = popCromo.getMelhorPareto();
 
         //		System.out.println("melhorPareto.size() ==" + melhorPareto.size() );
         //		System.out.println("paretoPopCorrente.size() ==" + paretoPopCorrente.size() );
@@ -508,9 +507,9 @@ public class AG_Estatico_MO_arq {
     }
 
     public static boolean elitismoMelhorPareto_arq(Populacao popCromo,
-                                                   ArrayList<Cromossomo> melhorPareto) {
+                                                   List<Cromossomo> melhorPareto) {
 
-        ArrayList<Cromossomo> paretoPopCorrente = popCromo.getMelhorPareto();
+        List<Cromossomo> paretoPopCorrente = popCromo.getMelhorPareto();
 
         //		System.out.println("melhorPareto.size() ==" + melhorPareto.size() );
         //		System.out.println("paretoPopCorrente.size() ==" + paretoPopCorrente.size() );
@@ -550,7 +549,7 @@ public class AG_Estatico_MO_arq {
 
     }
 
-    public static void ajusteCoord(ArrayList<Cromossomo> conjSolPareto, int fatCob, int fatEn) {
+    public static void ajusteCoord(List<Cromossomo> conjSolPareto, int fatCob, int fatEn) {
 
         //achando os limites
         double limX = conjSolPareto.get(conjSolPareto.size() - 1).getFitness();

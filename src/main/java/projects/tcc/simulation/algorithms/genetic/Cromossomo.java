@@ -29,7 +29,7 @@ public class Cromossomo {
     private int idPareto;
     private boolean presPareto;
     private int np;
-    private ArrayList<Cromossomo> sp;
+    private List<Cromossomo> sp;
     private boolean extremoPareto;
 
     @Getter
@@ -75,9 +75,7 @@ public class Cromossomo {
 
         //copiar a lista sp
         sp = new ArrayList<>();
-        for (int i = 0; i < cromo.getSp().size(); i++) {
-            sp.add(cromo.getSp().get(i));
-        }
+        sp.addAll(cromo.getSp());
         extremoPareto = cromo.getExtremoPareto();
         avaliarFO = true;
 
@@ -227,7 +225,7 @@ public class Cromossomo {
         this.np = np;
     }
 
-    public ArrayList<Cromossomo> getSp() {
+    public List<Cromossomo> getSp() {
         return sp;
     }
 

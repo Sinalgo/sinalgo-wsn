@@ -1,7 +1,9 @@
 package projects.tcc.simulation.principal;
 
 import projects.tcc.simulation.algorithms.online.SolucaoViaAGMO;
-import projects.tcc.simulation.rssf.RedeSensor;
+import projects.tcc.simulation.io.ConfigurationLoader;
+import projects.tcc.simulation.io.SimulationConfiguration;
+import projects.tcc.simulation.rssf.Environment;
 
 public class Principal {
 
@@ -27,8 +29,9 @@ public class Principal {
 
             // =================== Iniciando a Simulacao ==================
 
-            RedeSensor rede;
-            rede = new RedeSensor(nomeArqEntrada, 50, 50, parmEntrada.getMFatorCobMO());
+            ConfigurationLoader.overrideConfiguration(nomeArqEntrada);
+            SimulationConfiguration config = ConfigurationLoader.getConfiguration();
+            new Environment(config.) (nomeArqEntrada, 50, 50, parmEntrada.getMFatorCobMO());
 
             rede.addSink();
             rede.prepararRede();
@@ -41,7 +44,7 @@ public class Principal {
 
             tempoRede.iniciar();
 
-            SolucaoViaAGMO solucao = new SolucaoViaAGMO(rede, i, parmEntrada.getCaminhoSaida());
+            SolucaoViaAGMO solucao = new SolucaoViaAGMO(i, parmEntrada.getCaminhoSaida());
             solucao.simularRede(i);
 
             tempoRede.finalizar();
