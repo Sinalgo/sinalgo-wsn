@@ -26,10 +26,10 @@ public class SensorNetwork {
     @Setter(AccessLevel.PRIVATE)
     private static Environment environment;
 
-    public static void init(Environment environment) {
+    public static void init(long height, long width, double coverageFactor) {
         computeDistances();
         computeNeighbors();
-        setEnvironment(environment);
+        setEnvironment(new Environment(height, width, coverageFactor));
     }
 
     private static void computeDistances() {

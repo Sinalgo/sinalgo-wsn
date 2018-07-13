@@ -1,9 +1,13 @@
 package projects.tcc.simulation.principal;
 
+import projects.tcc.nodes.nodeImplementations.Sensor;
+import projects.tcc.nodes.nodeImplementations.Sink;
 import projects.tcc.simulation.algorithms.online.SolucaoViaAGMO;
+import projects.tcc.simulation.data.SensorHolder;
 import projects.tcc.simulation.io.ConfigurationLoader;
 import projects.tcc.simulation.io.SimulationConfiguration;
-import projects.tcc.simulation.rssf.Environment;
+import projects.tcc.simulation.io.SimulationConfiguration.SensorConfiguration;
+import projects.tcc.simulation.rssf.SensorNetwork;
 
 public class Principal {
 
@@ -12,8 +16,6 @@ public class Principal {
      * @throws Exception
      */
     public static void main(String[] args) throws Exception {
-
-        //TODO Auto-generated method stub
 
         ParametrosEntrada parmEntrada = new ParametrosEntrada(args);
 
@@ -29,13 +31,17 @@ public class Principal {
 
             // =================== Iniciando a Simulacao ==================
 
+            SensorNetwork.init(50, 50, parmEntrada.getMFatorCobMO());
+
             ConfigurationLoader.overrideConfiguration(nomeArqEntrada);
             SimulationConfiguration config = ConfigurationLoader.getConfiguration();
-            new Environment(config.) (nomeArqEntrada, 50, 50, parmEntrada.getMFatorCobMO());
 
-            rede.addSink();
-            rede.prepararRede();
-
+            SensorHolder.addSensor(new Sink());
+            for (SensorConfiguration sensorConfiguration : config.getSensorConfigurations()) {
+                Sensor sensor = new Sensor();
+                sensor.setPosition(sensorConfiguration.toPosition());
+                SensorHolder.addSensor(sensor);
+            }
 
             System.out.println("\n\n========= Teste Numero: " + i + " =========");
 

@@ -176,7 +176,7 @@ public class Sensor extends SimulationNode {
 
     @Override
     public void init() {
-        SensorHolder.addSensors(this);
+        SensorHolder.addSensor(this);
     }
 
     @Override

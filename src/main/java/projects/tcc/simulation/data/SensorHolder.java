@@ -69,7 +69,7 @@ public class SensorHolder {
     private static final Map<Long, Sensor> previousRoundFailedSensors = new HashMap<>();
 
 
-    public static void addSensors(Sensor sensor) {
+    public static void addSensor(Sensor sensor) {
         getAllSensorsAndSinks().put(sensor.getID(), sensor);
         if (sensor instanceof Sink) {
             getSinks().put(sensor.getID(), (Sink) sensor);

@@ -8,7 +8,7 @@
   "commRatio": 0.25,
   "sinkPosX": 0.0,
   "sinkPosY": 0.0,
-  "sensors": [
+  "sensorConfigurations": [
     {
       "x": 15.006539,
       "y": 20.41755

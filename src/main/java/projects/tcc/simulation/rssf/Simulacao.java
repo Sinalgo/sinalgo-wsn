@@ -29,8 +29,6 @@ public class Simulacao {
     private List<Integer> nSensorAtivos;
     private List<Integer> nEstagio;
 
-    private List<Sensor> listSensFalhosNoPer;
-
     public Simulacao() {
 
         vEnResRede = new ArrayList<>();
@@ -43,8 +41,6 @@ public class Simulacao {
         listSensores = new ArrayList<>(SensorHolder.getAvailableSensors().values());
 
         porcBatRet = 10;
-
-        this.listSensFalhosNoPer = new ArrayList<>();
 
         this.somaModDiffAtivos = 0;
         this.energiaResAnt = 0.0;
@@ -99,7 +95,7 @@ public class Simulacao {
 
         saida.geraArquivoSimulador(estagioAtual);
 
-        listSensFalhosNoPer.clear();
+        SensorHolder.clearRoundSpecificMaps();
 
         // ========= Verificacao e Calculo de Energia no Periodo de tempo =========
         enResRede = 0;
@@ -126,7 +122,7 @@ public class Simulacao {
         ///////////////////////////////////////////////////////////////////////////////
 
         //Incluindo Energia consumida por Ativacao.
-        enConsRede += SensorNetwork.getAvailableEnergy();
+        enConsRede += SensorNetwork.getActivationEnergyForThisRound() + SensorNetwork.getTotalConsumedEnergy();
         //-----------------------------------------
         pCobAtual = SensorNetwork.getEnvironment().getCurrentCoverage();
 

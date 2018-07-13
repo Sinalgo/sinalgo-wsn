@@ -15,8 +15,8 @@ public class SimulationFilesPositionModel extends DistributionModel {
     private final Iterator<SimulationConfiguration.SensorConfiguration> configurationIterator;
 
     public SimulationFilesPositionModel() {
-        this.configurationIterator = ConfigurationLoader.getConfiguration().getSensors().iterator();
-        this.setNumberOfNodes(ConfigurationLoader.getConfiguration().getSensors().size());
+        this.configurationIterator = ConfigurationLoader.getConfiguration().getSensorConfigurations().iterator();
+        this.setNumberOfNodes(ConfigurationLoader.getConfiguration().getSensorConfigurations().size());
     }
 
     @Override

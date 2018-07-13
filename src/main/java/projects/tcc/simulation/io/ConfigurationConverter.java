@@ -71,7 +71,7 @@ public class ConfigurationConverter {
                                     .commRatio(commRatio)
                                     .maintenancePower(maintenancePower)
                                     .receivePower(receivePower)
-                                    .sensors(sensorConfigurations)
+                                    .sensorConfigurations(sensorConfigurations)
                                     .sinkPosX(0)
                                     .sinkPosY(0)
                                     .build());

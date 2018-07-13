@@ -31,6 +31,6 @@ public class SimulationConfiguration {
     private final double sinkPosX;
     private final double sinkPosY;
 
-    private final List<SensorConfiguration> sensors;
+    private final List<SensorConfiguration> sensorConfigurations;
 
 }
