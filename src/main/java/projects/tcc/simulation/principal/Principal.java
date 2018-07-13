@@ -8,6 +8,9 @@ import projects.tcc.simulation.io.ConfigurationLoader;
 import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.io.SimulationConfiguration.SensorConfiguration;
 import projects.tcc.simulation.rssf.SensorNetwork;
+import sinalgo.io.IOUtils;
+import sinalgo.io.xml.XMLParser;
+import sinalgo.runtime.Global;
 
 public class Principal {
 
@@ -16,6 +19,9 @@ public class Principal {
      * @throws Exception
      */
     public static void main(String[] args) throws Exception {
+
+        XMLParser.parse(IOUtils.getProjectConfigurationAsReader(Global.getProjecName()));
+        Global.init();
 
         ParametrosEntrada parmEntrada = new ParametrosEntrada(args);
 
