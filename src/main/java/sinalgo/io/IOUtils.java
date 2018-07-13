@@ -123,7 +123,7 @@ public class IOUtils {
         try {
             return getResourceAsReader(getAsPath(Configuration.getProjectResourceDirPrefix(), projectName, Configuration.getConfigfileFileName()));
         } catch (SinalgoFatalException e) {
-            throw new SinalgoFatalException("Failed to read the default configuration file for project '" + projectName + "''");
+            throw new SinalgoFatalException("Failed to read the default configuration file for project '" + projectName + "'");
         }
     }
 
