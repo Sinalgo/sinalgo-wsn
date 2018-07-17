@@ -1,8 +1,8 @@
 package projects.tcc.simulation.principal;
 
-import projects.tcc.nodes.nodeImplementations.Sensor;
 import projects.tcc.simulation.data.SensorHolder;
 import projects.tcc.simulation.rssf.Simulacao;
+import projects.tcc.simulation.rssf.sensor.Sensor;
 
 import java.io.File;
 import java.io.FileWriter;

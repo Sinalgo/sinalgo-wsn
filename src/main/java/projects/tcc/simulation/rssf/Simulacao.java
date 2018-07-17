@@ -1,8 +1,8 @@
 package projects.tcc.simulation.rssf;
 
-import projects.tcc.nodes.nodeImplementations.Sensor;
 import projects.tcc.simulation.data.SensorHolder;
 import projects.tcc.simulation.principal.Saidas;
+import projects.tcc.simulation.rssf.sensor.Sensor;
 
 import java.util.ArrayList;
 import java.util.List;

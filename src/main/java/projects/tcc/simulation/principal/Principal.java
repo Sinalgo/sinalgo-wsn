@@ -1,13 +1,14 @@
 package projects.tcc.simulation.principal;
 
-import projects.tcc.nodes.nodeImplementations.Sensor;
-import projects.tcc.nodes.nodeImplementations.Sink;
 import projects.tcc.simulation.algorithms.online.SolucaoViaAGMO;
 import projects.tcc.simulation.data.SensorHolder;
 import projects.tcc.simulation.io.ConfigurationLoader;
 import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.io.SimulationConfiguration.SensorConfiguration;
 import projects.tcc.simulation.rssf.SensorNetwork;
+import projects.tcc.simulation.rssf.sensor.Sensor;
+import projects.tcc.simulation.rssf.sensor.impl.RSSFSensor;
+import projects.tcc.simulation.rssf.sensor.impl.RSSFSink;
 
 public class Principal {
 
@@ -36,9 +37,9 @@ public class Principal {
             ConfigurationLoader.overrideConfiguration(nomeArqEntrada);
             SimulationConfiguration config = ConfigurationLoader.getConfiguration();
 
-            SensorHolder.addSensor(new Sink());
+            SensorHolder.addSensor(new RSSFSink());
             for (SensorConfiguration sensorConfiguration : config.getSensorConfigurations()) {
-                Sensor sensor = new Sensor();
+                Sensor sensor = new RSSFSensor();
                 sensor.setPosition(sensorConfiguration.toPosition());
                 SensorHolder.addSensor(sensor);
             }

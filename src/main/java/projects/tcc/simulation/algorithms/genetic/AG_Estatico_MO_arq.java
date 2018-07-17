@@ -1,10 +1,10 @@
 package projects.tcc.simulation.algorithms.genetic;
 
-import projects.tcc.nodes.nodeImplementations.Sensor;
-import projects.tcc.nodes.nodeImplementations.Sink;
 import projects.tcc.simulation.data.SensorHolder;
 import projects.tcc.simulation.graph.GraphHolder;
 import projects.tcc.simulation.rssf.SensorNetwork;
+import projects.tcc.simulation.rssf.sensor.Sensor;
+import projects.tcc.simulation.rssf.sensor.Sink;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -183,7 +183,7 @@ public class AG_Estatico_MO_arq {
 		}
 
 
-		int [] vetBits_popAG  = new int[popAG.size()-1]; //-1 pois o Sink n�o entra    	
+		int [] vetBits_popAG  = new int[popAG.size()-1]; //-1 pois o Sink n�o entra
 		int [] vetBits_return = new int[rede.getNumSensInicial()];
 
 		for(int i = 0; i < rede.getNumSensInicial(); i++)

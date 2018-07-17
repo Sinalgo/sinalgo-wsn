@@ -1,11 +1,13 @@
-package projects.tcc.nodes.nodeImplementations;
+package projects.tcc.simulation.rssf.sensor.impl;
+
+import projects.tcc.simulation.rssf.sensor.Sink;
 
 import static projects.tcc.simulation.io.ConfigurationLoader.getConfiguration;
 
-public class Sink extends Sensor {
+public class RSSFSink extends RSSFSensor implements Sink {
 
-    public Sink() {
-        super();
+    @Override
+    protected void performInitialization() {
         this.setPosition(getConfiguration().getSinkPosX(), getConfiguration().getSinkPosY(), 0);
         this.setCommRadius(getConfiguration().getSinkPosX());
     }
