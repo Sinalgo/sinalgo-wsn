@@ -34,8 +34,6 @@ public class Principal {
 
             // =================== Iniciando a Simulacao ==================
 
-            SensorNetwork.init(50, 50, parmEntrada.getMFatorCobMO());
-
             ConfigurationLoader.overrideConfiguration(nomeArqEntrada);
             SimulationConfiguration config = ConfigurationLoader.getConfiguration();
 
@@ -45,6 +43,8 @@ public class Principal {
                 SensorHolder.addSensor(sensor);
             }
             SensorHolder.addSensor(new RSSFSink());
+
+            SensorNetwork.init(50, 50, parmEntrada.getMFatorCobMO());
 
             log.info("\n\n========= Teste Numero: " + i + " =========");
 

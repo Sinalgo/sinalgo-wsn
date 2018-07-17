@@ -29,7 +29,6 @@ public class GraphHolder {
 
     public static void update() {
         update(!isInitialized());
-        setInitialized(true);
     }
 
     public static void update(boolean reset) {
@@ -45,6 +44,7 @@ public class GraphHolder {
         SensorHolder.getAllSensorsAndSinks().values().forEach(s -> getGraph().addVertex(s.getID()));
         SensorHolder.getAllSensorsAndSinks().values().forEach(s -> s.getNeighbors().keySet()
                 .forEach(s2 -> getGraph().addEdge(s.getID(), s2)));
+        setInitialized(true);
     }
 
     private static void updateConnections() {

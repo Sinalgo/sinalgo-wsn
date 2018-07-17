@@ -78,9 +78,8 @@ public class SensorNetwork {
         SensorHolder.getActiveSensors().values().forEach(Sensor::resetConnectivity);
         SensorHolder.getSinks().values().forEach(Sensor::resetConnectivity);
         SensorHolder.getActiveSensors().values().forEach(s -> {
-            s.setParent(SensorHolder.getAllSensorsAndSinks().get(s.getGraphNodeProperties().getParentId()));
-            if (s.getParent() != null) {
-                s.getParent().addChild(s);
+            if (s.getGraphNodeProperties().getParentId() != null) {
+                SensorHolder.getAllSensorsAndSinks().get(s.getGraphNodeProperties().getParentId()).addChild(s);
             }
         });
         SensorHolder.getSinks().values().forEach(Sensor::connectAndPropagate);
@@ -186,7 +185,8 @@ public class SensorNetwork {
                 chosenReplacement.setActive(true);
                 SensorHolder.updateCollections();
                 updateConnections();
-                if (chosenReplacement.getParent() == null || chosenReplacement.getParent().isFailed()) {
+                if ((chosenReplacement.getGraphNodeProperties().getParentId() == null
+                        && chosenReplacement.getParent() == null) || chosenReplacement.getParent().isFailed()) {
                     chosenReplacement.setActive(false);
                     blacklist.add(chosenReplacement.getID());
                     continue;
@@ -233,6 +233,8 @@ public class SensorNetwork {
         getEnvironment().update();
         if (isCoverageLow()) {
             supplyCoverage();
+            updateConnections();
+            getEnvironment().update();
         }
     }
 

@@ -31,6 +31,10 @@ public class Environment {
     @Setter(AccessLevel.PRIVATE)
     private double disconnectedCoverage;
 
+    @Getter(AccessLevel.PRIVATE)
+    @Setter(AccessLevel.PRIVATE)
+    private boolean initialized = false;
+
     Environment(long height, long width, double coverageFactor) {
         this.height = height;
         this.width = width;
@@ -52,9 +56,10 @@ public class Environment {
         }
     }
 
-    public void init() {
+    private void init() {
         computeCoveredPoints();
         updateExclusivelyCoveredPoints();
+        this.setInitialized(true);
     }
 
     private void computeCoveredPoints() {
@@ -69,6 +74,9 @@ public class Environment {
     }
 
     public void update() {
+        if (!isInitialized()) {
+            init();
+        }
         updateExclusivelyCoveredPoints();
         updateCoverage();
         updateDisconnectedCoverage();
