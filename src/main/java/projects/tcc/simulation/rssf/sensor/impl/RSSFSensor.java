@@ -28,10 +28,6 @@ public class RSSFSensor implements Sensor, Comparable<Sensor> {
      */
     private static long idCounter = 0;
 
-    public static void resetIDCounter() {
-        idCounter = 0;
-    }
-
     private long ID;
 
     private final Position position = new Position(0, 0, 0);

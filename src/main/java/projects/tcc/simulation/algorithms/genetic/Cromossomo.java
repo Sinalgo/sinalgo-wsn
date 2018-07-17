@@ -2,11 +2,13 @@ package projects.tcc.simulation.algorithms.genetic;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.java.Log;
 import sinalgo.exception.SinalgoFatalException;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Log
 public class Cromossomo {
 
     private int mTamanhoCromossomo;
@@ -303,7 +305,7 @@ public class Cromossomo {
         for (cContador = 0; cContador < mTamanhoCromossomo; cContador++)
             System.out.print(mBits[cContador]);
 
-        System.out.println("\t" + fitness);
+        log.info("\t" + fitness);
     }
 
     public void printCompleto() {
@@ -311,9 +313,7 @@ public class Cromossomo {
         for (cContador = 0; cContador < mTamanhoCromossomo; cContador++)
             System.out.print(mBits[cContador]);
 
-        System.out.print("\t" + mNumeroAtivos + "\t" + mNaoCobertura + "\t" + fitness);
-
-        System.out.println();
+        log.info("\t" + mNumeroAtivos + "\t" + mNaoCobertura + "\t" + fitness);
     }
 
 
@@ -482,9 +482,9 @@ public class Cromossomo {
 
     }
 
-	/*
-	random between 0 and pTamanhoMaximo
-	 */
+    /*
+    random between 0 and pTamanhoMaximo
+     */
     int getIntRandom(int pTamanhoMaximo) {
         int vRand = (int) (pTamanhoMaximo * (Math.random()));
         return vRand;

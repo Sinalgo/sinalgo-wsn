@@ -5,7 +5,7 @@ import sinalgo.nodes.Position;
 import java.util.Map;
 import java.util.Set;
 
-public interface Sensor extends SensorPosition {
+public interface Sensor {
 
     double DISTANCES[] = {
             5.142,
@@ -80,6 +80,16 @@ public interface Sensor extends SensorPosition {
     long getID();
 
     void setID(long ID);
+
+    Position getPosition();
+
+    default void setPosition(Position position) {
+        getPosition().assign(position);
+    }
+
+    default void setPosition(double x, double y, double z) {
+        getPosition().assign(x, y, z);
+    }
 
     void updateState();
 

@@ -8,6 +8,7 @@ public class RSSFSink extends RSSFSensor implements Sink {
 
     @Override
     protected void performInitialization() {
+        super.performInitialization();
         this.setPosition(getConfiguration().getSinkPosX(), getConfiguration().getSinkPosY(), 0);
         this.setCommRadius(getConfiguration().getSinkPosX());
     }

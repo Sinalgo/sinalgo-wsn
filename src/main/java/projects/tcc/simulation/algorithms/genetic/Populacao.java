@@ -1,10 +1,12 @@
 package projects.tcc.simulation.algorithms.genetic;
 
+import lombok.extern.java.Log;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@Log
 public class Populacao {
-
 
     private double mProbCruz;
     private double mProbCruzIndv;
@@ -285,7 +287,7 @@ public class Populacao {
 
         int vTamanhoPopulacao = popCromossomo.size();
         if (vTamanhoPopulacao < 2) {
-            System.out.println("Populacao pequena. Quebre meu galho\n");
+            log.severe("Populacao pequena. Quebre meu galho\n");
             System.exit(1);
         }
 
@@ -309,7 +311,7 @@ public class Populacao {
 
         int vTamanhoPopulacao = popCromossomo.size();
         if (vTamanhoPopulacao < 2) {
-            System.out.println("Populacao pequena. Quebre meu galho\n");
+            log.severe("Populacao pequena. Quebre meu galho\n");
             System.exit(1);
         }
 
@@ -341,7 +343,7 @@ public class Populacao {
 
         int vTamanhoPopulacao = popCromossomo.size();
         if (vTamanhoPopulacao < 2) {
-            System.out.println("Populacao pequena. Quebre meu galho\n");
+            log.severe("Populacao pequena. Quebre meu galho\n");
             System.exit(1);
         }
 
@@ -663,7 +665,7 @@ public class Populacao {
         //System.out.println("cont = " + cont);
 
         if (cont < tampop) {
-            System.out.println("cont = " + cont);
+            log.info("cont = " + cont);
         }
 
         popCromossomo.clear();
@@ -674,8 +676,8 @@ public class Populacao {
             }
         }
         if (popCromossomo.size() < tampop) {
-            System.out.println("Numero de Individuos = " + popCromossomo.size());
-            System.out.println("ERRO 1.2 - N�o selecionou todos os indiv�duos");
+            log.info("Numero de Individuos = " + popCromossomo.size());
+            log.severe("ERRO 1.2 - Não selecionou todos os indivíduos");
             System.exit(0);
         }
 
@@ -841,7 +843,7 @@ public class Populacao {
                 aPopCromossomo.setIdPareto(idPareto);
             }
             if (aPopCromossomo.getIdPareto() < 1) {
-                System.out.println("ERRO: valor de idPareto < 1");
+                log.severe("ERRO: valor de idPareto < 1");
                 System.exit(0);
             }
 

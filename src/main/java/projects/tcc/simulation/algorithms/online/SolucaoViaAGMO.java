@@ -1,11 +1,13 @@
 package projects.tcc.simulation.algorithms.online;
 
 
+import lombok.extern.java.Log;
 import projects.tcc.simulation.algorithms.genetic.AG_Estatico_MO_arq;
 import projects.tcc.simulation.principal.Saidas;
 import projects.tcc.simulation.rssf.SensorNetwork;
 import projects.tcc.simulation.rssf.Simulacao;
 
+@Log
 public class SolucaoViaAGMO {
 
     private int numeroGeracoes;
@@ -30,12 +32,14 @@ public class SolucaoViaAGMO {
         boolean[] vetSensAtiv = AG_Estatico_MO_arq.resolveAG_Estatico_MO(numeroGeracoes, tamanhoPopulacao, txCruzamento, txMutacao);
         /////////////////////////// REDE INICIAL ///////////////////////////////
 
+        StringBuilder sb = new StringBuilder();
         for (boolean i : vetSensAtiv) {
             if (i)
-                System.out.print("1 ");
+                sb.append("1 ");
             else
-                System.out.print("0 ");
+                sb.append("0 ");
         }
+        log.info(sb.toString());
 
         SensorNetwork.createInitialNetwork(vetSensAtiv);
 
@@ -57,12 +61,12 @@ public class SolucaoViaAGMO {
                 //gerando a POP de Cromossomos inicial para o AG
                 vetSensAtiv = AG_Estatico_MO_arq.resolveAG_Estatico_MO(numeroGeracoes, tamanhoPopulacao, txCruzamento, txMutacao);
                 SensorNetwork.createInitialNetwork(vetSensAtiv);
-                System.out.println("===== EVENTO e REESTRUTUROU TEMPO = " + perAtual);
+                log.info("===== EVENTO e REESTRUTUROU TEMPO = " + perAtual);
             }
 
             if (evento && !reestruturar) {
 
-                System.out.println("===== EVENTO TEMPO = " + perAtual);
+                log.info("===== EVENTO TEMPO = " + perAtual);
                 if (!SensorNetwork.supplyCoverageOnline()) {
                     SensorNetwork.supplyCoverage();
                     SensorNetwork.updateConnections();
@@ -75,7 +79,7 @@ public class SolucaoViaAGMO {
         saida.geraArquivoSimulador(perAtual++);
         //gerar impressao na tela
         saida.gerarSaidaTela(perAtual);
-        System.out.println("==> Reestruturação foi requisitada " + redeSim.getContChamadaReest());
+        log.info("==> Reestruturação foi requisitada " + redeSim.getContChamadaReest());
         //gerar arquivo com os dados de cada periodo: Cob, EC e ER.
         saida.gerarArqSimulacao(testNum, "Hibrido");
 

@@ -1,5 +1,6 @@
 package projects.tcc.simulation.principal;
 
+import lombok.extern.java.Log;
 import projects.tcc.simulation.algorithms.online.SolucaoViaAGMO;
 import projects.tcc.simulation.data.SensorHolder;
 import projects.tcc.simulation.io.ConfigurationLoader;
@@ -10,6 +11,7 @@ import projects.tcc.simulation.rssf.sensor.Sensor;
 import projects.tcc.simulation.rssf.sensor.impl.RSSFSensor;
 import projects.tcc.simulation.rssf.sensor.impl.RSSFSink;
 
+@Log
 public class Principal {
 
     /**
@@ -37,14 +39,14 @@ public class Principal {
             ConfigurationLoader.overrideConfiguration(nomeArqEntrada);
             SimulationConfiguration config = ConfigurationLoader.getConfiguration();
 
-            SensorHolder.addSensor(new RSSFSink());
             for (SensorConfiguration sensorConfiguration : config.getSensorConfigurations()) {
                 Sensor sensor = new RSSFSensor();
                 sensor.setPosition(sensorConfiguration.toPosition());
                 SensorHolder.addSensor(sensor);
             }
+            SensorHolder.addSensor(new RSSFSink());
 
-            System.out.println("\n\n========= Teste Numero: " + i + " =========");
+            log.info("\n\n========= Teste Numero: " + i + " =========");
 
             /////////////////////////// MEDICAO DE TEMPO //////////////////////
             MedirTempo tempoRede = new MedirTempo();

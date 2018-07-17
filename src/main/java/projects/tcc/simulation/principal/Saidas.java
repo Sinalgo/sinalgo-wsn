@@ -1,5 +1,6 @@
 package projects.tcc.simulation.principal;
 
+import lombok.extern.java.Log;
 import projects.tcc.simulation.data.SensorHolder;
 import projects.tcc.simulation.rssf.Simulacao;
 import projects.tcc.simulation.rssf.sensor.Sensor;
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 
+@Log
 public class Saidas {
 
     private Simulacao mSimulacao;
@@ -36,14 +38,11 @@ public class Saidas {
 
 
     public void gerarSaidaTela(int periodo) {
-
-        System.out.println("\n\n\n\n");
-        System.out.println("Tempo = " + periodo);
-
-        System.out.println("Numero de Sensores Ativos: " + SensorHolder.getActiveSensors().size());
-        System.out.println("Energia Residual: " + mSimulacao.getEnResRede());
-        System.out.println("Energia Consumida: " + mSimulacao.getEnConsRede());
-        System.out.println("Cobertura Atual: " + mSimulacao.getpCobAtual());
+        log.info("Tempo = " + periodo);
+        log.info("Numero de Sensores Ativos: " + SensorHolder.getActiveSensors().size());
+        log.info("Energia Residual: " + mSimulacao.getEnResRede());
+        log.info("Energia Consumida: " + mSimulacao.getEnConsRede());
+        log.info("Cobertura Atual: " + mSimulacao.getpCobAtual());
 
     }
 
