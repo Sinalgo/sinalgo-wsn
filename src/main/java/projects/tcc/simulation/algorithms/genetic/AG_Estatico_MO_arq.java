@@ -245,7 +245,8 @@ public class AG_Estatico_MO_arq {
         for (Sensor sens : SensorHolder.getAvailableSensors().values()) {
             for (Sink sink : SensorHolder.getSinks().values()) {
                 if (sens.isActive()) {
-                    custoCaminhoTotal += sens.getGraphNodeProperties().getPathToSinkCost().get(sink.getID());
+                    custoCaminhoTotal += sens.getGraphNodeProperties().getPathToSinkCost()
+                            .getOrDefault(sink.getID(), 0.0);
                 }
             }
         }

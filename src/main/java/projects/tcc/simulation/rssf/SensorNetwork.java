@@ -60,12 +60,12 @@ public class SensorNetwork {
     }
 
     public static void updateActiveSensors(boolean[] booleanArray) {
-        SensorHolder.getAvailableSensors().values().forEach(s -> s.setActive(booleanArray[(int) s.getID()]));
+        SensorHolder.getAvailableSensors().values().forEach(s -> s.setActive(booleanArray[(int) s.getID() - 1]));
         SensorHolder.updateCollections();
     }
 
     public static void updateActiveSensors(int[] intArray) {
-        SensorHolder.getAvailableSensors().values().forEach(s -> s.setActive(intArray[(int) s.getID()] == 1));
+        SensorHolder.getAvailableSensors().values().forEach(s -> s.setActive(intArray[(int) s.getID() - 1] == 1));
         SensorHolder.updateCollections();
     }
 

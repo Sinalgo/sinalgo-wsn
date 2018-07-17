@@ -72,8 +72,10 @@ public class GraphHolder {
         SensorHolder.getAvailableSensors().values().forEach(s -> SensorHolder.getSinks().values()
                 .forEach(s2 -> {
                     GraphPath<Long, DefaultWeightedEdge> path = dijkstra.getPath(s.getID(), s2.getID());
-                    setPathToSinkCost(s, s2, path);
-                    setParentSensor(s, path);
+                    if (path != null) {
+                        setPathToSinkCost(s, s2, path);
+                        setParentSensor(s, path);
+                    }
                 }));
     }
 
