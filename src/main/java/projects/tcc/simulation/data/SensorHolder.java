@@ -20,6 +20,14 @@ public class SensorHolder {
         }
     };
 
+    private static <K, V> boolean put(Map<K, V> map, K key, V value) {
+        if (map.containsKey(key)) {
+            return false;
+        }
+        map.put(key, value);
+        return true;
+    }
+
     private static void removeFromActiveSensors(Sensor s) {
         getActiveSensors().remove(s.getID());
         getPreviousRoundActivatedSensors().remove(s.getID());
@@ -32,22 +40,25 @@ public class SensorHolder {
 
     private static void addToActiveSensors(Sensor s) {
         removeFromInactiveSensors(s);
-        getActiveSensors().put(s.getID(), s);
-        getPreviousRoundActivatedSensors().put(s.getID(), s);
+        if (put(getActiveSensors(), s.getID(), s)) {
+            getPreviousRoundActivatedSensors().put(s.getID(), s);
+        }
     }
 
     private static void addToInactiveSensors(Sensor s) {
         removeFromActiveSensors(s);
-        getInactiveSensors().put(s.getID(), s);
-        getPreviousRoundDeactivatedSensors().put(s.getID(), s);
+        if (put(getInactiveSensors(), s.getID(), s)) {
+            getPreviousRoundDeactivatedSensors().put(s.getID(), s);
+        }
     }
 
     private static void addToFailedSensors(Sensor s) {
         removeFromActiveSensors(s);
         removeFromInactiveSensors(s);
         getAvailableSensors().remove(s.getID());
-        getFailedSensors().put(s.getID(), s);
-        getPreviousRoundFailedSensors().put(s.getID(), s);
+        if (put(getFailedSensors(), s.getID(), s)) {
+            getPreviousRoundFailedSensors().put(s.getID(), s);
+        }
     }
 
     @Getter
