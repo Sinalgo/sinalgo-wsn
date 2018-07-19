@@ -1,14 +1,18 @@
 package projects.tcc.models.connectivityModels;
 
-import sinalgo.exception.WrongConfigurationException;
-import sinalgo.models.ConnectivityModel;
+import projects.tcc.nodes.nodeImplementations.SensorNode;
+import sinalgo.models.ConnectivityModelHelper;
 import sinalgo.nodes.Node;
 
-public class SimulationConnectivityModel extends ConnectivityModel {
+public class SimulationConnectivityModel extends ConnectivityModelHelper {
 
     @Override
-    public boolean updateConnections(Node n) throws WrongConfigurationException {
-        return false;
+    protected boolean isConnected(Node from, Node to) {
+        if (!(from instanceof SensorNode) || (!(to instanceof SensorNode))) {
+            return false;
+        }
+        SensorNode s1 = (SensorNode) from;
+        SensorNode s2 = (SensorNode) to;
+        return s1.getChildren().containsKey(s2.getID()) || s2.getChildren().containsKey(s1.getID());
     }
-
 }
