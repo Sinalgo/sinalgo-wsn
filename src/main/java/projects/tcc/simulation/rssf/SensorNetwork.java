@@ -80,12 +80,21 @@ public class SensorNetwork {
         SensorHolder.getActiveSensors().values().forEach(s -> {
             if (s.getGraphNodeProperties().getParentId() != null) {
                 SensorHolder.getAllSensorsAndSinks().get(s.getGraphNodeProperties().getParentId()).addChild(s);
+                SensorNetwork.activateNeededParents(s);
             }
         });
         SensorHolder.getSinks().values().forEach(Sensor::connectAndPropagate);
         SensorHolder.getSinks().values().forEach(Sensor::queryDescendants);
         SensorHolder.getActiveSensors().values().forEach(s -> s.setActive(s.isActive() && s.isConnected()));
         SensorHolder.updateCollections();
+    }
+
+    private static void activateNeededParents(Sensor s) {
+        Sensor parent = s.getParent();
+        while (parent != null && !(parent instanceof Sink) && !parent.isActive()) {
+            parent.setActive(true);
+            parent = parent.getParent();
+        }
     }
 
     public static double getActivationEnergyForThisRound() {
@@ -123,7 +132,9 @@ public class SensorNetwork {
             }
             chosenReplacement.setActive(true);
             if (!connectSensorOnline(chosenReplacement, failedSensor)) {
+                SensorHolder.updateCollections();
                 GraphHolder.update();
+                updateConnections();
             }
         }
         getEnvironment().updateCoverage();
@@ -175,10 +186,11 @@ public class SensorNetwork {
         return chosen;
     }
 
-    public static boolean supplyCoverage() {
+    public static void supplyCoverage() {
         boolean result = true;
         Set<Long> blacklist = new HashSet<>();
-        getEnvironment().update();
+        getEnvironment().updateCoverage();
+        getEnvironment().updateDisconnectedCoverage();
         while (result && isCoverageLow()) {
             Sensor chosenReplacement = findReplacement(blacklist);
             if (chosenReplacement != null) {
@@ -187,9 +199,10 @@ public class SensorNetwork {
                 updateConnections();
                 if ((chosenReplacement.getGraphNodeProperties().getParentId() == null
                         && chosenReplacement.getParent() == null) || chosenReplacement.getParent().isFailed()) {
+                    log.warning("Skipping possible replacement because of connection issues");
                     chosenReplacement.setActive(false);
                     blacklist.add(chosenReplacement.getID());
-                    continue;
+                    SensorHolder.updateCollections();
                 } else {
                     log.info("Chosen replacement = " + chosenReplacement.getID());
                 }
@@ -203,10 +216,10 @@ public class SensorNetwork {
         }
         getEnvironment().updateCoverage();
         getEnvironment().updateDisconnectedCoverage();
-        return result;
     }
 
     private static boolean isCoverageLow() {
+        log.warning("Coverage is " + getEnvironment().getCurrentCoverage());
         return Double.compare(getEnvironment().getCurrentCoverage(), getEnvironment().getCoverageFactor()) < 0;
     }
 

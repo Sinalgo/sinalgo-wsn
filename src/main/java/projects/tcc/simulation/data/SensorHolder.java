@@ -55,7 +55,6 @@ public class SensorHolder {
     private static void addToFailedSensors(Sensor s) {
         removeFromActiveSensors(s);
         removeFromInactiveSensors(s);
-        getAvailableSensors().remove(s.getID());
         if (put(getFailedSensors(), s.getID(), s)) {
             getPreviousRoundFailedSensors().put(s.getID(), s);
         }
@@ -107,6 +106,7 @@ public class SensorHolder {
 
     public static void updateCollections() {
         getAvailableSensors().values().forEach(SENSOR_EVALUATOR);
+        getAvailableSensors().keySet().removeAll(getPreviousRoundFailedSensors().keySet());
     }
 
     public static void clearRoundSpecificMaps() {

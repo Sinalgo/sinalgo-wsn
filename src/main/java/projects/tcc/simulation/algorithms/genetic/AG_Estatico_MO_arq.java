@@ -23,7 +23,7 @@ public class AG_Estatico_MO_arq {
         double medFitness = 0;
         int numSA = 0;
 
-        int vNumBits = SensorHolder.getAvailableSensors().size();
+        int vNumBits = SensorHolder.getAllSensorsAndSinks().size() - SensorHolder.getSinks().size();
         long[] vetIdsSensDisp = SensorHolder.getAvailableSensors().keySet().stream().mapToLong(Long::longValue).toArray();
 
         Populacao popCromo = new Populacao(tamanhoPopulacao, vNumBits, vetIdsSensDisp, txCruzamento);
@@ -221,9 +221,11 @@ public class AG_Estatico_MO_arq {
     /*evaluates objective function for each chromossome*/
     static void calculaFuncaoObjetivo(List<Cromossomo> pCromossomos) {
 
-        Sensor sensor = SensorHolder.getAvailableSensors().values().stream().findFirst().orElse(null);
+        double penAtiv = SensorHolder.getAvailableSensors().values().stream()
+                .mapToDouble(s -> s.getActivationPower() + s.getMaintenancePower())
+                .findAny()
+                .orElse(0);
 
-        double penAtiv = sensor.getActivationPower() + sensor.getMaintenancePower();
         int penNCob = 0;//100000 utilizado no mono-objetivo;
 
         for (Cromossomo indv : pCromossomos) {
@@ -238,7 +240,8 @@ public class AG_Estatico_MO_arq {
     public static void avaliarIndividuo(Cromossomo individuo, double penAtiv, int penNCob) {
 
         SensorNetwork.getEnvironment().updateDisconnectedCoverage();
-        individuo.setNaoCobertura((int) SensorNetwork.getEnvironment().getDisconnectedCoverage());
+        individuo.setNaoCobertura(SensorNetwork.getEnvironment().getPoints().size()
+                - SensorNetwork.getEnvironment().getDisconnectedCoveredPoints().size());
 
         SensorNetwork.updateActiveSensors(individuo.getVetorBits());
         double custoCaminhoTotal = 0;
@@ -259,13 +262,15 @@ public class AG_Estatico_MO_arq {
 
 
     /*evaluates objective function for each chromossome*/
-    static void calculaFuncaoObjetivo2(List<Cromossomo> pCromossomos) {
+    private static void calculaFuncaoObjetivo2(List<Cromossomo> pCromossomos) {
 
-        double raioSens;
         int penNCob = 100000;
         double penAtiv = 100000;
 
-        raioSens = SensorHolder.getAvailableSensors().values().stream().findFirst().orElse(null).getSensorRadius();
+        double raioSens = SensorHolder.getAvailableSensors().values().stream()
+                .mapToDouble(Sensor::getSensorRadius)
+                .findAny()
+                .orElse(0);
 
         for (Cromossomo indiv : pCromossomos) {
 

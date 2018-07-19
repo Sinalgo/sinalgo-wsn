@@ -102,11 +102,12 @@ public class Environment {
 
     public void updateExclusivelyCoveredPoints() {
         Collection<Sensor> availableSensors = SensorHolder.getAvailableSensors().values();
+        Collection<Sensor> activeSensors = SensorHolder.getActiveSensors().values();
         availableSensors.forEach(s -> {
             s.getExclusivelyCoveredPoints().clear();
             s.getExclusivelyCoveredPoints().addAll(s.getCoveredPoints());
         });
-        availableSensors.forEach(s1 -> availableSensors.forEach(s2 -> this.filterOutCoveredPoints(s1, s2)));
+        availableSensors.forEach(s1 -> activeSensors.forEach(s2 -> this.filterOutCoveredPoints(s1, s2)));
     }
 
     private void filterOutCoveredPoints(Sensor s1, Sensor s2) {

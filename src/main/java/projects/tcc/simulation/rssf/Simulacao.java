@@ -23,9 +23,6 @@ public class Simulacao {
     private double energiaResAnt;
     private int contChamadaReest;
 
-
-    private List<Sensor> listSensores;
-
     private List<Integer> nSensorAtivos;
     private List<Integer> nEstagio;
 
@@ -37,8 +34,6 @@ public class Simulacao {
 
         nSensorAtivos = new ArrayList<>();
         nEstagio = new ArrayList<>();
-
-        listSensores = new ArrayList<>(SensorHolder.getAvailableSensors().values());
 
         porcBatRet = 10;
 
@@ -109,7 +104,7 @@ public class Simulacao {
 		}
 		else{*/
 
-        for (Sensor listSensore : listSensores) {
+        for (Sensor listSensore : SensorHolder.getAvailableSensors().values()) {
             enResRede += listSensore.getBatteryEnergy();
         }
 
