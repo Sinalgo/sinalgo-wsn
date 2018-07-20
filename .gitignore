@@ -6,7 +6,11 @@ logs/
 .settings/
 
 # Intellij
-.idea/
+.idea/*.xml
+.idea/codeStyles/
+.idea/inspectionProfiles/
+.idea/dictionaries/
+.idea/.name
 *.iml
 *.iws
 /out/
