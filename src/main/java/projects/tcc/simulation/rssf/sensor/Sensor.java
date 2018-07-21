@@ -112,31 +112,7 @@ public interface Sensor {
 
     void setParent(Sensor parent);
 
-    void setTotalChildrenCount(long totalChildrenCount);
-
     void setBatteryEnergy(double batteryEnergy);
-
-    void setOriginalEnergy(double originalEnergy);
-
-    void setMinimumEnergy(double minimumEnergy);
-
-    void setSensorRadius(double sensorRadius);
-
-    void setCommRadius(double commRadius);
-
-    void setActive(boolean active);
-
-    void setConnected(boolean connected);
-
-    void setFailed(boolean failed);
-
-    void setActivationPower(double activationPower);
-
-    void setReceivePower(double receivePower);
-
-    void setMaintenancePower(double maintenancePower);
-
-    void setCommRatio(double commRatio);
 
     GraphNodeProperties getGraphNodeProperties();
 
@@ -169,6 +145,12 @@ public interface Sensor {
     double getMaintenancePower();
 
     double getCommRatio();
+
+    void fail();
+
+    void activate();
+
+    void deactivate();
 
     Map<Long, Sensor> getNeighbors();
 

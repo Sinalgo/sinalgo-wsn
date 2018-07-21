@@ -5,7 +5,7 @@ import projects.tcc.simulation.algorithms.online.SolucaoViaAGMO;
 import projects.tcc.simulation.io.ConfigurationLoader;
 import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.io.SimulationConfiguration.SensorConfiguration;
-import projects.tcc.simulation.rssf.SensorHolder;
+import projects.tcc.simulation.rssf.SensorCollection;
 import projects.tcc.simulation.rssf.SensorNetwork;
 import projects.tcc.simulation.rssf.sensor.Sensor;
 import projects.tcc.simulation.rssf.sensor.impl.RSSFSensor;
@@ -40,9 +40,9 @@ public class Principal {
             for (SensorConfiguration sensorConfiguration : config.getSensorConfigurations()) {
                 Sensor sensor = new RSSFSensor();
                 sensor.setPosition(sensorConfiguration.toPosition());
-                SensorHolder.addSensor(sensor);
+                SensorCollection.addSensor(sensor);
             }
-            SensorHolder.addSensor(new RSSFSink());
+            SensorCollection.addSensor(new RSSFSink());
 
             SensorNetwork.init(50, 50, parmEntrada.getMFatorCobMO());
 

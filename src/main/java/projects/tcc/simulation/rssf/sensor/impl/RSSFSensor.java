@@ -1,10 +1,11 @@
 package projects.tcc.simulation.rssf.sensor.impl;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import projects.tcc.simulation.rssf.Environment;
 import projects.tcc.simulation.rssf.RSSFPosition;
-import projects.tcc.simulation.rssf.SensorHolder;
+import projects.tcc.simulation.rssf.SensorCollection;
 import projects.tcc.simulation.rssf.sensor.GraphNodeProperties;
 import projects.tcc.simulation.rssf.sensor.Sensor;
 
@@ -35,21 +36,31 @@ public class RSSFSensor implements Sensor, Comparable<Sensor> {
 
     private Sensor parent;
     private final Map<Long, Sensor> children;
+
+    @Setter(AccessLevel.PRIVATE)
     private long totalChildrenCount;
 
+    @Setter(AccessLevel.PRIVATE)
     private double batteryEnergy;
-    private double originalEnergy;
-    private double minimumEnergy;
-    private double sensorRadius;
-    private double commRadius;
+
+    private final double originalEnergy;
+    private final double minimumEnergy;
+    private final double sensorRadius;
+    private final double commRadius;
+
+    @Setter(AccessLevel.PRIVATE)
     private boolean active;
+
+    @Setter(AccessLevel.PRIVATE)
     private boolean connected;
+
+    @Setter(AccessLevel.PRIVATE)
     private boolean failed;
 
-    private double activationPower;
-    private double receivePower;
-    private double maintenancePower;
-    private double commRatio; //Taxa de comunicação durante a transmissão em uma u.t.
+    private final double activationPower;
+    private final double receivePower;
+    private final double maintenancePower;
+    private final double commRatio;
 
     private final Map<Long, Sensor> neighbors;
     private final Set<RSSFPosition> coveredPoints;
@@ -66,9 +77,9 @@ public class RSSFSensor implements Sensor, Comparable<Sensor> {
                        double batteryEnergy, double activationPower, double receivePower,
                        double maintenancePower, double sensorRadius) {
         super();
-        this.setCommRadius(commRadius);
+        this.commRadius = commRadius;
         this.setActive(true);
-        this.setCommRatio(commRatio);
+        this.commRatio = commRatio;
 
         this.graphNodeProperties = new GraphNodeProperties();
         this.neighbors = new LinkedHashMap<>();
@@ -77,14 +88,15 @@ public class RSSFSensor implements Sensor, Comparable<Sensor> {
         this.distances = new HashMap<>();
         this.children = new LinkedHashMap<>();
 
-        this.setActivationPower(activationPower);
-        this.setReceivePower(receivePower);
-        this.setMaintenancePower(maintenancePower);
+        this.activationPower = activationPower;
+        this.receivePower = receivePower;
+        this.maintenancePower = maintenancePower;
 
         this.setBatteryEnergy(batteryEnergy);
-        this.setOriginalEnergy(batteryEnergy);
-        this.setMinimumEnergy(batteryEnergy * MINIMUM_BATTERY_LEVEL);
-        this.setSensorRadius(sensorRadius);
+
+        this.originalEnergy = batteryEnergy;
+        this.minimumEnergy = batteryEnergy * MINIMUM_BATTERY_LEVEL;
+        this.sensorRadius = sensorRadius;
 
         this.setActive(false);
         this.setFailed(false);
@@ -93,7 +105,7 @@ public class RSSFSensor implements Sensor, Comparable<Sensor> {
         this.computeCoveredPoints();
 
         this.setID(++idCounter);
-        SensorHolder.addSensor(this);
+        SensorCollection.addSensor(this);
     }
 
     protected void computeCoveredPoints() {
@@ -110,19 +122,35 @@ public class RSSFSensor implements Sensor, Comparable<Sensor> {
     }
 
     @Override
-    public void setFailed(boolean failed) {
-        this.failed = failed;
-        if (this.isFailed()) {
-            Environment.getPoints().removeAll()
+    public void fail() {
+        if (!this.isFailed()) {
+            this.setFailed(true);
+            this.setActive(false);
+            this.setConnected(false);
+            SensorCollection.update(this);
+        }
+    }
+
+    @Override
+    public void activate() {
+        if (!this.isFailed() && !this.isActive()) {
+            this.setActive(true);
+            SensorCollection.update(this);
+        }
+    }
+
+    @Override
+    public void deactivate() {
+        if (!this.isFailed() && this.isActive()) {
+            this.setActive(false);
+            SensorCollection.update(this);
         }
     }
 
     @Override
     public void updateState() {
-        this.setFailed(Double.compare(this.getBatteryEnergy(), this.getMinimumEnergy()) <= 0);
-        if (this.isFailed()) {
-            this.setActive(false);
-            this.setConnected(false);
+        if (Double.compare(this.getBatteryEnergy(), this.getMinimumEnergy()) <= 0) {
+            this.fail();
         }
     }
 
@@ -151,7 +179,8 @@ public class RSSFSensor implements Sensor, Comparable<Sensor> {
 
     @Override
     public void subtractEnergySpent(double value) {
-        this.setBatteryEnergy(Math.max(0, batteryEnergy - value));
+        this.setBatteryEnergy(Math.max(0, this.getBatteryEnergy() - value));
+        this.updateState();
     }
 
     @Override
@@ -168,8 +197,8 @@ public class RSSFSensor implements Sensor, Comparable<Sensor> {
     @Override
     public void connectAndPropagate() {
         if (!this.isConnected()) {
+            this.activate();
             this.setConnected(true);
-            this.setActive(true);
             this.getChildren().values().forEach(Sensor::connectAndPropagate);
         }
     }

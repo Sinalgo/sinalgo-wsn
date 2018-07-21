@@ -89,7 +89,7 @@ public class Simulacao {
 
         saida.geraArquivoSimulador(estagioAtual);
 
-        SensorHolder.clearRoundSpecificMaps();
+        SensorCollection.clearRoundSpecificMaps();
 
         // ========= Verificacao e Calculo de Energia no Periodo de tempo =========
         enResRede = 0;
@@ -103,7 +103,7 @@ public class Simulacao {
 		}
 		else{*/
 
-        for (Sensor listSensore : SensorHolder.getAvailableSensors().values()) {
+        for (Sensor listSensore : SensorCollection.getAvailableSensors().values()) {
             enResRede += listSensore.getBatteryEnergy();
         }
 
@@ -122,7 +122,7 @@ public class Simulacao {
 
         //}
 
-        nSensorAtivos.add(SensorHolder.getActiveSensors().size());
+        nSensorAtivos.add(SensorCollection.getActiveSensors().size());
         nEstagio.add(estagioAtual);
 
         vEnResRede.add(enResRede);
@@ -136,9 +136,9 @@ public class Simulacao {
         SensorNetwork.updateRemainingBatteryEnergy();
 
         //Verificando se algum sensor nao estara na proxima simulacao
-        SensorHolder.update();
+        SensorCollection.update();
 
-        return !SensorHolder.getPreviousRoundFailedSensors().isEmpty();
+        return !SensorCollection.getCurrentRoundFailedSensors().isEmpty();
 
     }
 
@@ -153,8 +153,8 @@ public class Simulacao {
             }
         }
         if (estagioAtual > 0) {
-            somaModDiffAtivos = Math.abs(nSensorAtivos.get(nSensorAtivos.size() - 1) - SensorHolder.getActiveSensors().size());
-            if (somaModDiffAtivos > limAumentoEnergiaCons * SensorHolder.getAvailableSensors().size()) {
+            somaModDiffAtivos = Math.abs(nSensorAtivos.get(nSensorAtivos.size() - 1) - SensorCollection.getActiveSensors().size());
+            if (somaModDiffAtivos > limAumentoEnergiaCons * SensorCollection.getAvailableSensors().size()) {
                 somaModDiffAtivos = 0;
                 reestrutrarRede = true;
             }

@@ -1,7 +1,7 @@
 package projects.tcc.simulation.algorithms.genetic;
 
 import projects.tcc.simulation.graph.GraphHolder;
-import projects.tcc.simulation.rssf.SensorHolder;
+import projects.tcc.simulation.rssf.SensorCollection;
 import projects.tcc.simulation.rssf.SensorNetwork;
 import projects.tcc.simulation.rssf.sensor.Sensor;
 import projects.tcc.simulation.rssf.sensor.Sink;
@@ -13,7 +13,7 @@ public class AG_Estatico_MO_arq {
 
     public static boolean[] resolveAG_Estatico_MO(int numeroGeracoes, int tamanhoPopulacao, double txCruzamento, double txMutacao) throws Exception {
 
-        List<Sensor> listSensensores = new ArrayList<>(SensorHolder.getAvailableSensors().values());
+        List<Sensor> listSensensores = new ArrayList<>(SensorCollection.getAvailableSensors().values());
 
         GraphHolder.update(); //atulizando o custo de caminho de cada sensor ao sink;
 
@@ -23,8 +23,8 @@ public class AG_Estatico_MO_arq {
         double medFitness = 0;
         int numSA = 0;
 
-        int vNumBits = SensorHolder.getAllSensorsAndSinks().size() - SensorHolder.getSinks().size();
-        long[] vetIdsSensDisp = SensorHolder.getAvailableSensors().keySet().stream().mapToLong(Long::longValue).toArray();
+        int vNumBits = SensorCollection.getAllSensorsAndSinks().size() - SensorCollection.getSinks().size();
+        long[] vetIdsSensDisp = SensorCollection.getAvailableSensors().keySet().stream().mapToLong(Long::longValue).toArray();
 
         Populacao popCromo = new Populacao(tamanhoPopulacao, vNumBits, vetIdsSensDisp, txCruzamento);
 
@@ -221,7 +221,7 @@ public class AG_Estatico_MO_arq {
     /*evaluates objective function for each chromossome*/
     static void calculaFuncaoObjetivo(List<Cromossomo> pCromossomos) {
 
-        double penAtiv = SensorHolder.getAvailableSensors().values().stream()
+        double penAtiv = SensorCollection.getAvailableSensors().values().stream()
                 .mapToDouble(s -> s.getActivationPower() + s.getMaintenancePower())
                 .findAny()
                 .orElse(0);
@@ -241,12 +241,12 @@ public class AG_Estatico_MO_arq {
 
         SensorNetwork.getEnvironment().updateDisconnectedCoverage();
         individuo.setNaoCobertura(SensorNetwork.getEnvironment().getPoints().size()
-                - SensorNetwork.getEnvironment().getDisconnectedCoveredPoints().size());
+                - SensorNetwork.getEnvironment().getCoveredPoints().size());
 
         SensorNetwork.updateActiveSensors(individuo.getVetorBits());
         double custoCaminhoTotal = 0;
-        for (Sensor sens : SensorHolder.getAvailableSensors().values()) {
-            for (Sink sink : SensorHolder.getSinks().values()) {
+        for (Sensor sens : SensorCollection.getAvailableSensors().values()) {
+            for (Sink sink : SensorCollection.getSinks().values()) {
                 if (sens.isActive()) {
                     custoCaminhoTotal += sens.getGraphNodeProperties().getPathToSinkCost()
                             .getOrDefault(sink.getID(), 0.0);
@@ -267,7 +267,7 @@ public class AG_Estatico_MO_arq {
         int penNCob = 100000;
         double penAtiv = 100000;
 
-        double raioSens = SensorHolder.getAvailableSensors().values().stream()
+        double raioSens = SensorCollection.getAvailableSensors().values().stream()
                 .mapToDouble(Sensor::getSensorRadius)
                 .findAny()
                 .orElse(0);

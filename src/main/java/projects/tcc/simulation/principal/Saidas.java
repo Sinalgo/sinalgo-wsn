@@ -1,7 +1,7 @@
 package projects.tcc.simulation.principal;
 
 import lombok.extern.java.Log;
-import projects.tcc.simulation.rssf.SensorHolder;
+import projects.tcc.simulation.rssf.SensorCollection;
 import projects.tcc.simulation.rssf.Simulacao;
 import projects.tcc.simulation.rssf.sensor.Sensor;
 
@@ -39,7 +39,7 @@ public class Saidas {
 
     public void gerarSaidaTela(int periodo) {
         log.info("Tempo = " + periodo);
-        log.info("Numero de Sensores Ativos: " + SensorHolder.getActiveSensors().size());
+        log.info("Numero de Sensores Ativos: " + SensorCollection.getActiveSensors().size());
         log.info("Energia Residual: " + mSimulacao.getEnResRede());
         log.info("Energia Consumida: " + mSimulacao.getEnConsRede());
         log.info("Cobertura Atual: " + mSimulacao.getpCobAtual());
@@ -57,7 +57,7 @@ public class Saidas {
         int pCob = (int) (mSimulacao.getpCobAtual() * 100);
         pw.println(pCob);
 
-        for (Sensor s : SensorHolder.getAllSensorsAndSinks().values()) {
+        for (Sensor s : SensorCollection.getAllSensorsAndSinks().values()) {
             int estadoSensor;
             if (s.isActive())
                 estadoSensor = 1;

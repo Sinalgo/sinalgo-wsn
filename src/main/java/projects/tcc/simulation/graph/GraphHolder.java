@@ -7,7 +7,7 @@ import org.jgrapht.GraphPath;
 import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.DefaultDirectedWeightedGraph;
 import org.jgrapht.graph.DefaultWeightedEdge;
-import projects.tcc.simulation.rssf.SensorHolder;
+import projects.tcc.simulation.rssf.SensorCollection;
 import projects.tcc.simulation.rssf.sensor.Sensor;
 import projects.tcc.simulation.rssf.sensor.Sink;
 
@@ -41,20 +41,20 @@ public class GraphHolder {
 
     private static void init() {
         setGraph(new DefaultDirectedWeightedGraph<>(DefaultWeightedEdge.class));
-        SensorHolder.getAllSensorsAndSinks().values().forEach(s -> getGraph().addVertex(s.getID()));
-        SensorHolder.getAllSensorsAndSinks().values().forEach(s -> s.getNeighbors().keySet()
+        SensorCollection.getAllSensorsAndSinks().values().forEach(s -> getGraph().addVertex(s.getID()));
+        SensorCollection.getAllSensorsAndSinks().values().forEach(s -> s.getNeighbors().keySet()
                 .forEach(s2 -> getGraph().addEdge(s.getID(), s2)));
         setInitialized(true);
     }
 
     private static void updateConnections() {
-        SensorHolder.getAvailableSensors().values().forEach(s -> s.getGraphNodeProperties().reset());
-        SensorHolder.getSinks().values().forEach(s -> s.getGraphNodeProperties().reset());
-        SensorHolder.getFailedSensors().keySet().forEach(graph::removeVertex);
-        SensorHolder.getAvailableSensors().values().forEach(s -> {
+        SensorCollection.getAvailableSensors().values().forEach(s -> s.getGraphNodeProperties().reset());
+        SensorCollection.getSinks().values().forEach(s -> s.getGraphNodeProperties().reset());
+        SensorCollection.getFailedSensors().keySet().forEach(graph::removeVertex);
+        SensorCollection.getAvailableSensors().values().forEach(s -> {
             if (getGraph().containsVertex(s.getID())) {
                 s.getNeighbors().keySet().forEach(neighborId -> {
-                    Sensor neighbor = SensorHolder.getAllSensorsAndSinks().get(neighborId);
+                    Sensor neighbor = SensorCollection.getAllSensorsAndSinks().get(neighborId);
                     double weight = Sensor.getCurrentForDistance(s.getDistances().get(neighborId));
                     if ((s.isActive() && !neighbor.isActive()) || (!s.isActive() && neighbor.isActive())) {
                         weight = weight * PENALTY;
@@ -69,7 +69,7 @@ public class GraphHolder {
 
     private static void updateCostsToSink() {
         DijkstraShortestPath<Long, DefaultWeightedEdge> dijkstra = new DijkstraShortestPath<>(graph);
-        SensorHolder.getAvailableSensors().values().forEach(s -> SensorHolder.getSinks().values()
+        SensorCollection.getAvailableSensors().values().forEach(s -> SensorCollection.getSinks().values()
                 .forEach(s2 -> {
                     GraphPath<Long, DefaultWeightedEdge> path = dijkstra.getPath(s.getID(), s2.getID());
                     if (path != null) {

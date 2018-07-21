@@ -30,11 +30,11 @@ public class Environment {
 
     @Getter
     @Setter(AccessLevel.PRIVATE)
-    private static Set<RSSFPosition> coveredPoints;
+    private static Set<RSSFPosition> connectedCoveredPoints;
 
     @Getter
     @Setter(AccessLevel.PRIVATE)
-    private static Set<RSSFPosition> disconnectedCoveredPoints;
+    private static Set<RSSFPosition> coveredPoints;
 
     @Getter
     @Setter(AccessLevel.PRIVATE)
@@ -51,7 +51,7 @@ public class Environment {
         setArea(height * width);
         setPoints(new HashSet<>());
         setCoveredPoints(new HashSet<>());
-        setDisconnectedCoveredPoints(new HashSet<>());
+        setCoveredPoints(new HashSet<>());
         setCurrentCoverage(0);
         setDisconnectedCoverage(0);
         for (long i = 0; i < getHeight(); i++) {
@@ -68,26 +68,26 @@ public class Environment {
     }
 
     public static void updateCoverage() {
-        getCoveredPoints().clear();
-        SensorHolder.getActiveSensors().values().stream()
+        getConnectedCoveredPoints().clear();
+        SensorCollection.getActiveSensors().values().stream()
                 .filter(Sensor::isConnected)
                 .map(Sensor::getCoveredPoints)
-                .forEach(getCoveredPoints()::addAll);
+                .forEach(getConnectedCoveredPoints()::addAll);
         setCurrentCoverage(
-                ((double) getCoveredPoints().size()) / ((double) getPoints().size()));
+                ((double) getConnectedCoveredPoints().size()) / ((double) getPoints().size()));
     }
 
     public static void updateDisconnectedCoverage() {
-        getDisconnectedCoveredPoints().clear();
-        SensorHolder.getActiveSensors().values()
-                .forEach(s -> getDisconnectedCoveredPoints().addAll(s.getCoveredPoints()));
+        getCoveredPoints().clear();
+        SensorCollection.getActiveSensors().values()
+                .forEach(s -> getCoveredPoints().addAll(s.getCoveredPoints()));
         setDisconnectedCoverage(
-                ((double) getDisconnectedCoveredPoints().size()) / ((double) getPoints().size()));
+                ((double) getCoveredPoints().size()) / ((double) getPoints().size()));
     }
 
     public static void updateExclusivelyCoveredPoints() {
-        Collection<Sensor> availableSensors = SensorHolder.getAvailableSensors().values();
-        Collection<Sensor> activeSensors = SensorHolder.getActiveSensors().values();
+        Collection<Sensor> availableSensors = SensorCollection.getAvailableSensors().values();
+        Collection<Sensor> activeSensors = SensorCollection.getActiveSensors().values();
         availableSensors.forEach(s -> {
             s.getExclusivelyCoveredPoints().clear();
             s.getExclusivelyCoveredPoints().addAll(s.getCoveredPoints());

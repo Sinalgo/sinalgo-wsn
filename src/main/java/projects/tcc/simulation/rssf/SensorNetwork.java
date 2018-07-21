@@ -11,8 +11,10 @@ import sinalgo.nodes.Position;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Log
 public class SensorNetwork {
@@ -21,18 +23,13 @@ public class SensorNetwork {
     @Setter(AccessLevel.PRIVATE)
     private static double availableEnergy;
 
-    @Getter
-    @Setter(AccessLevel.PRIVATE)
-    private static Environment environment;
-
-    public static void init(long height, long width, double coverageFactor) {
+    public static void init() {
         computeDistances();
         computeNeighbors();
-        setEnvironment(new Environment(height, width, coverageFactor));
     }
 
     private static void computeDistances() {
-        Collection<Sensor> allSensorsAndSinks = SensorHolder.getAllSensorsAndSinks().values();
+        Collection<Sensor> allSensorsAndSinks = SensorCollection.getAllSensorsAndSinks().values();
         allSensorsAndSinks.forEach(s1 -> allSensorsAndSinks.forEach(s2 -> computeDistance(s1, s2)));
     }
 
@@ -45,27 +42,37 @@ public class SensorNetwork {
     }
 
     private static void computeNeighbors() {
-        SensorHolder.getAvailableSensors().values().forEach(s -> s.getDistances().forEach((k, v) -> {
+        SensorCollection.getAvailableSensors().values().forEach(s -> s.getDistances().forEach((k, v) -> {
             if (Double.compare(v, s.getCommRadius()) < 0) {
-                s.getNeighbors().put(k, SensorHolder.getAllSensorsAndSinks().get(k));
+                s.getNeighbors().put(k, SensorCollection.getAllSensorsAndSinks().get(k));
             }
         }));
     }
 
     public static void updateAvailableEnergy() {
-        setAvailableEnergy(SensorHolder.getAvailableSensors().values().stream()
+        setAvailableEnergy(SensorCollection.getAvailableSensors().values().stream()
                 .mapToDouble(Sensor::getBatteryEnergy)
                 .sum());
     }
 
     public static void updateActiveSensors(boolean[] booleanArray) {
-        SensorHolder.getAvailableSensors().values().forEach(s -> s.setActive(booleanArray[(int) s.getID() - 1]));
-        SensorHolder.updateCollections();
+        SensorCollection.getAvailableSensors().values().forEach(s -> {
+            if (booleanArray[(int) s.getID() - 1]) {
+                s.activate();
+            } else {
+                s.deactivate();
+            }
+        });
     }
 
     public static void updateActiveSensors(int[] intArray) {
-        SensorHolder.getAvailableSensors().values().forEach(s -> s.setActive(intArray[(int) s.getID() - 1] == 1));
-        SensorHolder.updateCollections();
+        SensorCollection.getAvailableSensors().values().forEach(s -> {
+            if (intArray[(int) s.getID() - 1] == 1) {
+                s.activate();
+            } else {
+                s.deactivate();
+            }
+        });
     }
 
     /**
@@ -74,30 +81,32 @@ public class SensorNetwork {
      * be used in this method.
      */
     public static void updateConnections() {
-        SensorHolder.getActiveSensors().values().forEach(Sensor::resetConnectivity);
-        SensorHolder.getSinks().values().forEach(Sensor::resetConnectivity);
-        SensorHolder.getActiveSensors().values().forEach(s -> {
+        SensorCollection.getActiveSensors().values().forEach(Sensor::resetConnectivity);
+        SensorCollection.getSinks().values().forEach(Sensor::resetConnectivity);
+        SensorCollection.getActiveSensors().values().forEach(s -> {
             if (s.getGraphNodeProperties().getParentId() != null) {
-                SensorHolder.getAllSensorsAndSinks().get(s.getGraphNodeProperties().getParentId()).addChild(s);
+                SensorCollection.getAllSensorsAndSinks().get(s.getGraphNodeProperties().getParentId()).addChild(s);
                 SensorNetwork.activateNeededParents(s);
             }
         });
-        SensorHolder.getSinks().values().forEach(Sensor::connectAndPropagate);
-        SensorHolder.getSinks().values().forEach(Sensor::queryDescendants);
-        SensorHolder.getActiveSensors().values().forEach(s -> s.setActive(s.isActive() && s.isConnected()));
-        SensorHolder.updateCollections();
+        SensorCollection.getSinks().values().forEach(Sensor::connectAndPropagate);
+        SensorCollection.getSinks().values().forEach(Sensor::queryDescendants);
+        List<Sensor> sensorsToDeactivate = SensorCollection.getActiveSensors().values().stream()
+                .filter(s -> !(s.isActive() && s.isConnected()))
+                .collect(Collectors.toList());
+        sensorsToDeactivate.forEach(Sensor::deactivate);
     }
 
     private static void activateNeededParents(Sensor s) {
         Sensor parent = s.getParent();
         while (parent != null && !(parent instanceof Sink) && !parent.isActive()) {
-            parent.setActive(true);
+            parent.activate();
             parent = parent.getParent();
         }
     }
 
     public static double getActivationEnergyForThisRound() {
-        return SensorHolder.getPreviousRoundActivatedSensors().values().stream()
+        return SensorCollection.getCurrentRoundActivatedSensors().values().stream()
                 .mapToDouble(Sensor::getActivationPower)
                 .sum();
     }
@@ -116,22 +125,22 @@ public class SensorNetwork {
     }
 
     public static void updateRemainingBatteryEnergy() {
-        SensorHolder.getActiveSensors().values().forEach(s -> s.subtractEnergySpent(getConsumedEnergy(s)));
+        SensorCollection.getActiveSensors().values().forEach(s -> s.subtractEnergySpent(getConsumedEnergy(s)));
     }
 
     public static double getTotalConsumedEnergy() {
-        return SensorHolder.getActiveSensors().values().stream().mapToDouble(SensorNetwork::getConsumedEnergy).sum();
+        return SensorCollection.getActiveSensors().values().stream().mapToDouble(SensorNetwork::getConsumedEnergy).sum();
     }
 
     public static boolean supplyCoverageOnline() {
-        for (Sensor failedSensor : SensorHolder.getPreviousRoundFailedSensors().values()) {
+        for (Sensor failedSensor : SensorCollection.getCurrentRoundFailedSensors().values()) {
             Sensor chosenReplacement = findReplacementOnline(failedSensor);
             if (chosenReplacement == null) {
                 break;
             }
             chosenReplacement.setActive(true);
             if (!connectSensorOnline(chosenReplacement, failedSensor)) {
-                SensorHolder.updateCollections();
+                SensorCollection.updateCollections();
                 GraphHolder.update();
                 updateConnections();
             }
@@ -194,14 +203,14 @@ public class SensorNetwork {
             Sensor chosenReplacement = findReplacement(blacklist);
             if (chosenReplacement != null) {
                 chosenReplacement.setActive(true);
-                SensorHolder.updateCollections();
+                SensorCollection.updateCollections();
                 updateConnections();
                 if ((chosenReplacement.getGraphNodeProperties().getParentId() == null
                         && chosenReplacement.getParent() == null) || chosenReplacement.getParent().isFailed()) {
                     log.warning("Skipping possible replacement because of connection issues");
                     chosenReplacement.setActive(false);
                     blacklist.add(chosenReplacement.getID());
-                    SensorHolder.updateCollections();
+                    SensorCollection.updateCollections();
                 } else {
                     log.info("Chosen replacement = " + chosenReplacement.getID());
                 }
@@ -226,9 +235,9 @@ public class SensorNetwork {
         int maxCoveredPoints = Integer.MIN_VALUE;
         Sensor chosen = null;
         getEnvironment().updateExclusivelyCoveredPoints();
-        for (Sensor sensor : SensorHolder.getInactiveSensors().values()) {
+        for (Sensor sensor : SensorCollection.getInactiveSensors().values()) {
             if (!blacklist.contains(sensor.getID())) {
-                Set<Position> coveredPoints = new HashSet<>(getEnvironment().getCoveredPoints());
+                Set<Position> coveredPoints = new HashSet<>(getEnvironment().getConnectedCoveredPoints());
                 if (coveredPoints.addAll(sensor.getExclusivelyCoveredPoints())
                         && Integer.compare(maxCoveredPoints, coveredPoints.size()) < 0) {
                     maxCoveredPoints = coveredPoints.size();
