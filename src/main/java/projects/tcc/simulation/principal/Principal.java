@@ -2,10 +2,10 @@ package projects.tcc.simulation.principal;
 
 import lombok.extern.java.Log;
 import projects.tcc.simulation.algorithms.online.SolucaoViaAGMO;
-import projects.tcc.simulation.data.SensorHolder;
 import projects.tcc.simulation.io.ConfigurationLoader;
 import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.io.SimulationConfiguration.SensorConfiguration;
+import projects.tcc.simulation.rssf.SensorHolder;
 import projects.tcc.simulation.rssf.SensorNetwork;
 import projects.tcc.simulation.rssf.sensor.Sensor;
 import projects.tcc.simulation.rssf.sensor.impl.RSSFSensor;

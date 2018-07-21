@@ -1,7 +1,7 @@
 package projects.tcc.simulation.algorithms.genetic;
 
-import projects.tcc.simulation.data.SensorHolder;
 import projects.tcc.simulation.graph.GraphHolder;
+import projects.tcc.simulation.rssf.SensorHolder;
 import projects.tcc.simulation.rssf.SensorNetwork;
 import projects.tcc.simulation.rssf.sensor.Sensor;
 import projects.tcc.simulation.rssf.sensor.Sink;

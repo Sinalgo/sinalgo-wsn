@@ -1,7 +1,7 @@
 package projects.tcc.simulation.principal;
 
 import lombok.extern.java.Log;
-import projects.tcc.simulation.data.SensorHolder;
+import projects.tcc.simulation.rssf.SensorHolder;
 import projects.tcc.simulation.rssf.Simulacao;
 import projects.tcc.simulation.rssf.sensor.Sensor;
 

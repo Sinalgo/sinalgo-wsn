@@ -4,7 +4,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.java.Log;
-import projects.tcc.simulation.data.SensorHolder;
 import projects.tcc.simulation.graph.GraphHolder;
 import projects.tcc.simulation.rssf.sensor.Sensor;
 import projects.tcc.simulation.rssf.sensor.Sink;

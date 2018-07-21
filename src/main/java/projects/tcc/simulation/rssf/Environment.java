@@ -3,114 +3,99 @@ package projects.tcc.simulation.rssf;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import projects.tcc.simulation.data.SensorHolder;
 import projects.tcc.simulation.rssf.sensor.Sensor;
-import sinalgo.nodes.Position;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-@Getter
 public class Environment {
 
-    private final double area;
-    private final long height, width;
-    private final double coverageFactor;
-
-    private final List<Position> points;
-    private final Set<Position> coveredPoints;
-    private final Set<Position> disconnectedCoveredPoints;
-
+    @Getter
     @Setter(AccessLevel.PRIVATE)
-    private double currentCoverage;
+    private static double area;
 
+    @Getter
     @Setter(AccessLevel.PRIVATE)
-    private double disconnectedCoverage;
+    private static long height, width;
 
-    @Getter(AccessLevel.PRIVATE)
+    @Getter
     @Setter(AccessLevel.PRIVATE)
-    private boolean initialized = false;
+    private static double coverageFactor;
 
-    Environment(long height, long width, double coverageFactor) {
-        this.height = height;
-        this.width = width;
-        this.coverageFactor = coverageFactor;
-        this.area = height * width;
-        this.points = new ArrayList<>();
-        this.coveredPoints = new HashSet<>();
-        this.disconnectedCoveredPoints = new HashSet<>();
-        this.setCurrentCoverage(0);
-        this.setDisconnectedCoverage(0);
-        this.generatePoints();
-    }
+    @Getter
+    @Setter(AccessLevel.PRIVATE)
+    private static Set<RSSFPosition> points;
 
-    private void generatePoints() {
-        for (long i = 0; i < this.getHeight(); i++) {
-            for (long j = 0; j < this.getWidth(); j++) {
-                this.getPoints().add(new Position(i + 0.5, j + 0.5, 0));
+    @Getter
+    @Setter(AccessLevel.PRIVATE)
+    private static Set<RSSFPosition> coveredPoints;
+
+    @Getter
+    @Setter(AccessLevel.PRIVATE)
+    private static Set<RSSFPosition> disconnectedCoveredPoints;
+
+    @Getter
+    @Setter(AccessLevel.PRIVATE)
+    private static double currentCoverage;
+
+    @Getter
+    @Setter(AccessLevel.PRIVATE)
+    private static double disconnectedCoverage;
+
+    public static void init(long height, long width, double coverageFactor) {
+        setHeight(height);
+        setWidth(width);
+        setCoverageFactor(coverageFactor);
+        setArea(height * width);
+        setPoints(new HashSet<>());
+        setCoveredPoints(new HashSet<>());
+        setDisconnectedCoveredPoints(new HashSet<>());
+        setCurrentCoverage(0);
+        setDisconnectedCoverage(0);
+        for (long i = 0; i < getHeight(); i++) {
+            for (long j = 0; j < getWidth(); j++) {
+                getPoints().add(new RSSFPosition(i + 0.5, j + 0.5, 0));
             }
         }
     }
 
-    private void init() {
-        computeCoveredPoints();
-        updateExclusivelyCoveredPoints();
-        this.setInitialized(true);
-    }
-
-    private void computeCoveredPoints() {
-        SensorHolder.getAvailableSensors().values()
-                .forEach(s -> this.getPoints().forEach(p -> this.computeCoveredPoint(s, p)));
-    }
-
-    private void computeCoveredPoint(Sensor s, Position p) {
-        if (Double.compare(s.getPosition().distanceTo(p), s.getSensorRadius()) <= 0) {
-            s.getCoveredPoints().add(p);
-        }
-    }
-
-    public void update() {
-        if (!isInitialized()) {
-            init();
-        }
+    public static void update() {
         updateExclusivelyCoveredPoints();
         updateCoverage();
         updateDisconnectedCoverage();
     }
 
-    public void updateCoverage() {
-        this.getCoveredPoints().clear();
+    public static void updateCoverage() {
+        getCoveredPoints().clear();
         SensorHolder.getActiveSensors().values().stream()
                 .filter(Sensor::isConnected)
                 .map(Sensor::getCoveredPoints)
-                .forEach(this.getCoveredPoints()::addAll);
-        this.setCurrentCoverage(
-                ((double) this.getCoveredPoints().size()) / ((double) this.getPoints().size()));
+                .forEach(getCoveredPoints()::addAll);
+        setCurrentCoverage(
+                ((double) getCoveredPoints().size()) / ((double) getPoints().size()));
     }
 
-    public void updateDisconnectedCoverage() {
-        this.getDisconnectedCoveredPoints().clear();
+    public static void updateDisconnectedCoverage() {
+        getDisconnectedCoveredPoints().clear();
         SensorHolder.getActiveSensors().values()
-                .forEach(s -> this.getDisconnectedCoveredPoints().addAll(s.getCoveredPoints()));
-        this.setDisconnectedCoverage(
-                ((double) this.getDisconnectedCoveredPoints().size()) / ((double) this.getPoints().size()));
+                .forEach(s -> getDisconnectedCoveredPoints().addAll(s.getCoveredPoints()));
+        setDisconnectedCoverage(
+                ((double) getDisconnectedCoveredPoints().size()) / ((double) getPoints().size()));
     }
 
-    public void updateExclusivelyCoveredPoints() {
+    public static void updateExclusivelyCoveredPoints() {
         Collection<Sensor> availableSensors = SensorHolder.getAvailableSensors().values();
         Collection<Sensor> activeSensors = SensorHolder.getActiveSensors().values();
         availableSensors.forEach(s -> {
             s.getExclusivelyCoveredPoints().clear();
             s.getExclusivelyCoveredPoints().addAll(s.getCoveredPoints());
         });
-        availableSensors.forEach(s1 -> activeSensors.forEach(s2 -> this.filterOutCoveredPoints(s1, s2)));
+        availableSensors.forEach(s1 -> activeSensors.forEach(s2 -> filterOutCoveredPoints(s1, s2)));
     }
 
-    private void filterOutCoveredPoints(Sensor s1, Sensor s2) {
+    private static void filterOutCoveredPoints(Sensor s1, Sensor s2) {
         if (!Objects.equals(s1, s2)) {
             s1.getExclusivelyCoveredPoints().removeAll(s2.getCoveredPoints());
         }

@@ -1,5 +1,6 @@
 package projects.tcc.simulation.rssf.sensor;
 
+import projects.tcc.simulation.rssf.RSSFPosition;
 import sinalgo.nodes.Position;
 
 import java.util.Map;
@@ -81,7 +82,7 @@ public interface Sensor {
 
     void setID(long ID);
 
-    Position getPosition();
+    RSSFPosition getPosition();
 
     default void setPosition(Position position) {
         getPosition().assign(position);
@@ -171,9 +172,9 @@ public interface Sensor {
 
     Map<Long, Sensor> getNeighbors();
 
-    Set<Position> getCoveredPoints();
+    Set<RSSFPosition> getCoveredPoints();
 
-    Set<Position> getExclusivelyCoveredPoints();
+    Set<RSSFPosition> getExclusivelyCoveredPoints();
 
     Map<Long, Double> getDistances();
 }

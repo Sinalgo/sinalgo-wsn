@@ -2,10 +2,11 @@ package projects.tcc.simulation.rssf.sensor.impl;
 
 import lombok.Getter;
 import lombok.Setter;
-import projects.tcc.simulation.data.SensorHolder;
+import projects.tcc.simulation.rssf.Environment;
+import projects.tcc.simulation.rssf.RSSFPosition;
+import projects.tcc.simulation.rssf.SensorHolder;
 import projects.tcc.simulation.rssf.sensor.GraphNodeProperties;
 import projects.tcc.simulation.rssf.sensor.Sensor;
-import sinalgo.nodes.Position;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -30,7 +31,7 @@ public class RSSFSensor implements Sensor, Comparable<Sensor> {
 
     private long ID;
 
-    private final Position position = new Position(0, 0, 0);
+    private final RSSFPosition position = new RSSFPosition(0, 0, 0);
 
     private Sensor parent;
     private final Map<Long, Sensor> children;
@@ -51,8 +52,8 @@ public class RSSFSensor implements Sensor, Comparable<Sensor> {
     private double commRatio; //Taxa de comunicação durante a transmissão em uma u.t.
 
     private final Map<Long, Sensor> neighbors;
-    private final Set<Position> coveredPoints;
-    private final Set<Position> exclusivelyCoveredPoints;
+    private final Set<RSSFPosition> coveredPoints;
+    private final Set<RSSFPosition> exclusivelyCoveredPoints;
     private final Map<Long, Double> distances;
 
     public RSSFSensor() {
@@ -89,11 +90,31 @@ public class RSSFSensor implements Sensor, Comparable<Sensor> {
         this.setFailed(false);
         this.setConnected(false);
         this.performInitialization();
+        this.computeCoveredPoints();
+
+        this.setID(++idCounter);
         SensorHolder.addSensor(this);
     }
 
+    protected void computeCoveredPoints() {
+        Environment.getPoints().forEach(p -> {
+            if (Double.compare(this.getPosition().distanceTo(p), this.getSensorRadius()) <= 0) {
+                this.getCoveredPoints().add(p);
+                p.getCoveringSensors().add(this);
+            }
+        });
+    }
+
     protected void performInitialization() {
-        this.setID(++idCounter);
+
+    }
+
+    @Override
+    public void setFailed(boolean failed) {
+        this.failed = failed;
+        if (this.isFailed()) {
+            Environment.getPoints().removeAll()
+        }
     }
 
     @Override

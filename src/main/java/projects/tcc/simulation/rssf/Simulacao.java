@@ -1,6 +1,5 @@
 package projects.tcc.simulation.rssf;
 
-import projects.tcc.simulation.data.SensorHolder;
 import projects.tcc.simulation.principal.Saidas;
 import projects.tcc.simulation.rssf.sensor.Sensor;
 

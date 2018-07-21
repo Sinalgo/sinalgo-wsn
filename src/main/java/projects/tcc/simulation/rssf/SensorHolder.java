@@ -1,4 +1,4 @@
-package projects.tcc.simulation.data;
+package projects.tcc.simulation.rssf;
 
 import lombok.Getter;
 import projects.tcc.simulation.rssf.sensor.Sensor;
