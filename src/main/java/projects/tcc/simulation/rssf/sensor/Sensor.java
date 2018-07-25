@@ -82,7 +82,7 @@ public interface Sensor {
 
     void setID(long ID);
 
-    RSSFPosition getPosition();
+    Position getPosition();
 
     default void setPosition(Position position) {
         getPosition().assign(position);
@@ -115,8 +115,6 @@ public interface Sensor {
     void queryDescendants();
 
     void setParent(Sensor parent);
-
-    void setBatteryEnergy(double batteryEnergy);
 
     GraphNodeProperties getGraphNodeProperties();
 

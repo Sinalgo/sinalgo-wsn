@@ -51,7 +51,7 @@ public class Environment {
         setArea(height * width);
         setPoints(new HashSet<>());
         setCoveredPoints(new HashSet<>());
-        setCoveredPoints(new HashSet<>());
+        setConnectedCoveredPoints(new HashSet<>());
         setCurrentCoverage(0);
         setDisconnectedCoverage(0);
         for (long i = 0; i < getHeight(); i++) {

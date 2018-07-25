@@ -74,7 +74,7 @@ public class Simulacao {
     }
 
     public double getpCobAtual() {
-        return SensorNetwork.getEnvironment().getCurrentCoverage();
+        return Environment.getCurrentCoverage();
     }
 
     public double getEnResRede() {
@@ -118,7 +118,7 @@ public class Simulacao {
         //Incluindo Energia consumida por Ativacao.
         enConsRede += SensorNetwork.getActivationEnergyForThisRound() + SensorNetwork.getTotalConsumedEnergy();
         //-----------------------------------------
-        pCobAtual = SensorNetwork.getEnvironment().getCurrentCoverage();
+        pCobAtual = Environment.getCurrentCoverage();
 
         //}
 
@@ -136,10 +136,7 @@ public class Simulacao {
         SensorNetwork.updateRemainingBatteryEnergy();
 
         //Verificando se algum sensor nao estara na proxima simulacao
-        SensorCollection.update();
-
         return !SensorCollection.getCurrentRoundFailedSensors().isEmpty();
-
     }
 
     public boolean testeReestruturarRede(int estagioAtual) {

@@ -83,11 +83,11 @@ public class SensorNetwork {
     public static void updateConnections() {
         SensorCollection.getActiveSensors().values().forEach(Sensor::resetConnectivity);
         SensorCollection.getSinks().values().forEach(Sensor::resetConnectivity);
-        SensorCollection.getActiveSensors().values().forEach(s -> {
-            if (s.getGraphNodeProperties().getParentId() != null) {
-                SensorCollection.getAllSensorsAndSinks().get(s.getGraphNodeProperties().getParentId()).addChild(s);
-                SensorNetwork.activateNeededParents(s);
-            }
+        SensorCollection.getActiveSensors().values().stream()
+                .filter(s -> s.getGraphNodeProperties().getParentId() != null)
+                .collect(Collectors.toList()).forEach(s -> {
+            SensorCollection.getAllSensorsAndSinks().get(s.getGraphNodeProperties().getParentId()).addChild(s);
+            SensorNetwork.activateNeededParents(s);
         });
         SensorCollection.getSinks().values().forEach(Sensor::connectAndPropagate);
         SensorCollection.getSinks().values().forEach(Sensor::queryDescendants);

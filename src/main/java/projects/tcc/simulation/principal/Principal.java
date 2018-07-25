@@ -5,6 +5,7 @@ import projects.tcc.simulation.algorithms.online.SolucaoViaAGMO;
 import projects.tcc.simulation.io.ConfigurationLoader;
 import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.io.SimulationConfiguration.SensorConfiguration;
+import projects.tcc.simulation.rssf.Environment;
 import projects.tcc.simulation.rssf.SensorCollection;
 import projects.tcc.simulation.rssf.SensorNetwork;
 import projects.tcc.simulation.rssf.sensor.Sensor;
@@ -37,14 +38,14 @@ public class Principal {
             ConfigurationLoader.overrideConfiguration(nomeArqEntrada);
             SimulationConfiguration config = ConfigurationLoader.getConfiguration();
 
+            Environment.init(50, 50, parmEntrada.getMFatorCobMO());
             for (SensorConfiguration sensorConfiguration : config.getSensorConfigurations()) {
                 Sensor sensor = new RSSFSensor();
                 sensor.setPosition(sensorConfiguration.toPosition());
                 SensorCollection.addSensor(sensor);
             }
             SensorCollection.addSensor(new RSSFSink());
-
-            SensorNetwork.init(50, 50, parmEntrada.getMFatorCobMO());
+            SensorNetwork.init();
 
             log.info("\n\n========= Teste Numero: " + i + " =========");
 

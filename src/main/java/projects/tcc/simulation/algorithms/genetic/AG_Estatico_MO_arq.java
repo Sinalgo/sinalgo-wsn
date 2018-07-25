@@ -1,6 +1,7 @@
 package projects.tcc.simulation.algorithms.genetic;
 
 import projects.tcc.simulation.graph.GraphHolder;
+import projects.tcc.simulation.rssf.Environment;
 import projects.tcc.simulation.rssf.SensorCollection;
 import projects.tcc.simulation.rssf.SensorNetwork;
 import projects.tcc.simulation.rssf.sensor.Sensor;
@@ -30,7 +31,7 @@ public class AG_Estatico_MO_arq {
 
         double raioSens = listSensensores.get(0).getSensorRadius();
 
-        popCromo.startPop(SensorNetwork.getEnvironment().getArea(), raioSens, SensorNetwork.getEnvironment().getCoverageFactor());
+        popCromo.startPop(Environment.getArea(), raioSens, Environment.getCoverageFactor());
 
         calculaFuncaoObjetivo(popCromo.getPopCromossomo());
 
@@ -239,9 +240,9 @@ public class AG_Estatico_MO_arq {
 
     public static void avaliarIndividuo(Cromossomo individuo, double penAtiv, int penNCob) {
 
-        SensorNetwork.getEnvironment().updateDisconnectedCoverage();
-        individuo.setNaoCobertura(SensorNetwork.getEnvironment().getPoints().size()
-                - SensorNetwork.getEnvironment().getCoveredPoints().size());
+        Environment.updateDisconnectedCoverage();
+        individuo.setNaoCobertura(Environment.getPoints().size()
+                - Environment.getCoveredPoints().size());
 
         SensorNetwork.updateActiveSensors(individuo.getVetorBits());
         double custoCaminhoTotal = 0;
@@ -596,7 +597,7 @@ public class AG_Estatico_MO_arq {
 
         index = conjSolPareto.size() - 1;
 
-        double fator = 1.0 - SensorNetwork.getEnvironment().getCoverageFactor(); //% n�o cobertura
+        double fator = 1.0 - Environment.getCoverageFactor(); //% n�o cobertura
         for (int i = 0; i < conjSolPareto.size(); i++) {
             Cromossomo cromoAux = conjSolPareto.get(i);
             int pontosDescobertos = cromoAux.getNaoCobertura();
@@ -604,9 +605,9 @@ public class AG_Estatico_MO_arq {
             if (pontosDescobertos == 0) {
                 index = i;
                 break;
-            } else if ((double) pontosDescobertos / SensorNetwork.getEnvironment().getPoints().size() <= fator) {
+            } else if ((double) pontosDescobertos / Environment.getPoints().size() <= fator) {
                 index = i;
-                fator = (double) pontosDescobertos / SensorNetwork.getEnvironment().getPoints().size();
+                fator = (double) pontosDescobertos / Environment.getPoints().size();
                 break;
             }
 

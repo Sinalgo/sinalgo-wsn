@@ -4,6 +4,7 @@ package projects.tcc.simulation.algorithms.online;
 import lombok.extern.java.Log;
 import projects.tcc.simulation.algorithms.genetic.AG_Estatico_MO_arq;
 import projects.tcc.simulation.principal.Saidas;
+import projects.tcc.simulation.rssf.Environment;
 import projects.tcc.simulation.rssf.SensorNetwork;
 import projects.tcc.simulation.rssf.Simulacao;
 
@@ -50,8 +51,8 @@ public class SolucaoViaAGMO {
 
         int perAtual = 0;
         boolean evento = true;
-        while (Double.compare(SensorNetwork.getEnvironment().getCurrentCoverage(),
-                SensorNetwork.getEnvironment().getCoverageFactor()) >= 0) {
+        while (Double.compare(Environment.getCurrentCoverage(),
+                Environment.getCoverageFactor()) >= 0) {
 
             evento = redeSim.simulaUmPer(evento, perAtual++, saida);
 
