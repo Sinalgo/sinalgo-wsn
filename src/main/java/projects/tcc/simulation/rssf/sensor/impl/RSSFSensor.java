@@ -8,6 +8,7 @@ import projects.tcc.simulation.rssf.RSSFPosition;
 import projects.tcc.simulation.rssf.SensorCollection;
 import projects.tcc.simulation.rssf.sensor.GraphNodeProperties;
 import projects.tcc.simulation.rssf.sensor.Sensor;
+import projects.tcc.simulation.rssf.sensor.Sink;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -146,6 +147,22 @@ public class RSSFSensor implements Sensor, Comparable<Sensor> {
             this.disconnect();
             SensorCollection.update(this);
         }
+    }
+
+    @Override
+    public boolean isConnectable() {
+        Sensor current = this;
+        while (current != null) {
+            if (current.isConnected()
+                    || current instanceof Sink
+                    || current.getParent() instanceof Sink
+                    || (current.getParent() != null && current.getParent().isConnected())) {
+                current.connect();
+                return true;
+            }
+            current = current.getParent();
+        }
+        return false;
     }
 
     @Override

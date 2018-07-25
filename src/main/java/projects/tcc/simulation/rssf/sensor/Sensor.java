@@ -161,4 +161,6 @@ public interface Sensor {
     Set<RSSFPosition> getExclusivelyCoveredPoints();
 
     Map<Long, Double> getDistances();
+
+    boolean isConnectable();
 }
