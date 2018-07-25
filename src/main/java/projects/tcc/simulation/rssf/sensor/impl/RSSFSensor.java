@@ -143,6 +143,7 @@ public class RSSFSensor implements Sensor, Comparable<Sensor> {
     public void deactivate() {
         if (!this.isFailed() && this.isActive()) {
             this.setActive(false);
+            this.disconnect();
             SensorCollection.update(this);
         }
     }
@@ -166,7 +167,7 @@ public class RSSFSensor implements Sensor, Comparable<Sensor> {
     @Override
     public void resetConnectivity() {
         this.setTotalChildrenCount(0);
-        this.setConnected(false);
+        this.disconnect();
         this.setParent(null);
         this.getChildren().clear();
     }

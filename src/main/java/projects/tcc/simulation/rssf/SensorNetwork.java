@@ -81,7 +81,7 @@ public class SensorNetwork {
      * be used in this method.
      */
     public static void updateConnections() {
-        SensorCollection.getActiveSensors().values().forEach(Sensor::resetConnectivity);
+        SensorCollection.getAvailableSensors().values().forEach(Sensor::resetConnectivity);
         SensorCollection.getSinks().values().forEach(Sensor::resetConnectivity);
         SensorCollection.getActiveSensors().values().stream()
                 .filter(s -> s.getGraphNodeProperties().getParentId() != null)
@@ -202,7 +202,7 @@ public class SensorNetwork {
         while (result && isCoverageLow()) {
             Sensor chosenReplacement = findReplacement(blacklist);
             if (chosenReplacement != null) {
-                chosenReplacement.activate();
+                chosenReplacement.connect();
                 updateConnections();
                 if ((chosenReplacement.getGraphNodeProperties().getParentId() == null
                         && chosenReplacement.getParent() == null) || chosenReplacement.getParent().isFailed()) {
