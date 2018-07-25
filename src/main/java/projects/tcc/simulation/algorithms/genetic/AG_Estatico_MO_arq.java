@@ -16,7 +16,8 @@ public class AG_Estatico_MO_arq {
 
         List<Sensor> listSensensores = new ArrayList<>(SensorCollection.getAvailableSensors().values());
 
-        GraphHolder.update(); //atulizando o custo de caminho de cada sensor ao sink;
+        GraphHolder.update();
+        new ArrayList<>(SensorCollection.getActiveSensors().values()).forEach(Sensor::isConnectable);
 
         List<Cromossomo> vMelhorPareto;
 
@@ -240,7 +241,6 @@ public class AG_Estatico_MO_arq {
 
     public static void avaliarIndividuo(Cromossomo individuo, double penAtiv, int penNCob) {
 
-        Environment.updateDisconnectedCoverage();
         individuo.setNaoCobertura(Environment.getPoints().size()
                 - Environment.getCoveredPoints().size());
 

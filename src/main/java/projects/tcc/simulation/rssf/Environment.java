@@ -61,26 +61,35 @@ public class Environment {
         }
     }
 
-    public static void update() {
-        updateExclusivelyCoveredPoints();
-        updateCoverage();
-        updateDisconnectedCoverage();
-    }
-
-    public static void updateCoverage() {
-        getConnectedCoveredPoints().clear();
-        SensorCollection.getActiveSensors().values().stream()
-                .filter(Sensor::isConnected)
-                .map(Sensor::getCoveredPoints)
-                .forEach(getConnectedCoveredPoints()::addAll);
+    public static void updateCoverage(Sensor s) {
+        if (s.isActive()) {
+            if (s.isConnected()) {
+                s.getCoveredPoints().forEach(p -> p.getConnectedCoveringSensors().add(s));
+                getConnectedCoveredPoints().addAll(s.getCoveredPoints());
+            } else {
+                s.getCoveredPoints().forEach(p -> {
+                    p.getConnectedCoveringSensors().remove(s);
+                    if (p.getConnectedCoveringSensors().isEmpty()) {
+                        getConnectedCoveredPoints().remove(p);
+                    }
+                });
+            }
+            s.getCoveredPoints().forEach(p -> p.getCoveringSensors().add(s));
+            getCoveredPoints().addAll(s.getCoveredPoints());
+        } else {
+            s.getCoveredPoints().forEach(p -> {
+                p.getConnectedCoveringSensors().remove(s);
+                p.getCoveringSensors().remove(s);
+                if (p.getConnectedCoveringSensors().isEmpty()) {
+                    getConnectedCoveredPoints().remove(p);
+                }
+                if (p.getCoveringSensors().isEmpty()) {
+                    getCoveredPoints().remove(p);
+                }
+            });
+        }
         setCurrentCoverage(
                 ((double) getConnectedCoveredPoints().size()) / ((double) getPoints().size()));
-    }
-
-    public static void updateDisconnectedCoverage() {
-        getCoveredPoints().clear();
-        SensorCollection.getActiveSensors().values()
-                .forEach(s -> getCoveredPoints().addAll(s.getCoveredPoints()));
         setDisconnectedCoverage(
                 ((double) getCoveredPoints().size()) / ((double) getPoints().size()));
     }

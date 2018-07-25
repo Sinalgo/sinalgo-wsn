@@ -79,7 +79,6 @@ public class RSSFSensor implements Sensor, Comparable<Sensor> {
                        double maintenancePower, double sensorRadius) {
         super();
         this.commRadius = commRadius;
-        this.setActive(true);
         this.commRatio = commRatio;
 
         this.graphNodeProperties = new GraphNodeProperties();
@@ -125,44 +124,63 @@ public class RSSFSensor implements Sensor, Comparable<Sensor> {
     @Override
     public void fail() {
         if (!this.isFailed()) {
+            this.deactivate(false);
             this.setFailed(true);
-            this.setActive(false);
-            this.setConnected(false);
             SensorCollection.update(this);
+            Environment.updateCoverage(this);
         }
     }
 
     @Override
     public void activate() {
+        this.activate(true);
+    }
+
+    private void activate(boolean updateCoverage) {
         if (!this.isFailed() && !this.isActive()) {
             this.setActive(true);
             SensorCollection.update(this);
+            if (updateCoverage) {
+                Environment.updateCoverage(this);
+            }
         }
     }
 
     @Override
     public void deactivate() {
+        this.deactivate(true);
+    }
+
+    private void deactivate(boolean updateCoverage) {
         if (!this.isFailed() && this.isActive()) {
             this.setActive(false);
             this.disconnect();
             SensorCollection.update(this);
+            if (updateCoverage) {
+                Environment.updateCoverage(this);
+            }
         }
     }
 
     @Override
     public boolean isConnectable() {
-        Sensor current = this;
-        while (current != null) {
-            if (current.isConnected()
-                    || current instanceof Sink
-                    || current.getParent() instanceof Sink
-                    || (current.getParent() != null && current.getParent().isConnected())) {
-                current.connect();
-                return true;
-            }
-            current = current.getParent();
+        if (this instanceof Sink || this.isConnected()) {
+            return true;
         }
-        return false;
+        if (this.getParent() == null) {
+            this.disconnect();
+            return false;
+        }
+        if (this.getParent() instanceof Sink || this.getParent().isConnected()) {
+            this.connect();
+            return true;
+        }
+        if (this.getParent().isConnectable()) {
+            this.connect();
+        } else {
+            this.disconnect();
+        }
+        return this.isConnected();
     }
 
     @Override
@@ -228,11 +246,12 @@ public class RSSFSensor implements Sensor, Comparable<Sensor> {
 
     private void connect(boolean propagate) {
         if (!this.isConnected()) {
-            this.activate();
+            this.activate(false);
             this.setConnected(true);
             if (propagate) {
                 this.getChildren().values().forEach(Sensor::connectAndPropagate);
             }
+            Environment.updateCoverage(this);
         }
     }
 
@@ -242,6 +261,7 @@ public class RSSFSensor implements Sensor, Comparable<Sensor> {
             if (propagate) {
                 this.getChildren().values().forEach(Sensor::disconnectAndPropagate);
             }
+            Environment.updateCoverage(this);
         }
     }
 

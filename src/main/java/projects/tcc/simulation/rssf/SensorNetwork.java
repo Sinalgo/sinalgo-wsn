@@ -144,7 +144,6 @@ public class SensorNetwork {
                 updateConnections();
             }
         }
-        Environment.updateCoverage();
         if (Double.compare(Environment.getCurrentCoverage(), Environment.getCoverageFactor()) >= 0) {
             return true;
         } else {
@@ -197,8 +196,6 @@ public class SensorNetwork {
     public static void supplyCoverage() {
         boolean result = true;
         Set<Long> blacklist = new HashSet<>();
-        Environment.updateCoverage();
-        Environment.updateDisconnectedCoverage();
         while (result && isCoverageLow()) {
             Sensor chosenReplacement = findReplacement(blacklist);
             if (chosenReplacement != null) {
@@ -212,16 +209,12 @@ public class SensorNetwork {
                 } else {
                     log.info("Chosen replacement = " + chosenReplacement.getID());
                 }
-                Environment.updateCoverage();
-                Environment.updateDisconnectedCoverage();
             } else {
                 log.warning("There are no available sensors to supply the demanded coverage");
                 result = false;
             }
 
         }
-        Environment.updateCoverage();
-        Environment.updateDisconnectedCoverage();
     }
 
     private static boolean isCoverageLow() {
@@ -249,11 +242,11 @@ public class SensorNetwork {
     public static void createInitialNetwork(boolean[] vetBoolean) {
         updateActiveSensors(vetBoolean);
         updateConnections();
-        Environment.update();
+        Environment.updateExclusivelyCoveredPoints();
         if (isCoverageLow()) {
             supplyCoverage();
             updateConnections();
-            Environment.update();
+            Environment.updateExclusivelyCoveredPoints();
         }
     }
 
