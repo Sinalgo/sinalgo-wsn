@@ -30,7 +30,7 @@ public class AG_Estatico_MO_arq {
 
         Populacao popCromo = new Populacao(tamanhoPopulacao, vNumBits, vetIdsSensDisp, txCruzamento);
 
-        double raioSens = listSensensores.get(0).getSensorRadius();
+        double raioSens = listSensensores.stream().mapToDouble(Sensor::getSensorRadius).findAny().orElse(0);
 
         popCromo.startPop(Environment.getArea(), raioSens, Environment.getCoverageFactor());
 
@@ -246,12 +246,10 @@ public class AG_Estatico_MO_arq {
 
         SensorNetwork.updateActiveSensors(individuo.getVetorBits());
         double custoCaminhoTotal = 0;
-        for (Sensor sens : SensorCollection.getAvailableSensors().values()) {
+        for (Sensor sens : SensorCollection.getActiveSensors().values()) {
             for (Sink sink : SensorCollection.getSinks().values()) {
-                if (sens.isActive()) {
-                    custoCaminhoTotal += sens.getGraphNodeProperties().getPathToSinkCost()
-                            .getOrDefault(sink.getID(), 0.0);
-                }
+                custoCaminhoTotal += sens.getGraphNodeProperties().getPathToSinkCost()
+                        .getOrDefault(sink.getID(), 0.0);
             }
         }
 
