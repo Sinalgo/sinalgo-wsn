@@ -108,6 +108,10 @@ public interface Sensor {
 
     void connectAndPropagate();
 
+    void connect();
+
+    void disconnect();
+
     void queryDescendants();
 
     void setParent(Sensor parent);

@@ -138,15 +138,14 @@ public class SensorNetwork {
             if (chosenReplacement == null) {
                 break;
             }
-            chosenReplacement.setActive(true);
+            chosenReplacement.activate();
             if (!connectSensorOnline(chosenReplacement, failedSensor)) {
-                SensorCollection.updateCollections();
                 GraphHolder.update();
                 updateConnections();
             }
         }
-        getEnvironment().updateCoverage();
-        if (Double.compare(getEnvironment().getCurrentCoverage(), getEnvironment().getCoverageFactor()) >= 0) {
+        Environment.updateCoverage();
+        if (Double.compare(Environment.getCurrentCoverage(), Environment.getCoverageFactor()) >= 0) {
             return true;
         } else {
             log.warning("Couldn't supply online coverage");
@@ -158,15 +157,16 @@ public class SensorNetwork {
         boolean result = chosenReplacement.getNeighbors().containsKey(failedSensor.getParent().getID());
         if (result) {
             failedSensor.getParent().addChild(chosenReplacement);
-            chosenReplacement.setConnected(failedSensor.getParent().isConnected()
-                    || failedSensor.getParent() instanceof Sink);
+            if (failedSensor.getParent().isConnected() || failedSensor.getParent() instanceof Sink) {
+                chosenReplacement.connect();
+            }
         }
 
         for (Sensor failedChild : failedSensor.getChildren().values()) {
             if (!failedChild.isConnected()) {
                 if (chosenReplacement.getNeighbors().containsKey(failedChild.getID())) {
                     chosenReplacement.addChild(failedChild);
-                    failedChild.setConnected(true);
+                    failedChild.connect();
                 } else {
                     result = false;
                 }
@@ -197,47 +197,45 @@ public class SensorNetwork {
     public static void supplyCoverage() {
         boolean result = true;
         Set<Long> blacklist = new HashSet<>();
-        getEnvironment().updateCoverage();
-        getEnvironment().updateDisconnectedCoverage();
+        Environment.updateCoverage();
+        Environment.updateDisconnectedCoverage();
         while (result && isCoverageLow()) {
             Sensor chosenReplacement = findReplacement(blacklist);
             if (chosenReplacement != null) {
-                chosenReplacement.setActive(true);
-                SensorCollection.updateCollections();
+                chosenReplacement.activate();
                 updateConnections();
                 if ((chosenReplacement.getGraphNodeProperties().getParentId() == null
                         && chosenReplacement.getParent() == null) || chosenReplacement.getParent().isFailed()) {
                     log.warning("Skipping possible replacement because of connection issues");
-                    chosenReplacement.setActive(false);
+                    chosenReplacement.deactivate();
                     blacklist.add(chosenReplacement.getID());
-                    SensorCollection.updateCollections();
                 } else {
                     log.info("Chosen replacement = " + chosenReplacement.getID());
                 }
-                getEnvironment().updateCoverage();
-                getEnvironment().updateDisconnectedCoverage();
+                Environment.updateCoverage();
+                Environment.updateDisconnectedCoverage();
             } else {
                 log.warning("There are no available sensors to supply the demanded coverage");
                 result = false;
             }
 
         }
-        getEnvironment().updateCoverage();
-        getEnvironment().updateDisconnectedCoverage();
+        Environment.updateCoverage();
+        Environment.updateDisconnectedCoverage();
     }
 
     private static boolean isCoverageLow() {
-        log.warning("Coverage is " + getEnvironment().getCurrentCoverage());
-        return Double.compare(getEnvironment().getCurrentCoverage(), getEnvironment().getCoverageFactor()) < 0;
+        log.warning("Coverage is " + Environment.getCurrentCoverage());
+        return Double.compare(Environment.getCurrentCoverage(), Environment.getCoverageFactor()) < 0;
     }
 
     private static Sensor findReplacement(Set<Long> blacklist) {
         int maxCoveredPoints = Integer.MIN_VALUE;
         Sensor chosen = null;
-        getEnvironment().updateExclusivelyCoveredPoints();
+        Environment.updateExclusivelyCoveredPoints();
         for (Sensor sensor : SensorCollection.getInactiveSensors().values()) {
             if (!blacklist.contains(sensor.getID())) {
-                Set<Position> coveredPoints = new HashSet<>(getEnvironment().getConnectedCoveredPoints());
+                Set<Position> coveredPoints = new HashSet<>(Environment.getConnectedCoveredPoints());
                 if (coveredPoints.addAll(sensor.getExclusivelyCoveredPoints())
                         && Integer.compare(maxCoveredPoints, coveredPoints.size()) < 0) {
                     maxCoveredPoints = coveredPoints.size();
@@ -251,11 +249,11 @@ public class SensorNetwork {
     public static void createInitialNetwork(boolean[] vetBoolean) {
         updateActiveSensors(vetBoolean);
         updateConnections();
-        getEnvironment().update();
+        Environment.update();
         if (isCoverageLow()) {
             supplyCoverage();
             updateConnections();
-            getEnvironment().update();
+            Environment.update();
         }
     }
 

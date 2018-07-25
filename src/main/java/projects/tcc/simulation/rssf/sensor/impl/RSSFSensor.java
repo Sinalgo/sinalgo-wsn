@@ -190,16 +190,40 @@ public class RSSFSensor implements Sensor, Comparable<Sensor> {
 
     @Override
     public void disconnectAndPropagate() {
-        this.setConnected(false);
-        this.getChildren().values().forEach(Sensor::disconnectAndPropagate);
+        this.disconnect(true);
     }
 
     @Override
     public void connectAndPropagate() {
+        this.connect(true);
+    }
+
+    @Override
+    public void connect() {
+        this.connect(false);
+    }
+
+    @Override
+    public void disconnect() {
+        this.disconnect(false);
+    }
+
+    private void connect(boolean propagate) {
         if (!this.isConnected()) {
             this.activate();
             this.setConnected(true);
-            this.getChildren().values().forEach(Sensor::connectAndPropagate);
+            if (propagate) {
+                this.getChildren().values().forEach(Sensor::connectAndPropagate);
+            }
+        }
+    }
+
+    private void disconnect(boolean propagate) {
+        if (this.isConnected()) {
+            this.setConnected(false);
+            if (propagate) {
+                this.getChildren().values().forEach(Sensor::disconnectAndPropagate);
+            }
         }
     }
 
