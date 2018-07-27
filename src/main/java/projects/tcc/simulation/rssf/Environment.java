@@ -5,9 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import projects.tcc.simulation.rssf.sensor.Sensor;
 
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 
 public class Environment {
@@ -94,20 +92,13 @@ public class Environment {
                 ((double) getCoveredPoints().size()) / ((double) getPoints().size()));
     }
 
-    public static void updateExclusivelyCoveredPoints() {
-        Collection<Sensor> availableSensors = SensorCollection.getAvailableSensors().values();
-        Collection<Sensor> activeSensors = SensorCollection.getActiveSensors().values();
-        availableSensors.forEach(s -> {
-            s.getExclusivelyCoveredPoints().clear();
-            s.getExclusivelyCoveredPoints().addAll(s.getCoveredPoints());
+    public static void updateExclusivelyCoveredPoints(Sensor s) {
+        s.getExclusivelyCoveredPoints().clear();
+        s.getCoveredPoints().forEach(p -> {
+            if (p.getCoveringSensors().isEmpty()) {
+                s.getExclusivelyCoveredPoints().add(p);
+            }
         });
-        availableSensors.forEach(s1 -> activeSensors.forEach(s2 -> filterOutCoveredPoints(s1, s2)));
-    }
-
-    private static void filterOutCoveredPoints(Sensor s1, Sensor s2) {
-        if (!Objects.equals(s1, s2)) {
-            s1.getExclusivelyCoveredPoints().removeAll(s2.getCoveredPoints());
-        }
     }
 
 }

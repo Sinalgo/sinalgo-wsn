@@ -70,7 +70,7 @@ public class SolucaoViaAGMO {
                 log.info("===== EVENTO TEMPO = " + perAtual);
                 if (!SensorNetwork.supplyCoverageOnline()) {
                     SensorNetwork.supplyCoverage();
-                    SensorNetwork.updateConnections();
+                    SensorNetwork.deativateDisconnectedSensors();
                 }
 
             }

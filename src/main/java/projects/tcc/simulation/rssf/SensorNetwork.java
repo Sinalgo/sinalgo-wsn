@@ -7,7 +7,6 @@ import lombok.extern.java.Log;
 import projects.tcc.simulation.graph.GraphHolder;
 import projects.tcc.simulation.rssf.sensor.Sensor;
 import projects.tcc.simulation.rssf.sensor.Sink;
-import sinalgo.nodes.Position;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -83,7 +82,7 @@ public class SensorNetwork {
     public static void updateConnections() {
         SensorCollection.getAvailableSensors().values().forEach(Sensor::resetConnectivity);
         SensorCollection.getSinks().values().forEach(Sensor::resetConnectivity);
-        SensorCollection.getActiveSensors().values().stream()
+        SensorCollection.getAvailableSensors().values().stream()
                 .filter(s -> s.getGraphNodeProperties().getParentId() != null)
                 .collect(Collectors.toList()).forEach(s -> {
             SensorCollection.getAllSensorsAndSinks().get(s.getGraphNodeProperties().getParentId()).addChild(s);
@@ -91,6 +90,9 @@ public class SensorNetwork {
         });
         SensorCollection.getSinks().values().forEach(Sensor::connectAndPropagate);
         SensorCollection.getSinks().values().forEach(Sensor::queryDescendants);
+    }
+
+    public static void deativateDisconnectedSensors() {
         List<Sensor> sensorsToDeactivate = SensorCollection.getActiveSensors().values().stream()
                 .filter(s -> !(s.isActive() && s.isConnected()))
                 .collect(Collectors.toList());
@@ -145,6 +147,7 @@ public class SensorNetwork {
             }
         }
         if (Double.compare(Environment.getCurrentCoverage(), Environment.getCoverageFactor()) >= 0) {
+            log.info("Supplying online coverage");
             return true;
         } else {
             log.warning("Couldn't supply online coverage");
@@ -201,8 +204,7 @@ public class SensorNetwork {
             if (chosenReplacement != null) {
                 chosenReplacement.connect();
                 updateConnections();
-                if ((chosenReplacement.getGraphNodeProperties().getParentId() == null
-                        && chosenReplacement.getParent() == null) || chosenReplacement.getParent().isFailed()) {
+                if (chosenReplacement.getParent() == null || chosenReplacement.getParent().isFailed()) {
                     log.warning("Skipping possible replacement because of connection issues");
                     chosenReplacement.deactivate();
                     blacklist.add(chosenReplacement.getID());
@@ -218,20 +220,19 @@ public class SensorNetwork {
     }
 
     private static boolean isCoverageLow() {
-        log.warning("Coverage is " + Environment.getCurrentCoverage());
+        log.info("Coverage is " + Environment.getCurrentCoverage());
         return Double.compare(Environment.getCurrentCoverage(), Environment.getCoverageFactor()) < 0;
     }
 
     private static Sensor findReplacement(Set<Long> blacklist) {
-        int maxCoveredPoints = Integer.MIN_VALUE;
+        int maxCoveredPoints = 0;
         Sensor chosen = null;
-        Environment.updateExclusivelyCoveredPoints();
         for (Sensor sensor : SensorCollection.getInactiveSensors().values()) {
             if (!blacklist.contains(sensor.getID())) {
-                Set<Position> coveredPoints = new HashSet<>(Environment.getConnectedCoveredPoints());
-                if (coveredPoints.addAll(sensor.getExclusivelyCoveredPoints())
-                        && Integer.compare(maxCoveredPoints, coveredPoints.size()) < 0) {
-                    maxCoveredPoints = coveredPoints.size();
+                Environment.updateExclusivelyCoveredPoints(sensor);
+                int exclusivelyCoveredPoints = sensor.getExclusivelyCoveredPoints().size();
+                if (exclusivelyCoveredPoints > maxCoveredPoints) {
+                    maxCoveredPoints = exclusivelyCoveredPoints;
                     chosen = sensor;
                 }
             }
@@ -242,11 +243,9 @@ public class SensorNetwork {
     public static void createInitialNetwork(boolean[] vetBoolean) {
         updateActiveSensors(vetBoolean);
         updateConnections();
-        Environment.updateExclusivelyCoveredPoints();
         if (isCoverageLow()) {
             supplyCoverage();
             updateConnections();
-            Environment.updateExclusivelyCoveredPoints();
         }
     }
 
