@@ -52,7 +52,7 @@ public class SensorNetwork {
     }
 
     public int[] getVetIdsSensDisp() {
-        return this.availableSensors.stream().mapToInt(WSNSensor::getId).toArray();
+        return this.availableSensors.stream().mapToInt(WSNSensor::getWsnSensorId).toArray();
     }
 
     private void setDemandPoints(int width, int lenght) {
@@ -119,9 +119,9 @@ public class SensorNetwork {
             for (WSNSensor sensor2 : this.availableSensorsAndSinks) {
                 if (!sensor1.equals(sensor2)) {
                     double vDistancia = sensor1.getPosition().distanceTo(sensor2.getPosition());
-                    this.conectivityMatrix[sensor1.getId()][sensor2.getId()] = vDistancia;
+                    this.conectivityMatrix[sensor1.getWsnSensorId()][sensor2.getWsnSensorId()] = vDistancia;
                 } else {
-                    this.conectivityMatrix[sensor1.getId()][sensor2.getId()] = -1;
+                    this.conectivityMatrix[sensor1.getWsnSensorId()][sensor2.getWsnSensorId()] = -1;
                 }
             }
         }
@@ -147,7 +147,7 @@ public class SensorNetwork {
             List<WSNSensor> listSensVizinhos = new ArrayList<>();
             for (WSNSensor sensor2 : this.availableSensorsAndSinks) {
                 if (!sensor1.equals(sensor2)) {
-                    double vDistancia = this.conectivityMatrix[sensor1.getId()][sensor2.getId()];
+                    double vDistancia = this.conectivityMatrix[sensor1.getWsnSensorId()][sensor2.getWsnSensorId()];
                     double vRaio = (float) sensor1.getCommRadius();
                     if (vDistancia <= vRaio) {
                         listSensVizinhos.add(sensor2);
@@ -165,8 +165,8 @@ public class SensorNetwork {
     private double calculaEnergiaConsPer(List<WSNSensor> listSens) {
         double energiaGastaAcum = 0;
         for (WSNSensor s : listSens) {
-            int idSens = s.getId();
-            int sensPai = s.getParent().getId();
+            int idSens = s.getWsnSensorId();
+            int sensPai = s.getParent().getWsnSensorId();
             int vNumeroFilhos = s.queryDescendants();
             double enRec = s.getReceivePower() * vNumeroFilhos;
             double vDistanciaAoPai = this.conectivityMatrix[idSens][sensPai];
@@ -265,7 +265,7 @@ public class SensorNetwork {
             int vNumeroFilhos = s.queryDescendants();
             double ER = s.getReceivePower() * vNumeroFilhos;
 
-            double vDistanciaAoPai = this.conectivityMatrix[s.getId()][s.getParent().getId()];
+            double vDistanciaAoPai = this.conectivityMatrix[s.getWsnSensorId()][s.getParent().getWsnSensorId()];
             double vCorrente = WSNSensor.getCurrentPerDistance(vDistanciaAoPai);
 
             double ET = s.getCommRatio() * vCorrente * (vNumeroFilhos + 1);
@@ -562,10 +562,10 @@ public class SensorNetwork {
         double distQuad = Double.MAX_VALUE;
         for (WSNSensor sensCand : sensFalho.getNeighborhood()) {
             if (!sensCand.isActive() && !sensCand.isFailed()) {
-                double distPai = this.conectivityMatrix[sensCand.getId()][sensFalho.getParent().getId()];
+                double distPai = this.conectivityMatrix[sensCand.getWsnSensorId()][sensFalho.getParent().getWsnSensorId()];
                 double distAux = Math.pow(distPai, 2);
                 for (WSNSensor sensFilho : sensFalho.getChildren()) {
-                    double distFilho = this.conectivityMatrix[sensCand.getId()][sensFilho.getId()];
+                    double distFilho = this.conectivityMatrix[sensCand.getWsnSensorId()][sensFilho.getWsnSensorId()];
                     distAux = distAux + Math.pow(distFilho, 2);
                 }
                 if (distAux < distQuad) {

@@ -18,7 +18,7 @@ public class Grafo {
     public void construirGrafo() {
         for (WSNSensor vertA : this.listSensores_Sink) {
             for (WSNSensor vertB : vertA.getNeighborhood()) {
-                double vDistancia = this.matrizConectividade[vertA.getId()][vertB.getId()];
+                double vDistancia = this.matrizConectividade[vertA.getWsnSensorId()][vertB.getWsnSensorId()];
                 double peso = WSNSensor.getCurrentPerDistance(vDistancia);
                 vertA.getAdjacencies().add(new GraphEdge(vertB, peso));
             }
@@ -45,7 +45,7 @@ public class Grafo {
         for (WSNSensor vertA : this.listSensores_Sink) {
             for (WSNSensor vertB : vertA.getNeighborhood()) {
                 if (!vertB.isFailed()) {
-                    double vDistancia = this.matrizConectividade[vertA.getId()][vertB.getId()];
+                    double vDistancia = this.matrizConectividade[vertA.getWsnSensorId()][vertB.getWsnSensorId()];
                     double peso = WSNSensor.getCurrentPerDistance(vDistancia);
                     if ((vertA.isActive() && !vertB.isActive()) ||
                             (!vertA.isActive() && vertB.isActive())) {

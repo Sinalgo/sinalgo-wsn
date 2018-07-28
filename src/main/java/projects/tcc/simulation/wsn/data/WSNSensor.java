@@ -71,7 +71,7 @@ public class WSNSensor implements Comparable<WSNSensor> {
             25.4,
     };
 
-    private int id;
+    private int wsnSensorId;
     private final Position position;
     private double batteryEnergy;
     private double batteryCapacity;
@@ -98,8 +98,8 @@ public class WSNSensor implements Comparable<WSNSensor> {
     private double minDistance;
     private WSNSensor previous;
 
-    public WSNSensor(int id, double x, double y, double commRadius, double commRatio) {
-        this.id = id;
+    public WSNSensor(int wsnSensorId, double x, double y, double commRadius, double commRatio) {
+        this.wsnSensorId = wsnSensorId;
         this.position = new Position(x, y, 0);
         this.commRadius = commRadius;
 
@@ -114,10 +114,10 @@ public class WSNSensor implements Comparable<WSNSensor> {
         this.commRatio = commRatio;
     }
 
-    public WSNSensor(int id, double x, double y, double sensRadius, double commRadius,
+    public WSNSensor(int wsnSensorId, double x, double y, double sensRadius, double commRadius,
                      double batteryEnergy, double activationPower, double receivePower,
                      double maintenancePower, double commRatio) {
-        this(id, x, y, commRadius, commRatio);
+        this(wsnSensorId, x, y, commRadius, commRatio);
 
         this.activationPower = activationPower;
         this.receivePower = receivePower;
@@ -202,6 +202,6 @@ public class WSNSensor implements Comparable<WSNSensor> {
 
     @Override
     public String toString() {
-        return Integer.toString(this.getId());
+        return Integer.toString(this.getWsnSensorId());
     }
 }

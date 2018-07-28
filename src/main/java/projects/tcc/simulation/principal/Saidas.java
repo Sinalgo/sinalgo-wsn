@@ -52,7 +52,7 @@ public class Saidas {
         pw.println(pCob);
         for (WSNSensor s : this.rede.getSensors()) {
             int estadoSensor = s.isFailed() ? 3 : s.isActive() ? 1 : 2;
-            int pai = s.isActive() && s.getParent() != null ? s.getParent().getId() : -1;
+            int pai = s.isActive() && s.getParent() != null ? s.getParent().getWsnSensorId() : -1;
             double bateria = s.getBatteryEnergy();
 
             pw.print(estadoSensor + "\t" + bateria + "\t" + pai);
