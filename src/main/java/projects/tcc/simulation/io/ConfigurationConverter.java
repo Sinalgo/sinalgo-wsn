@@ -3,6 +3,7 @@ package projects.tcc.simulation.io;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import lombok.extern.java.Log;
+import projects.tcc.simulation.io.SimulationConfiguration.SensorConfiguration;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -14,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,8 +57,7 @@ public class ConfigurationConverter {
                         double x = Double.parseDouble(values[1]);
                         double y = Double.parseDouble(values[2]);
 
-                        sensorConfigurations.add(SimulationConfiguration.SensorConfiguration
-                                .builder()
+                        sensorConfigurations.add(SimulationConfiguration.SensorConfiguration.builder()
                                 .x(x)
                                 .y(y)
                                 .build());
@@ -72,8 +73,11 @@ public class ConfigurationConverter {
                                     .maintenancePower(maintenancePower)
                                     .receivePower(receivePower)
                                     .sensorConfigurations(sensorConfigurations)
-                                    .sinkPosX(0)
-                                    .sinkPosY(0)
+                                    .sinkConfigurations(Collections.singletonList(
+                                            SensorConfiguration.builder()
+                                                    .x(0)
+                                                    .y(0)
+                                                    .build()))
                                     .build());
                 }
 

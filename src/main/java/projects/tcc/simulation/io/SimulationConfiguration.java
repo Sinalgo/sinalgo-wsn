@@ -28,9 +28,8 @@ public class SimulationConfiguration {
     private final double receivePower;
     private final double maintenancePower;
     private final double commRatio;
-    private final double sinkPosX;
-    private final double sinkPosY;
 
+    private final List<SensorConfiguration> sinkConfigurations;
     private final List<SensorConfiguration> sensorConfigurations;
 
 }
