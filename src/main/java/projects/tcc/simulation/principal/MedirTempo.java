@@ -9,29 +9,29 @@ public class MedirTempo {
     private long tempoTotal;
 
     public MedirTempo() {
-        tempoTotal = 0;
+        this.tempoTotal = 0;
     }
 
     public double getTempoTotal() {
-        return (double) (tempoTotal) / (double) (1000);
+        return (double) (this.tempoTotal) / (double) (1000);
     }
 
-    public void addTempo(long tempo) {
-        tempoTotal += tempo;
+    private void addTempo(long tempo) {
+        this.tempoTotal += tempo;
     }
 
     public void iniciar() {
-        inicio = new Date();
+        this.inicio = new Date();
     }
 
     public void finalizar() {
-        fim = new Date();
-        getTempoExecSeg();
+        this.fim = new Date();
+        this.getTempoExecSeg();
     }
 
-    public void getTempoExecSeg() {
-        long tempo = fim.getTime() - inicio.getTime();
-        addTempo(tempo);
+    private void getTempoExecSeg() {
+        long tempo = this.fim.getTime() - this.inicio.getTime();
+        this.addTempo(tempo);
     }
 
 }

@@ -1,67 +1,38 @@
 package projects.tcc.simulation.principal;
 
-import lombok.extern.java.Log;
 import projects.tcc.simulation.algorithms.online.SolucaoViaAGMO;
-import projects.tcc.simulation.io.ConfigurationLoader;
-import projects.tcc.simulation.io.SimulationConfiguration;
-import projects.tcc.simulation.io.SimulationConfiguration.SensorConfiguration;
-import projects.tcc.simulation.rssf.Environment;
-import projects.tcc.simulation.rssf.SensorCollection;
-import projects.tcc.simulation.rssf.SensorNetwork;
-import projects.tcc.simulation.rssf.sensor.Sensor;
-import projects.tcc.simulation.rssf.sensor.impl.RSSFSensor;
-import projects.tcc.simulation.rssf.sensor.impl.RSSFSink;
+import projects.tcc.simulation.wsn.SensorNetwork;
 
-@Log
 public class Principal {
 
-    /**
-     * @param args
-     * @throws Exception
-     */
     public static void main(String[] args) throws Exception {
-
         ParametrosEntrada parmEntrada = new ParametrosEntrada(args);
-
         String nomeArqEntrada = parmEntrada.getCaminhoEntrada() +
                 parmEntrada.getNomeQuant() + "50";
 
-
         // ============== Variaveis para Simulacao ====================
-
-
         for (int i = parmEntrada.getNumTesteInicial(); i < parmEntrada.getNumTeste(); i++) {
 
-
             // =================== Iniciando a Simulacao ==================
+            SensorNetwork rede = new SensorNetwork(nomeArqEntrada, 50, 50, parmEntrada.getMFatorCobMO());
 
-            ConfigurationLoader.overrideConfiguration(nomeArqEntrada);
-            SimulationConfiguration config = ConfigurationLoader.getConfiguration();
+            rede.addSink();
+            rede.prepararRede();
 
-            Environment.init(50, 50, parmEntrada.getMFatorCobMO());
-            for (SensorConfiguration sensorConfiguration : config.getSensorConfigurations()) {
-                Sensor sensor = new RSSFSensor();
-                sensor.setPosition(sensorConfiguration.toPosition());
-                SensorCollection.addSensor(sensor);
-            }
-            SensorCollection.addSensor(new RSSFSink());
-            SensorNetwork.init();
-
-            log.info("\n\n========= Teste Numero: " + i + " =========");
+            System.out.println("\n\n========= Teste Numero: " + i + " =========");
 
             /////////////////////////// MEDICAO DE TEMPO //////////////////////
             MedirTempo tempoRede = new MedirTempo();
 
             tempoRede.iniciar();
 
-            SolucaoViaAGMO solucao = new SolucaoViaAGMO(i, parmEntrada.getCaminhoSaida());
+            SolucaoViaAGMO solucao = new SolucaoViaAGMO(rede, parmEntrada.getCaminhoSaida());
             solucao.simularRede(i);
 
             tempoRede.finalizar();
 
             String sTempo = "tempo" + i + ".out";
             Saidas.geraArqSaidaTempo(sTempo, parmEntrada.getCaminhoSaida(), tempoRede.getTempoTotal());
-
         }
     }
 }

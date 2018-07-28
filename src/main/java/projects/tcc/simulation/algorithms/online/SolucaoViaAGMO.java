@@ -1,89 +1,68 @@
 package projects.tcc.simulation.algorithms.online;
 
-
-import lombok.extern.java.Log;
 import projects.tcc.simulation.algorithms.genetic.AG_Estatico_MO_arq;
 import projects.tcc.simulation.principal.Saidas;
-import projects.tcc.simulation.rssf.Environment;
-import projects.tcc.simulation.rssf.SensorNetwork;
-import projects.tcc.simulation.rssf.Simulacao;
+import projects.tcc.simulation.wsn.SensorNetwork;
+import projects.tcc.simulation.wsn.Simulation;
 
-@Log
+import java.util.ArrayList;
+import java.util.List;
+
 public class SolucaoViaAGMO {
+
+    private SensorNetwork sensorNetwork;
 
     private int numeroGeracoes;
     private int tamanhoPopulacao;
     private double txCruzamento;
-    private double txMutacao;
-    private int testeNumero;
     private String caminhoSaida;
 
-    public SolucaoViaAGMO(int testeNumero, String caminhoSaida) {
+    public SolucaoViaAGMO(SensorNetwork sensorNetwork, String caminhoSaida) {
+        this.sensorNetwork = sensorNetwork;
         this.numeroGeracoes = 150;
         this.tamanhoPopulacao = 300;
         this.txCruzamento = 0.9;
-        this.txMutacao = 0.2;
-        this.testeNumero = testeNumero;
         this.caminhoSaida = caminhoSaida;
     }
 
     public void simularRede(int testNum) throws Exception {
-
         //gerando a POP de Cromossomos inicial para o AG
-        boolean[] vetSensAtiv = AG_Estatico_MO_arq.resolveAG_Estatico_MO(numeroGeracoes, tamanhoPopulacao, txCruzamento, txMutacao);
+        boolean[] vetSensAtiv = AG_Estatico_MO_arq.resolveAG_Estatico_MO(this.sensorNetwork, this.numeroGeracoes, this.tamanhoPopulacao, this.txCruzamento);
         /////////////////////////// REDE INICIAL ///////////////////////////////
 
-        StringBuilder sb = new StringBuilder();
+        List<String> vetSensAtivStr = new ArrayList<>(vetSensAtiv.length);
         for (boolean i : vetSensAtiv) {
-            if (i)
-                sb.append("1 ");
-            else
-                sb.append("0 ");
+            vetSensAtivStr.add(i ? "1" : "0");
         }
-        log.info(sb.toString());
-
-        SensorNetwork.createInitialNetwork(vetSensAtiv);
-
-        Simulacao redeSim = new Simulacao();
-        redeSim.setTesteNumero(testeNumero);
-
-        Saidas saida = new Saidas(redeSim, caminhoSaida);
-
+        System.out.println(String.join(" ", vetSensAtivStr));
+        this.sensorNetwork.constroiRedeInicial(vetSensAtiv);
+        Simulation redeSim = new Simulation(this.sensorNetwork);
+        Saidas saida = new Saidas(this.sensorNetwork, redeSim, this.caminhoSaida);
         int perAtual = 0;
-        boolean evento = true;
-        while (Double.compare(Environment.getCurrentCoverage(),
-                Environment.getCoverageFactor()) >= 0) {
-
-            evento = redeSim.simulaUmPer(evento, perAtual++, saida);
-
+        while (this.sensorNetwork.getCurrentCoveragePercent() >= this.sensorNetwork.getCoverageFactor()) {
+            boolean evento = redeSim.simulaUmPer(perAtual++, saida);
             boolean reestruturar = redeSim.isReestrutrarRede();
-
             if (reestruturar) {
                 //gerando a POP de Cromossomos inicial para o AG
-                vetSensAtiv = AG_Estatico_MO_arq.resolveAG_Estatico_MO(numeroGeracoes, tamanhoPopulacao, txCruzamento, txMutacao);
-                SensorNetwork.createInitialNetwork(vetSensAtiv);
-                log.info("===== EVENTO e REESTRUTUROU TEMPO = " + perAtual);
+                vetSensAtiv = AG_Estatico_MO_arq.resolveAG_Estatico_MO(this.sensorNetwork, this.numeroGeracoes, this.tamanhoPopulacao, this.txCruzamento);
+                this.sensorNetwork.constroiRedeInicial(vetSensAtiv);
+                System.out.println("===== EVENTO e REESTRUTUROU TEMPO = " + perAtual);
             }
-
             if (evento && !reestruturar) {
-
-                log.info("===== EVENTO TEMPO = " + perAtual);
-                if (!SensorNetwork.supplyCoverageOnline()) {
-                    SensorNetwork.supplyCoverage();
-                    SensorNetwork.deativateDisconnectedSensors();
+                System.out.println("===== EVENTO TEMPO = " + perAtual);
+                if (!this.sensorNetwork.suprirOnline()) {
+                    this.sensorNetwork.suprirCobertura();
+                    this.sensorNetwork.desligarSensoresDesconexos();
                 }
-
             }
-
         }
         // Gerar arquivo Final da Simulacao
-        saida.geraArquivoSimulador(perAtual++);
+        saida.generateSimulatorOutput(perAtual++);
         //gerar impressao na tela
         saida.gerarSaidaTela(perAtual);
-        log.info("==> Reestruturação foi requisitada " + redeSim.getContChamadaReest());
+        System.out.println("==> Reestruturação foi requisitada " + redeSim.getContChamadaReest());
         //gerar arquivo com os dados de cada periodo: Cob, EC e ER.
-        saida.gerarArqSimulacao(testNum, "Hibrido");
-
+        saida.generateSimulatorOutput(testNum, "Hibrido");
     }
 
 }
