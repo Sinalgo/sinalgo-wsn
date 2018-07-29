@@ -2,7 +2,7 @@
   <configuration default="false" name="Principal" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="projects.tcc.simulation.principal.Principal" />
     <module name="Sinalgo_main" />
-    <option name="PROGRAM_PARAMETERS" value="36 0 1 &quot;&quot; &quot;$USER_HOME$/saida-rssf/&quot; 95 0" />
+    <option name="PROGRAM_PARAMETERS" value="500 0 1 &quot;&quot; &quot;$USER_HOME$/saida-rssf/&quot; 95 0" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="projects.tcc.simulation.io.*" />

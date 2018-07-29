@@ -40,7 +40,7 @@ public class SensorNetwork {
         this.activeSensors = new ArrayList<>();
         this.sinks = new ArrayList<>();
         this.computeDemandPoints(configuration.getDimX(), configuration.getDimY());
-        this.setSensores(configuration);
+        this.addSensors(configuration);
         this.constroiVetCobertura();
         this.numCoveredPoints = 0;
         this.currentCoveragePercent = 0;
@@ -65,7 +65,7 @@ public class SensorNetwork {
         }
     }
 
-    private void setSensores(SimulationConfiguration config) {
+    private void addSensors(SimulationConfiguration config) {
         int idCounter = 0;
         for (SensorConfiguration sensorConfig : config.getSensorConfigurations()) {
             this.sensors.add(new WSNSensor(idCounter++, sensorConfig.getX(), sensorConfig.getY(),
@@ -73,8 +73,8 @@ public class SensorNetwork {
                     config.getActivationPower(), config.getReceivePower(), config.getMaintenancePower(),
                     config.getCommRatio()));
         }
-        this.availableSensorsAndSinks = new ArrayList<>(this.sensors);
-        this.availableSensors = new ArrayList<>(this.sensors);
+        this.availableSensorsAndSinks.addAll(this.sensors);
+        this.availableSensors.addAll(this.sensors);
         this.addSinks(config);
     }
 
