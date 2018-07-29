@@ -17,7 +17,7 @@ public class SinkNode extends SensorNode implements Sink {
     @Override
     public void init() {
         SimulationConfiguration config = ConfigurationLoader.getConfiguration();
-        this.sensor = new WSNSink((int) this.getID(), this.getPosition().getXCoord(),
+        this.sensor = new WSNSink((int) this.getID() - 1, this.getPosition().getXCoord(),
                 this.getPosition().getYCoord(), config.getCommRadius());
     }
 }

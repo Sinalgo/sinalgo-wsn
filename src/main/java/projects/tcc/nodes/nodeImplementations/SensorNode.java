@@ -17,7 +17,7 @@ public class SensorNode extends SimulationNode implements Sensor {
     @Override
     public void init() {
         SimulationConfiguration config = ConfigurationLoader.getConfiguration();
-        this.sensor = new WSNSensor((int) this.getID(),
+        this.sensor = new WSNSensor((int) this.getID() - 1,
                 this.getPosition().getXCoord(), this.getPosition().getYCoord(),
                 config.getSensorRadius(), config.getCommRadius(), config.getBatteryEnergy(),
                 config.getActivationPower(), config.getReceivePower(),
