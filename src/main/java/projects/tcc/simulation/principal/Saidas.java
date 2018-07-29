@@ -2,7 +2,7 @@ package projects.tcc.simulation.principal;
 
 import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.Simulation;
-import projects.tcc.simulation.wsn.data.WSNSensor;
+import projects.tcc.simulation.wsn.data.Sensor;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -50,9 +50,9 @@ public class Saidas {
         pw.println(currentStage);
         int pCob = (int) (this.simulation.getPorcCobAtual() * 100);
         pw.println(pCob);
-        for (WSNSensor s : this.rede.getSensors()) {
+        for (Sensor s : this.rede.getSensors()) {
             int estadoSensor = s.isFailed() ? 3 : s.isActive() ? 1 : 2;
-            int pai = s.isActive() && s.getParent() != null ? s.getParent().getWsnSensorId() : -1;
+            int pai = s.isActive() && s.getParent() != null ? s.getParent().getSensorId() : -1;
             double bateria = s.getBatteryEnergy();
 
             pw.print(estadoSensor + "\t" + bateria + "\t" + pai);

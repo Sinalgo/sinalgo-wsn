@@ -13,6 +13,6 @@ public class SimulationConnectivityModel extends ConnectivityModelHelper {
         }
         SensorNode s1 = (SensorNode) from;
         SensorNode s2 = (SensorNode) to;
-        return s1.getChildren().containsKey(s2.getID()) || s2.getChildren().containsKey(s1.getID());
+        return s1.getChildren().contains(s2) || s2.getChildren().contains(s1);
     }
 }

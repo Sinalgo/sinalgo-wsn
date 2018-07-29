@@ -3,11 +3,23 @@ package projects.tcc.nodes.nodeImplementations;
 import lombok.Getter;
 import lombok.experimental.Delegate;
 import projects.tcc.nodes.SimulationNode;
-import projects.tcc.simulation.rssf.sensor.Sensor;
+import projects.tcc.simulation.io.ConfigurationLoader;
+import projects.tcc.simulation.io.SimulationConfiguration;
+import projects.tcc.simulation.wsn.data.Sensor;
+import projects.tcc.simulation.wsn.data.WSNSensor;
 
 public class SensorNode extends SimulationNode implements Sensor {
 
     @Getter
     @Delegate(types = Sensor.class, excludes = SimulationNode.class)
     private Sensor sensor;
+
+    @Override
+    public void init() {
+        SimulationConfiguration config = ConfigurationLoader.getConfiguration();
+        this.sensor = new WSNSensor((int) this.getID(), this.getPosition().getXCoord(), this.getPosition().getYCoord(),
+                config.getSensorRadius(), config.getCommRadius(), config.getBatteryEnergy(),
+                config.getActivationPower(), config.getReceivePower(), config.getMaintenancePower(),
+                config.getCommRatio());
+    }
 }

@@ -1,7 +1,7 @@
 package projects.tcc.simulation.algorithms.genetic;
 
 import projects.tcc.simulation.wsn.SensorNetwork;
-import projects.tcc.simulation.wsn.data.WSNSensor;
+import projects.tcc.simulation.wsn.data.Sensor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +13,7 @@ public class AG_Estatico_MO_arq {
 
     public static boolean[] resolveAG_Estatico_MO(SensorNetwork rede, int numeroGeracoes, int tamanhoPopulacao, double txCruzamento) {
 
-        List<WSNSensor> listSensensores = rede.getAvailableSensors();
+        List<Sensor> listSensensores = rede.getAvailableSensors();
 
         rede.calCustosCaminho(); //atulizando o custo de caminho de cada sensor ao sink;
 
@@ -74,7 +74,7 @@ public class AG_Estatico_MO_arq {
 
     /*evaluates objective function for each chromossome*/
     private static void calculaFuncaoObjetivo(SensorNetwork rede, List<Cromossomo> pCromossomos) {
-        List<WSNSensor> popSensores = rede.getAvailableSensors();
+        List<Sensor> popSensores = rede.getAvailableSensors();
         double penAtiv = popSensores.get(0).getActivationPower() + popSensores.get(0).getMaintenancePower();
         int penNCob = 0;//100000 utilizado no mono-objetivo;
         for (Cromossomo indv : pCromossomos) {
@@ -90,7 +90,7 @@ public class AG_Estatico_MO_arq {
         individuo.setNaoCobertura(naoCoberturaAuxiliar);
         rede.ativarSensoresVetBits(individuo.getVetorBits());
         double custoCaminhoTotal = 0;
-        for (WSNSensor sens : rede.getAvailableSensors()) {
+        for (Sensor sens : rede.getAvailableSensors()) {
             if (sens.isActive()) {
                 custoCaminhoTotal += sens.getCostToSink();
             }
@@ -176,7 +176,7 @@ public class AG_Estatico_MO_arq {
         while (numCromoPareto != popCromo.size()) {
             numPareto++;
             for (int i = 0; i < tamPopCromo; i++) {
-                //testando se o cromossomo j� est� no pareto
+                //testando se o cromossomo já está no pareto
                 if (popCromo.get(i).isPresPareto()) {
                     continue;
                 }

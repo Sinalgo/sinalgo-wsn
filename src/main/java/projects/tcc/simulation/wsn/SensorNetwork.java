@@ -3,6 +3,8 @@ package projects.tcc.simulation.wsn;
 import lombok.Getter;
 import lombok.Setter;
 import projects.tcc.simulation.algorithms.graph.Grafo;
+import projects.tcc.simulation.wsn.data.Sensor;
+import projects.tcc.simulation.wsn.data.Sink;
 import projects.tcc.simulation.wsn.data.WSNSensor;
 import projects.tcc.simulation.wsn.data.WSNSink;
 import sinalgo.nodes.Position;
@@ -17,12 +19,12 @@ import java.util.List;
 @Getter
 public class SensorNetwork {
 
-    private List<WSNSensor> sensors;
-    private List<WSNSensor> availableSensors;
-    private List<WSNSensor> availableSensorsAndSinks;
-    private List<WSNSensor> activeSensors;
-    private List<WSNSensor> periodFailedSensors;
-    private List<WSNSink> sinks;
+    private List<Sensor> sensors;
+    private List<Sensor> availableSensors;
+    private List<Sensor> availableSensorsAndSinks;
+    private List<Sensor> activeSensors;
+    private List<Sensor> periodFailedSensors;
+    private List<Sink> sinks;
     private int[] coverageArray;
     private int numCoveredPoints;
     private double currentCoveragePercent;
@@ -42,7 +44,7 @@ public class SensorNetwork {
         this.setSensores(nomeArq);
         this.constroiVetCobertura();
         this.numCoveredPoints = 0;
-        this.currentCoveragePercent = 0.;
+        this.currentCoveragePercent = 0;
         this.area = largura * comprimento;
         this.coverageFactor = coverageFactor;
     }
@@ -52,7 +54,7 @@ public class SensorNetwork {
     }
 
     public int[] getVetIdsSensDisp() {
-        return this.availableSensors.stream().mapToInt(WSNSensor::getWsnSensorId).toArray();
+        return this.availableSensors.stream().mapToInt(Sensor::getSensorId).toArray();
     }
 
     private void setDemandPoints(int width, int lenght) {
@@ -82,7 +84,7 @@ public class SensorNetwork {
             int id = Integer.parseInt(values[0]);
             double x = Double.parseDouble(values[1]);
             double y = Double.parseDouble(values[2]);
-            WSNSensor aux = new WSNSensor(id, x, y, sensRadius, commRadius, batteryEnergy,
+            Sensor aux = new WSNSensor(id, x, y, sensRadius, commRadius, batteryEnergy,
                     activationPower, receivePower, maintenancePower, commRatio);
             this.sensors.add(aux);
         }
@@ -97,7 +99,7 @@ public class SensorNetwork {
         int idSink = this.sensors.size(); // pois sera o ultimo na lista de sensores.
         double taxaCom = this.sensors.get(0).getCommRatio();
 
-        WSNSink vSink = new WSNSink(idSink, x, y, 25, taxaCom);
+        Sink vSink = new WSNSink(idSink, x, y, 25, taxaCom);
 
         this.availableSensorsAndSinks.add(vSink);
         this.sinks.add(vSink);
@@ -115,13 +117,13 @@ public class SensorNetwork {
     private void constroiMatrizConectividade() {
         int numSensoresDisp_Sink = this.availableSensorsAndSinks.size();
         this.conectivityMatrix = new double[numSensoresDisp_Sink][numSensoresDisp_Sink];
-        for (WSNSensor sensor1 : this.availableSensorsAndSinks) {
-            for (WSNSensor sensor2 : this.availableSensorsAndSinks) {
+        for (Sensor sensor1 : this.availableSensorsAndSinks) {
+            for (Sensor sensor2 : this.availableSensorsAndSinks) {
                 if (!sensor1.equals(sensor2)) {
                     double vDistancia = sensor1.getPosition().distanceTo(sensor2.getPosition());
-                    this.conectivityMatrix[sensor1.getWsnSensorId()][sensor2.getWsnSensorId()] = vDistancia;
+                    this.conectivityMatrix[sensor1.getSensorId()][sensor2.getSensorId()] = vDistancia;
                 } else {
-                    this.conectivityMatrix[sensor1.getWsnSensorId()][sensor2.getWsnSensorId()] = -1;
+                    this.conectivityMatrix[sensor1.getSensorId()][sensor2.getSensorId()] = -1;
                 }
             }
         }
@@ -129,7 +131,7 @@ public class SensorNetwork {
 
     private void constroiVetCobertura() {
         this.coverageArray = new int[this.demandPoints.size()];
-        for (WSNSensor sens : this.sensors) {
+        for (Sensor sens : this.sensors) {
             List<Integer> listPontosCobertos = new ArrayList<>();
             for (int j = 0; j < this.demandPoints.size(); j++) {
                 Position pontoDemanda = this.demandPoints.get(j);
@@ -143,11 +145,11 @@ public class SensorNetwork {
     }
 
     private void criaListVizinhosRC() {
-        for (WSNSensor sensor1 : this.availableSensorsAndSinks) {
-            List<WSNSensor> listSensVizinhos = new ArrayList<>();
-            for (WSNSensor sensor2 : this.availableSensorsAndSinks) {
+        for (Sensor sensor1 : this.availableSensorsAndSinks) {
+            List<Sensor> listSensVizinhos = new ArrayList<>();
+            for (Sensor sensor2 : this.availableSensorsAndSinks) {
                 if (!sensor1.equals(sensor2)) {
-                    double vDistancia = this.conectivityMatrix[sensor1.getWsnSensorId()][sensor2.getWsnSensorId()];
+                    double vDistancia = this.conectivityMatrix[sensor1.getSensorId()][sensor2.getSensorId()];
                     double vRaio = (float) sensor1.getCommRadius();
                     if (vDistancia <= vRaio) {
                         listSensVizinhos.add(sensor2);
@@ -162,11 +164,11 @@ public class SensorNetwork {
         return this.calculaEnergiaConsPer(this.activeSensors);
     }
 
-    private double calculaEnergiaConsPer(List<WSNSensor> listSens) {
+    private double calculaEnergiaConsPer(List<Sensor> listSens) {
         double energiaGastaAcum = 0;
-        for (WSNSensor s : listSens) {
-            int idSens = s.getWsnSensorId();
-            int sensPai = s.getParent().getWsnSensorId();
+        for (Sensor s : listSens) {
+            int idSens = s.getSensorId();
+            int sensPai = s.getParent().getSensorId();
             int vNumeroFilhos = s.queryDescendants();
             double enRec = s.getReceivePower() * vNumeroFilhos;
             double vDistanciaAoPai = this.conectivityMatrix[idSens][sensPai];
@@ -181,7 +183,7 @@ public class SensorNetwork {
 
     public double enAtivPeriodo() {
         double enAtivAcum = 0;
-        for (WSNSensor aListSensoresDisp : this.availableSensors) {
+        for (Sensor aListSensoresDisp : this.availableSensors) {
             if (aListSensoresDisp.isUseActivationPower() && aListSensoresDisp.isActive()) {
                 enAtivAcum += aListSensoresDisp.getActivationPower();
                 aListSensoresDisp.setUseActivationPower(false);
@@ -192,7 +194,7 @@ public class SensorNetwork {
 
     public void desligarSensoresDesconexos() {
         int numSensDesligados = 0;
-        for (WSNSensor s : this.activeSensors) {
+        for (Sensor s : this.activeSensors) {
             if (!s.isConnected()) {
                 this.desligarSensor(s);
                 numSensDesligados++;
@@ -203,19 +205,19 @@ public class SensorNetwork {
         }
     }
 
-    private void desligarSensor(WSNSensor s) {
+    private void desligarSensor(Sensor s) {
         s.setActive(false);
         this.atualizaCoberturaSemConec(s);
     }
 
-    private boolean verificarConectividade(WSNSensor s) {
+    private boolean verificarConectividade(Sensor s) {
         if (s.isConnected()) {
             return true;
         }
         if (s.getParent() == null) {
             return false;
         }
-        if (s.getParent() instanceof WSNSink || s.getParent().isConnected()) {
+        if (s.getParent() instanceof Sink || s.getParent().isConnected()) {
             s.setConnected(true);
             return true;
         }
@@ -233,7 +235,7 @@ public class SensorNetwork {
     }
 
     private void retirarCoberturaDesconexos() {
-        for (WSNSensor s : this.activeSensors) {
+        for (Sensor s : this.activeSensors) {
             if (!s.isConnected()) {
                 List<Integer> listPontosCobertos = s.getCoveredPoints();
                 for (Integer listPontosCoberto : listPontosCobertos) {
@@ -249,7 +251,7 @@ public class SensorNetwork {
     private void calcCoberturaInicial() {
         this.coverageArray = new int[this.demandPoints.size()];
         this.numCoveredPoints = 0;
-        for (WSNSensor sens : this.activeSensors) {
+        for (Sensor sens : this.activeSensors) {
             this.atualizaCoberturaSemConec(sens);
         }
         this.currentCoveragePercent = this.calcCobertura();
@@ -261,12 +263,12 @@ public class SensorNetwork {
     }
 
     public void calculaEnergiaPeriodo() {
-        for (WSNSensor s : this.activeSensors) {
+        for (Sensor s : this.activeSensors) {
             int vNumeroFilhos = s.queryDescendants();
             double ER = s.getReceivePower() * vNumeroFilhos;
 
-            double vDistanciaAoPai = this.conectivityMatrix[s.getWsnSensorId()][s.getParent().getWsnSensorId()];
-            double vCorrente = WSNSensor.getCurrentPerDistance(vDistanciaAoPai);
+            double vDistanciaAoPai = this.conectivityMatrix[s.getSensorId()][s.getParent().getSensorId()];
+            double vCorrente = Sensor.getCurrentPerDistance(vDistanciaAoPai);
 
             double ET = s.getCommRatio() * vCorrente * (vNumeroFilhos + 1);
             double EM = s.getMaintenancePower();
@@ -276,9 +278,9 @@ public class SensorNetwork {
         }
     }
 
-    public boolean retirarSensoresFalhaEnergia(List<WSNSensor> listSensFalhosNoPer, double porcBatRet) {
+    public boolean retirarSensoresFalhaEnergia(List<Sensor> listSensFalhosNoPer, double porcBatRet) {
         boolean falha = false;
-        for (WSNSensor s : this.activeSensors) {
+        for (Sensor s : this.activeSensors) {
             double enB = s.getBatteryCapacity();
             if (s.getBatteryEnergy() <= (porcBatRet / 100.) * enB && s.isActive()) {
                 falha = true;
@@ -289,7 +291,7 @@ public class SensorNetwork {
                 listSensFalhosNoPer.add(s);
             }
         }
-        for (WSNSensor sens : listSensFalhosNoPer) {
+        for (Sensor sens : listSensFalhosNoPer) {
             this.desligarSensor(sens);
             sens.getParent().getChildren().remove(sens);
             this.activeSensors.remove(sens);
@@ -313,7 +315,7 @@ public class SensorNetwork {
     }
 
     //funcao para utilizacao no metodo avaliaNaoCoberturaSemConect(List<Integer> listIdSensAtivo)
-    private int atualizaCoberturaSemConec(WSNSensor sensor, int[] vetCoberturaAux) {
+    private int atualizaCoberturaSemConec(Sensor sensor, int[] vetCoberturaAux) {
         int numPontosCobertosAux = 0;
         List<Integer> listPontosCobertos = sensor.getCoveredPoints();
         for (Integer listPontosCoberto : listPontosCobertos) {
@@ -325,7 +327,7 @@ public class SensorNetwork {
         return numPontosCobertosAux;
     }
 
-    private int atualizaCoberturaSemConec(WSNSensor sensor) {
+    private int atualizaCoberturaSemConec(Sensor sensor) {
         List<Integer> listPontosCobertos = sensor.getCoveredPoints();
         if (sensor.isActive()) {
             for (Integer listPontosCoberto : listPontosCobertos) {
@@ -365,7 +367,7 @@ public class SensorNetwork {
 
     private void criarConect() {
         //refazendo as conexoes
-        for (WSNSensor sens : this.availableSensorsAndSinks) {
+        for (Sensor sens : this.availableSensorsAndSinks) {
             sens.reiniciarSensorParaConectividade();
         }
         Grafo grafoCM = new Grafo(this.availableSensorsAndSinks, this.conectivityMatrix);
@@ -373,14 +375,14 @@ public class SensorNetwork {
         grafoCM.caminhosMinimosPara(this.sinks.get(0));
         this.ativarPaisDesativados();
         this.geraListFilhos();
-        for (WSNSensor s : this.activeSensors) {
+        for (Sensor s : this.activeSensors) {
             this.verificarConectividade(s);
         }
     }
 
     private void geraListFilhos() {
-        for (WSNSensor sens : this.activeSensors) {
-            WSNSensor pai = sens.getParent();
+        for (Sensor sens : this.activeSensors) {
+            Sensor pai = sens.getParent();
             if (pai != null) {
                 pai.adicionaFilho(sens);
             }
@@ -388,11 +390,11 @@ public class SensorNetwork {
     }
 
     private void ativarPaisDesativados() {
-        List<WSNSensor> sensAtivos = new ArrayList<>();
+        List<Sensor> sensAtivos = new ArrayList<>();
         int numSensCox = 0;
-        for (WSNSensor sens : this.activeSensors) {
-            WSNSensor sensAux = sens;
-            while (sensAux.getParent() != null && !sensAux.getParent().isActive() && !(sensAux instanceof WSNSink)) {
+        for (Sensor sens : this.activeSensors) {
+            Sensor sensAux = sens;
+            while (sensAux.getParent() != null && !sensAux.getParent().isActive() && !(sensAux instanceof Sink)) {
                 sensAux.getParent().setActive(true);
                 sensAtivos.add(sensAux.getParent());
                 this.atualizaCoberturaSemConec(sensAux.getParent());
@@ -408,17 +410,17 @@ public class SensorNetwork {
 
     public boolean suprirCobertura() {
         // Utilizado na versão OnlineHíbrido
-        for (WSNSensor s : this.activeSensors) {
+        for (Sensor s : this.activeSensors) {
             if (!s.isConnected()) {
                 this.atualizaCoberturaSemConec(s);
             }
         }
         boolean retorno = true;
         double nPontoDemanda = this.coverageArray.length;
-        List<WSNSensor> listSensorDesconex = new ArrayList<>();
+        List<Sensor> listSensorDesconex = new ArrayList<>();
         double fatorPontoDemanda = this.numCoveredPoints;
         while (fatorPontoDemanda / nPontoDemanda < this.coverageFactor) {
-            WSNSensor sensEscolhido = this.escolherSensorSubstituto(listSensorDesconex);
+            Sensor sensEscolhido = this.escolherSensorSubstituto(listSensorDesconex);
             if (sensEscolhido != null) {
                 this.ligaSensor(sensEscolhido);
                 this.criarConect();
@@ -436,8 +438,8 @@ public class SensorNetwork {
                     this.desligarSensor(sensEscolhido);
                     continue;
                 } else {
-                    System.out.println("WSNSensor Escolhido = " + sensEscolhido);
-                    if (!(sensEscolhido.getParent() instanceof WSNSink)) {
+                    System.out.println("Sensor Escolhido = " + sensEscolhido);
+                    if (!(sensEscolhido.getParent() instanceof Sink)) {
                         this.atualizarListaPontosCobExclusivo(sensEscolhido.getParent());
                     }
                 }
@@ -454,14 +456,14 @@ public class SensorNetwork {
         return retorno;
     }
 
-    private WSNSensor escolherSensorSubstituto(List<WSNSensor> listSensorDesconex) {
-        WSNSensor sensEscolhido = null;
+    private Sensor escolherSensorSubstituto(List<Sensor> listSensorDesconex) {
+        Sensor sensEscolhido = null;
         int maiorNumPontCobDescob = 0;
-        for (WSNSensor sens : this.availableSensors) {
+        for (Sensor sens : this.availableSensors) {
             if (!listSensorDesconex.contains(sens)) {
                 if (!sens.isActive()) {
                     if (sens.isFailed()) {
-                        System.out.println("Acessando WSNSensor Falho na lista de Sensores Disponíveis");
+                        System.out.println("Acessando Sensor Falho na lista de Sensores Disponíveis");
                         System.out.println("suprirCoberturaSeNecessario() - RedeSensor");
                         System.exit(1);
                     }
@@ -476,13 +478,13 @@ public class SensorNetwork {
         return sensEscolhido;
     }
 
-    private void ligaSensor(WSNSensor sensEscolhido) {
+    private void ligaSensor(Sensor sensEscolhido) {
         sensEscolhido.setActive(true);
         this.activeSensors.add(sensEscolhido);
         this.atualizaCoberturaSemConec(sensEscolhido);
     }
 
-    private int atualizarListaPontosCobExclusivo(WSNSensor sens) {
+    private int atualizarListaPontosCobExclusivo(Sensor sens) {
         sens.getExclusivelyCoveredPoints().clear();
         int numPontCobDescob = 0;
         for (int pont : sens.getCoveredPoints()) {
@@ -509,8 +511,8 @@ public class SensorNetwork {
     }
 
     public boolean suprirOnline() {
-        for (WSNSensor sensFalho : this.periodFailedSensors) {
-            WSNSensor sensorEscolhido = this.escolherSubs(sensFalho);
+        for (Sensor sensFalho : this.periodFailedSensors) {
+            Sensor sensorEscolhido = this.escolherSubs(sensFalho);
             if (sensorEscolhido == null) {
                 break;
             }
@@ -528,17 +530,17 @@ public class SensorNetwork {
         return false;
     }
 
-    private boolean conectarSensorOnline(WSNSensor sensorEscolhido, WSNSensor sensFalho) {
+    private boolean conectarSensorOnline(Sensor sensorEscolhido, Sensor sensFalho) {
         boolean retorno = sensorEscolhido.getNeighborhood().contains(sensFalho.getParent());
         if (retorno) {
             sensorEscolhido.setParent(sensFalho.getParent());
             sensFalho.getParent().adicionaFilho(sensorEscolhido);
-            if (sensFalho.getParent().isConnected() || sensFalho.getParent() instanceof WSNSink) {
+            if (sensFalho.getParent().isConnected() || sensFalho.getParent() instanceof Sink) {
                 sensorEscolhido.setConnected(true);
             }
         }
-        List<WSNSensor> listSensorReconex = new ArrayList<>();
-        for (WSNSensor sensFilho : sensFalho.getChildren()) {
+        List<Sensor> listSensorReconex = new ArrayList<>();
+        for (Sensor sensFilho : sensFalho.getChildren()) {
             if (!sensFilho.isConnected()) {
                 retorno = sensorEscolhido.getNeighborhood().contains(sensFilho);
                 if (retorno) {
@@ -551,21 +553,21 @@ public class SensorNetwork {
             }
         }
 
-        for (WSNSensor sensReconex : listSensorReconex) {
+        for (Sensor sensReconex : listSensorReconex) {
             this.atualizaCoberturaSemConec(sensReconex);
         }
         return retorno;
     }
 
-    private WSNSensor escolherSubs(WSNSensor sensFalho) {
-        WSNSensor sensEsc = null;
+    private Sensor escolherSubs(Sensor sensFalho) {
+        Sensor sensEsc = null;
         double distQuad = Double.MAX_VALUE;
-        for (WSNSensor sensCand : sensFalho.getNeighborhood()) {
+        for (Sensor sensCand : sensFalho.getNeighborhood()) {
             if (!sensCand.isActive() && !sensCand.isFailed()) {
-                double distPai = this.conectivityMatrix[sensCand.getWsnSensorId()][sensFalho.getParent().getWsnSensorId()];
+                double distPai = this.conectivityMatrix[sensCand.getSensorId()][sensFalho.getParent().getSensorId()];
                 double distAux = Math.pow(distPai, 2);
-                for (WSNSensor sensFilho : sensFalho.getChildren()) {
-                    double distFilho = this.conectivityMatrix[sensCand.getWsnSensorId()][sensFilho.getWsnSensorId()];
+                for (Sensor sensFilho : sensFalho.getChildren()) {
+                    double distFilho = this.conectivityMatrix[sensCand.getSensorId()][sensFilho.getSensorId()];
                     distAux = distAux + Math.pow(distFilho, 2);
                 }
                 if (distAux < distQuad) {

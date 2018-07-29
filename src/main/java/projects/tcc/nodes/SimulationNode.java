@@ -1,6 +1,6 @@
 package projects.tcc.nodes;
 
-import projects.tcc.simulation.rssf.sensor.Sensor;
+import projects.tcc.simulation.wsn.data.Sensor;
 import sinalgo.exception.WrongConfigurationException;
 import sinalgo.nodes.Node;
 import sinalgo.nodes.messages.Inbox;
@@ -10,19 +10,13 @@ public abstract class SimulationNode extends Node {
     protected abstract Sensor getSensor();
 
     @Override
-    public void init() {
-
-    }
-
-    @Override
     protected String nodeTypeName() {
         return this.getClass().getSimpleName();
     }
 
     @Override
     public void preStep() {
-        getSensor().setPosition(getPosition());
-        getSensor().setID(getID());
+
     }
 
     @Override

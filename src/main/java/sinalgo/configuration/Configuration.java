@@ -69,7 +69,14 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Scanner;
 
-import static sinalgo.configuration.Configuration.ImplementationChoiceInConfigFile.ImplementationType.*;
+import static sinalgo.configuration.Configuration.ImplementationChoiceInConfigFile.ImplementationType.MODELS_CONNECTIVITY;
+import static sinalgo.configuration.Configuration.ImplementationChoiceInConfigFile.ImplementationType.MODELS_DISTRIBUTION;
+import static sinalgo.configuration.Configuration.ImplementationChoiceInConfigFile.ImplementationType.MODELS_INTERFERENCE;
+import static sinalgo.configuration.Configuration.ImplementationChoiceInConfigFile.ImplementationType.MODELS_MESSAGE_TRANSMISSION;
+import static sinalgo.configuration.Configuration.ImplementationChoiceInConfigFile.ImplementationType.MODELS_MOBILITY;
+import static sinalgo.configuration.Configuration.ImplementationChoiceInConfigFile.ImplementationType.MODELS_RELIABILITY;
+import static sinalgo.configuration.Configuration.ImplementationChoiceInConfigFile.ImplementationType.NODES_EDGES;
+import static sinalgo.configuration.Configuration.ImplementationChoiceInConfigFile.ImplementationType.NODES_IMPLEMENTATIONS;
 
 /**
  * This class provides globally visible constants and access to the custom

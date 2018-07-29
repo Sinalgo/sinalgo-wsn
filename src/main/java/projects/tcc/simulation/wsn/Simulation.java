@@ -2,7 +2,7 @@ package projects.tcc.simulation.wsn;
 
 import lombok.Getter;
 import projects.tcc.simulation.principal.Saidas;
-import projects.tcc.simulation.wsn.data.WSNSensor;
+import projects.tcc.simulation.wsn.data.Sensor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,14 +24,14 @@ public class Simulation {
     private double energiaResAnt;
     private int contChamadaReest;
 
-    private List<WSNSensor> listSensores;
+    private List<Sensor> listSensores;
 
     private SensorNetwork rede;
 
     private List<Integer> nSensorAtivos;
     private List<Integer> nEstagio;
 
-    private List<WSNSensor> listSensFalhosNoPer;
+    private List<Sensor> listSensFalhosNoPer;
 
     public double getPorcCobAtual() {
         return this.rede.getCurrentCoveragePercent();
@@ -66,8 +66,8 @@ public class Simulation {
         // ========= Verificacao e Calculo de Energia no Periodo de tempo =========
         this.networkResidualEnergy = 0;
         this.networkConsumedEnergy = 0;
-        for (WSNSensor listSensore : this.listSensores) {
-            this.networkResidualEnergy += listSensore.getBatteryEnergy();
+        for (Sensor sensor : this.listSensores) {
+            this.networkResidualEnergy += sensor.getBatteryEnergy();
         }
 
         //Calculando a energia consumida
