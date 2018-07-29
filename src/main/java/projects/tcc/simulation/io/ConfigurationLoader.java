@@ -25,6 +25,18 @@ public class ConfigurationLoader {
     @Setter(AccessLevel.PRIVATE)
     private static String configFileName;
 
+    @Getter(AccessLevel.PRIVATE)
+    @Setter(AccessLevel.PRIVATE)
+    private static Integer dimX;
+
+    @Getter(AccessLevel.PRIVATE)
+    @Setter(AccessLevel.PRIVATE)
+    private static Integer dimY;
+
+    @Getter(AccessLevel.PRIVATE)
+    @Setter(AccessLevel.PRIVATE)
+    private static Double coverageFactor;
+
     public static SimulationConfiguration getConfiguration() {
         if (configuration == null) {
             load();
@@ -32,16 +44,38 @@ public class ConfigurationLoader {
         return configuration;
     }
 
-    public static void overrideConfiguration(String configFileName) {
+    public static void overrideConfigurationFile(String configFileName) {
         setConfigFileName(configFileName);
     }
 
+    public static void overrideDimensions(int dimX, int dimY) {
+        setDimX(dimX);
+        setDimY(dimY);
+    }
+
+    public static void overrideCoverageFactor(double coverageFactor) {
+        setCoverageFactor(coverageFactor);
+    }
+
     private static void load() {
+        loadFromSinalgoConfig();
+        setConfiguration(load("projects/tcc/input/json/" + getConfigFileName() + ".json"));
+    }
+
+    private static void loadFromSinalgoConfig() {
         try {
             if (getConfigFileName() == null) {
                 setConfigFileName(Configuration.getStringParameter("inputFile"));
             }
-            setConfiguration(load("projects/tcc/input/json/" + getConfigFileName() + ".json"));
+            if (getCoverageFactor() == null) {
+                setCoverageFactor(Configuration.getDoubleParameter("coverageFactor") / 100);
+            }
+            if (getDimX() == null) {
+                setDimX(Configuration.getDimX());
+            }
+            if (getDimY() == null) {
+                setDimY(Configuration.getDimY());
+            }
         } catch (CorruptConfigurationEntryException e) {
             throw new SinalgoFatalException("Corrupt configuration, could not find file " +
                     "to use as input for the simulation", e);
@@ -53,7 +87,12 @@ public class ConfigurationLoader {
         try (LineNumberReader reader = new LineNumberReader(new InputStreamReader(Thread.currentThread()
                 .getContextClassLoader()
                 .getResourceAsStream(resourcePath)))) {
-            return new Gson().fromJson(reader.lines().collect(Collectors.joining("")), SimulationConfiguration.class);
+            SimulationConfiguration config = new Gson()
+                    .fromJson(reader.lines().collect(Collectors.joining("")), SimulationConfiguration.class);
+            config.setCoverageFactor(getCoverageFactor());
+            config.setDimX(getDimX());
+            config.setDimY(getDimY());
+            return config;
         } catch (Exception e) {
             log.severe("Error while loading " + resourcePath);
             throw new RuntimeException(e);

@@ -6,7 +6,7 @@ import projects.tcc.nodes.SimulationNode;
 import projects.tcc.simulation.io.ConfigurationLoader;
 import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.wsn.data.Sensor;
-import projects.tcc.simulation.wsn.data.WSNSensor;
+import projects.tcc.simulation.wsn.data.impl.WSNSensor;
 
 public class SensorNode extends SimulationNode implements Sensor {
 
@@ -17,9 +17,10 @@ public class SensorNode extends SimulationNode implements Sensor {
     @Override
     public void init() {
         SimulationConfiguration config = ConfigurationLoader.getConfiguration();
-        this.sensor = new WSNSensor((int) this.getID(), this.getPosition().getXCoord(), this.getPosition().getYCoord(),
+        this.sensor = new WSNSensor((int) this.getID(),
+                this.getPosition().getXCoord(), this.getPosition().getYCoord(),
                 config.getSensorRadius(), config.getCommRadius(), config.getBatteryEnergy(),
-                config.getActivationPower(), config.getReceivePower(), config.getMaintenancePower(),
-                config.getCommRatio());
+                config.getActivationPower(), config.getReceivePower(),
+                config.getMaintenancePower(), config.getCommRatio());
     }
 }

@@ -8,13 +8,13 @@
         <dimensions value="2"/>
 
         <!--Length of the deployment field along the x-axis. -->
-        <dimX value="100"/>
+        <dimX value="50"/>
 
         <!--Length of the deployment field along the y-axis. -->
-        <dimY value="100"/>
+        <dimY value="50"/>
 
         <!--Length of the deployment field along the z-axis. -->
-        <dimZ value="500"/>
+        <dimZ value="0"/>
 
         <!--*********************************************************************** -->
         <!-- Simulation -->
@@ -230,6 +230,8 @@
     </Framework>
     <Custom>
         <InputFile value="1050"/>
+
+        <CoverageFactor value="95"/>
 
         <MessageTransmission ConstantTime="1"/>
 

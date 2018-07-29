@@ -5,17 +5,17 @@ import projects.tcc.simulation.wsn.data.Sink;
 
 import java.util.List;
 
-public class Grafo {
+public class Graph {
 
     private List<Sensor> listSensores_Sink;
     private double[][] matrizConectividade;
 
-    public Grafo(List<Sensor> listSensores, double[][] matrizConectividade) {
+    public Graph(List<Sensor> listSensores, double[][] matrizConectividade) {
         this.listSensores_Sink = listSensores;
         this.matrizConectividade = matrizConectividade;
     }
 
-    public void construirGrafo() {
+    public void build() {
         for (Sensor vertA : this.listSensores_Sink) {
             for (Sensor vertB : vertA.getNeighborhood()) {
                 double vDistancia = this.matrizConectividade[vertA.getSensorId()][vertB.getSensorId()];
@@ -25,7 +25,7 @@ public class Grafo {
         }
     }
 
-    public void caminhosMinimosPara(Sensor sens) {
+    public void computeMinimalPathsTo(Sensor sens) {
         if (sens instanceof Sink) {
             Dijkstra.computePaths(sens);
             this.registrarCustoCaminhoSens();

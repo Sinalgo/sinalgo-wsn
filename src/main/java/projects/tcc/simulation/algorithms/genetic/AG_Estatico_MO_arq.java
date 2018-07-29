@@ -88,7 +88,7 @@ public class AG_Estatico_MO_arq {
     private static void avaliarIndividuo(SensorNetwork rede, Cromossomo individuo, double penAtiv, int penNCob) {
         int naoCoberturaAuxiliar = rede.avaliaNaoCoberturaSemConect(individuo.getListIdsAtivo());
         individuo.setNaoCobertura(naoCoberturaAuxiliar);
-        rede.ativarSensoresVetBits(individuo.getVetorBits());
+        rede.activateSensors(individuo.getVetorBits());
         double custoCaminhoTotal = 0;
         for (Sensor sens : rede.getAvailableSensors()) {
             if (sens.isActive()) {

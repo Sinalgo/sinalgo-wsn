@@ -1,9 +1,10 @@
-package projects.tcc.simulation.wsn.data;
+package projects.tcc.simulation.wsn.data.impl;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import projects.tcc.simulation.algorithms.graph.GraphEdge;
+import projects.tcc.simulation.wsn.data.Sensor;
 import sinalgo.nodes.Position;
 
 import java.util.ArrayList;
@@ -44,17 +45,17 @@ public class WSNSensor implements Sensor {
     public WSNSensor(int sensorId, double x, double y, double commRadius, double commRatio) {
         this.sensorId = sensorId;
         this.position = new Position(x, y, 0);
-        this.commRadius = commRadius;
+        this.setCommRadius(commRadius);
 
-        this.active = true;
+        this.setActive(true);
 
-        this.children = new ArrayList<>();
-        this.neighborhood = new ArrayList<>();
+        this.setChildren(new ArrayList<>());
+        this.setNeighborhood(new ArrayList<>());
 
         this.setAdjacencies(new ArrayList<>());
         this.setMinDistance(Double.POSITIVE_INFINITY);
 
-        this.commRatio = commRatio;
+        this.setCommRatio(commRatio);
     }
 
     public WSNSensor(int sensorId, double x, double y, double sensRadius, double commRadius,
@@ -62,73 +63,73 @@ public class WSNSensor implements Sensor {
                      double maintenancePower, double commRatio) {
         this(sensorId, x, y, commRadius, commRatio);
 
-        this.activationPower = activationPower;
-        this.receivePower = receivePower;
-        this.maintenancePower = maintenancePower;
+        this.setActivationPower(activationPower);
+        this.setReceivePower(receivePower);
+        this.setMaintenancePower(maintenancePower);
 
-        this.batteryEnergy = batteryEnergy;
-        this.batteryCapacity = batteryEnergy;
-        this.sensRadius = sensRadius;
+        this.setBatteryEnergy(batteryEnergy);
+        this.setBatteryCapacity(batteryEnergy);
+        this.setSensRadius(sensRadius);
 
-        this.parent = null;
+        this.setParent(null);
 
-        this.active = false;
-        this.failed = false;
-        this.connected = false;
+        this.setActive(false);
+        this.setFailed(false);
+        this.setConnected(false);
 
-        this.coveredPoints = new ArrayList<>();
-        this.exclusivelyCoveredPoints = new ArrayList<>();
+        this.setCoveredPoints(new ArrayList<>());
+        this.setExclusivelyCoveredPoints(new ArrayList<>());
     }
 
     @Override
-    public void reiniciarSensorParaConectividade() {
-        this.parent = null;
+    public void resetConnections() {
+        this.setParent(null);
         this.setPrevious(null);
-        this.connected = false;
+        this.setConnected(false);
         this.getAdjacencies().clear();
         this.setMinDistance(Double.POSITIVE_INFINITY);
-        this.children.clear();
+        this.getChildren().clear();
     }
 
     @Override
-    public void adicionaFilho(Sensor child) {
-        this.children.add(child);
+    public void addChild(Sensor child) {
+        this.getChildren().add(child);
     }
 
     @Override
     public int queryDescendants() {
-        int totalFilhos = this.children.size();
-        for (Sensor sensFilho : this.children) {
-            totalFilhos += sensFilho.queryDescendants();
+        int totalChildCount = this.getChildren().size();
+        for (Sensor child : this.getChildren()) {
+            totalChildCount += child.queryDescendants();
         }
-        return totalFilhos;
+        return totalChildCount;
     }
 
     @Override
     public void drawEnergySpent(double energySpent) {
-        this.batteryEnergy = Math.max(this.batteryEnergy - energySpent, 0);
+        this.setBatteryEnergy(Math.max(this.getBatteryEnergy() - energySpent, 0));
     }
 
     @Override
-    public double getPowerToTransmit(double vDistanciaAoPai, int vNumeroFilhos2) {
-        double vCorrente = Sensor.getCurrentPerDistance(vDistanciaAoPai);
-        return this.commRatio * vCorrente * (vNumeroFilhos2 + 1);
+    public double getPowerToTransmit(double distanceToParent, int totalChildCount) {
+        double current = Sensor.getCurrentPerDistance(distanceToParent);
+        return this.commRatio * current * (totalChildCount + 1);
     }
 
     @Override
     public void disconnectChildren() {
-        for (Sensor sFilho : this.getChildren()) {
-            sFilho.setConnected(false);
-            sFilho.disconnectChildren();
+        for (Sensor child : this.getChildren()) {
+            child.setConnected(false);
+            child.disconnectChildren();
         }
     }
 
     @Override
     public void connectChildren(List<Sensor> reconnectedSensors) {
-        for (Sensor sFilho : this.getChildren()) {
-            sFilho.setConnected(true);
-            reconnectedSensors.add(sFilho);
-            sFilho.connectChildren(reconnectedSensors);
+        for (Sensor child : this.getChildren()) {
+            child.setConnected(true);
+            reconnectedSensors.add(child);
+            child.connectChildren(reconnectedSensors);
         }
     }
 

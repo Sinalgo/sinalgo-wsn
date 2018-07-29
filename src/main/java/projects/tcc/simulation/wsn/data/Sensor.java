@@ -78,9 +78,9 @@ public interface Sensor {
         return CURRENT_ARRAY[i];
     }
 
-    void reiniciarSensorParaConectividade();
+    void resetConnections();
 
-    void adicionaFilho(Sensor child);
+    void addChild(Sensor child);
 
     int queryDescendants();
 

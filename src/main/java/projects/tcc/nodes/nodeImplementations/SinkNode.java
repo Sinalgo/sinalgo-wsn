@@ -6,7 +6,7 @@ import projects.tcc.nodes.SimulationNode;
 import projects.tcc.simulation.io.ConfigurationLoader;
 import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.wsn.data.Sink;
-import projects.tcc.simulation.wsn.data.WSNSink;
+import projects.tcc.simulation.wsn.data.impl.WSNSink;
 
 public class SinkNode extends SensorNode implements Sink {
 
@@ -17,7 +17,7 @@ public class SinkNode extends SensorNode implements Sink {
     @Override
     public void init() {
         SimulationConfiguration config = ConfigurationLoader.getConfiguration();
-        this.sensor = new WSNSink((int) this.getID(), this.getPosition().getXCoord(), this.getPosition().getYCoord(),
-                config.getSensorRadius(), config.getCommRadius());
+        this.sensor = new WSNSink((int) this.getID(), this.getPosition().getXCoord(),
+                this.getPosition().getYCoord(), config.getCommRadius());
     }
 }

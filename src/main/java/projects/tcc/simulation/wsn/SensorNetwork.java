@@ -2,16 +2,15 @@ package projects.tcc.simulation.wsn;
 
 import lombok.Getter;
 import lombok.Setter;
-import projects.tcc.simulation.algorithms.graph.Grafo;
+import projects.tcc.simulation.algorithms.graph.Graph;
+import projects.tcc.simulation.io.SimulationConfiguration;
+import projects.tcc.simulation.io.SimulationConfiguration.SensorConfiguration;
 import projects.tcc.simulation.wsn.data.Sensor;
 import projects.tcc.simulation.wsn.data.Sink;
-import projects.tcc.simulation.wsn.data.WSNSensor;
-import projects.tcc.simulation.wsn.data.WSNSink;
+import projects.tcc.simulation.wsn.data.impl.WSNSensor;
+import projects.tcc.simulation.wsn.data.impl.WSNSink;
 import sinalgo.nodes.Position;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,19 +33,19 @@ public class SensorNetwork {
 
     private double coverageFactor;
 
-    public SensorNetwork(String nomeArq, int largura, int comprimento, double coverageFactor) throws IOException {
+    public SensorNetwork(SimulationConfiguration configuration) {
         this.sensors = new ArrayList<>();
         this.availableSensorsAndSinks = new ArrayList<>();
         this.availableSensors = new ArrayList<>();
         this.activeSensors = new ArrayList<>();
         this.sinks = new ArrayList<>();
-        this.setDemandPoints(largura, comprimento);
-        this.setSensores(nomeArq);
+        this.computeDemandPoints(configuration.getDimX(), configuration.getDimY());
+        this.setSensores(configuration);
         this.constroiVetCobertura();
         this.numCoveredPoints = 0;
         this.currentCoveragePercent = 0;
-        this.area = largura * comprimento;
-        this.coverageFactor = coverageFactor;
+        this.area = configuration.getDimX() * configuration.getDimY();
+        this.coverageFactor = configuration.getCoverageFactor();
     }
 
     public int getNumPontosDemanda() {
@@ -57,56 +56,35 @@ public class SensorNetwork {
         return this.availableSensors.stream().mapToInt(Sensor::getSensorId).toArray();
     }
 
-    private void setDemandPoints(int width, int lenght) {
-        this.demandPoints = new ArrayList<>();
+    private void computeDemandPoints(int width, int lenght) {
+        this.setDemandPoints(new ArrayList<>());
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < lenght; j++) {
-                this.demandPoints.add(new Position(i + 0.5, j + 0.5, 0));
+                this.getDemandPoints().add(new Position(i + 0.5, j + 0.5, 0));
             }
         }
     }
 
-    private void setSensores(String fileName) throws IOException {
-        //Fazer a leitura de arquivo.
-        BufferedReader input = new BufferedReader(new FileReader(fileName));
-        int numberOfSensors = Integer.parseInt(input.readLine());
-        double sensRadius = Double.parseDouble(input.readLine());
-        double commRadius = Double.parseDouble(input.readLine());
-        double batteryEnergy = Double.parseDouble(input.readLine());
-        double activationPower = Double.parseDouble(input.readLine());
-        double receivePower = Double.parseDouble(input.readLine());
-        double maintenancePower = Double.parseDouble(input.readLine());
-        double commRatio = Double.parseDouble(input.readLine());
-
-        for (int i = 0; i < numberOfSensors; i++) {
-            String aLine = input.readLine();
-            String[] values = aLine.split("\\s+");
-            int id = Integer.parseInt(values[0]);
-            double x = Double.parseDouble(values[1]);
-            double y = Double.parseDouble(values[2]);
-            Sensor aux = new WSNSensor(id, x, y, sensRadius, commRadius, batteryEnergy,
-                    activationPower, receivePower, maintenancePower, commRatio);
-            this.sensors.add(aux);
+    private void setSensores(SimulationConfiguration config) {
+        int idCounter = 0;
+        for (SensorConfiguration sensorConfig : config.getSensorConfigurations()) {
+            this.sensors.add(new WSNSensor(idCounter++, sensorConfig.getX(), sensorConfig.getY(),
+                    config.getSensorRadius(), config.getCommRadius(), config.getBatteryEnergy(),
+                    config.getActivationPower(), config.getReceivePower(), config.getMaintenancePower(),
+                    config.getCommRatio()));
         }
-
         this.availableSensorsAndSinks = new ArrayList<>(this.sensors);
         this.availableSensors = new ArrayList<>(this.sensors);
-
-        input.close();
+        this.addSinks(config);
     }
 
-    private void addSink(double x, double y) {
+    private void addSinks(SimulationConfiguration config) {
         int idSink = this.sensors.size(); // pois sera o ultimo na lista de sensores.
-        double taxaCom = this.sensors.get(0).getCommRatio();
-
-        Sink vSink = new WSNSink(idSink, x, y, 25, taxaCom);
-
-        this.availableSensorsAndSinks.add(vSink);
-        this.sinks.add(vSink);
-    }
-
-    public void addSink() {
-        this.addSink(0, 0);
+        for (SensorConfiguration sinkConfig : config.getSinkConfigurations()) {
+            Sink vSink = new WSNSink(idSink++, sinkConfig.getX(), sinkConfig.getY(), config.getCommRatio());
+            this.availableSensorsAndSinks.add(vSink);
+            this.sinks.add(vSink);
+        }
     }
 
     public void prepararRede() {
@@ -348,15 +326,15 @@ public class SensorNetwork {
     }
 
     public void calCustosCaminho() {
-        Grafo grafoCM = new Grafo(this.availableSensorsAndSinks, this.conectivityMatrix);
-        grafoCM.construirGrafo();
-        grafoCM.caminhosMinimosPara(this.sinks.get(0));
+        Graph graphCM = new Graph(this.availableSensorsAndSinks, this.conectivityMatrix);
+        graphCM.build();
+        graphCM.computeMinimalPathsTo(this.sinks.get(0));
     }
 
-    public void ativarSensoresVetBits(boolean[] vetBoolean) {
+    public void activateSensors(boolean[] activeArray) {
         this.activeSensors.clear();
-        for (int i = 0; i < vetBoolean.length; i++) {
-            if (vetBoolean[i]) {
+        for (int i = 0; i < activeArray.length; i++) {
+            if (activeArray[i]) {
                 this.availableSensors.get(i).setActive(true);
                 this.activeSensors.add(this.availableSensors.get(i));
             } else {
@@ -368,11 +346,11 @@ public class SensorNetwork {
     private void criarConect() {
         //refazendo as conexoes
         for (Sensor sens : this.availableSensorsAndSinks) {
-            sens.reiniciarSensorParaConectividade();
+            sens.resetConnections();
         }
-        Grafo grafoCM = new Grafo(this.availableSensorsAndSinks, this.conectivityMatrix);
-        grafoCM.construirGrafoConect();
-        grafoCM.caminhosMinimosPara(this.sinks.get(0));
+        Graph graphCM = new Graph(this.availableSensorsAndSinks, this.conectivityMatrix);
+        graphCM.construirGrafoConect();
+        graphCM.computeMinimalPathsTo(this.sinks.get(0));
         this.ativarPaisDesativados();
         this.geraListFilhos();
         for (Sensor s : this.activeSensors) {
@@ -384,7 +362,7 @@ public class SensorNetwork {
         for (Sensor sens : this.activeSensors) {
             Sensor pai = sens.getParent();
             if (pai != null) {
-                pai.adicionaFilho(sens);
+                pai.addChild(sens);
             }
         }
     }
@@ -497,7 +475,7 @@ public class SensorNetwork {
     }
 
     public void constroiRedeInicial(boolean[] vetBoolean) {
-        this.ativarSensoresVetBits(vetBoolean);
+        this.activateSensors(vetBoolean);
 
         // criando a conectividade inicial das redes e atualizando a cobertura.
         this.criarConect();
@@ -534,7 +512,7 @@ public class SensorNetwork {
         boolean retorno = sensorEscolhido.getNeighborhood().contains(sensFalho.getParent());
         if (retorno) {
             sensorEscolhido.setParent(sensFalho.getParent());
-            sensFalho.getParent().adicionaFilho(sensorEscolhido);
+            sensFalho.getParent().addChild(sensorEscolhido);
             if (sensFalho.getParent().isConnected() || sensFalho.getParent() instanceof Sink) {
                 sensorEscolhido.setConnected(true);
             }
@@ -544,7 +522,7 @@ public class SensorNetwork {
             if (!sensFilho.isConnected()) {
                 retorno = sensorEscolhido.getNeighborhood().contains(sensFilho);
                 if (retorno) {
-                    sensorEscolhido.adicionaFilho(sensFilho);
+                    sensorEscolhido.addChild(sensFilho);
                     sensFilho.setParent(sensorEscolhido);
                     sensFilho.setConnected(true);
                     listSensorReconex.add(sensFilho);

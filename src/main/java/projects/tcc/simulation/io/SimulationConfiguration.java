@@ -28,6 +28,9 @@ public class SimulationConfiguration {
     private final double receivePower;
     private final double maintenancePower;
     private final double commRatio;
+    private transient double coverageFactor;
+    private transient int dimX;
+    private transient int dimY;
 
     private final List<SensorConfiguration> sinkConfigurations;
     private final List<SensorConfiguration> sensorConfigurations;

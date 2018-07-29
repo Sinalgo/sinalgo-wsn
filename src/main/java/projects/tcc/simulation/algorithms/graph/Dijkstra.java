@@ -1,18 +1,27 @@
 package projects.tcc.simulation.algorithms.graph;
 
 import projects.tcc.simulation.wsn.data.Sensor;
-import projects.tcc.simulation.wsn.data.WSNSensor;
+import projects.tcc.simulation.wsn.data.impl.WSNSensor;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
 
 public class Dijkstra {
 
+    private static class MinCostComparator implements Comparator<Sensor> {
+
+        @Override
+        public int compare(Sensor o1, Sensor o2) {
+            return Double.compare(o1.getMinDistance(), o2.getMinDistance());
+        }
+    }
+
     public static void computePaths(Sensor source) {
         source.setMinDistance(0);
-        PriorityQueue<Sensor> vertexQueue = new PriorityQueue<>();
+        PriorityQueue<Sensor> vertexQueue = new PriorityQueue<>(new MinCostComparator());
         vertexQueue.add(source);
 
         while (!vertexQueue.isEmpty()) {
