@@ -3,12 +3,11 @@ package projects.tcc.simulation.wsn;
 import lombok.Getter;
 import lombok.Setter;
 import projects.tcc.simulation.algorithms.graph.Graph;
+import projects.tcc.simulation.io.ConfigurationLoader;
 import projects.tcc.simulation.io.SimulationConfiguration;
-import projects.tcc.simulation.io.SimulationConfiguration.SensorConfiguration;
 import projects.tcc.simulation.wsn.data.Sensor;
 import projects.tcc.simulation.wsn.data.Sink;
-import projects.tcc.simulation.wsn.data.impl.WSNSensor;
-import projects.tcc.simulation.wsn.data.impl.WSNSink;
+import sinalgo.exception.SinalgoFatalException;
 import sinalgo.nodes.Position;
 
 import java.util.ArrayList;
@@ -33,15 +32,24 @@ public class SensorNetwork {
 
     private double coverageFactor;
 
-    public SensorNetwork(SimulationConfiguration configuration) {
+    private boolean prepared = false;
+
+    private static SensorNetwork currentInstance;
+
+    public static SensorNetwork getCurrentInstance() {
+        if (currentInstance == null) {
+            currentInstance = new SensorNetwork(ConfigurationLoader.getConfiguration());
+        }
+        return currentInstance;
+    }
+
+    private SensorNetwork(SimulationConfiguration configuration) {
         this.sensors = new ArrayList<>();
         this.availableSensorsAndSinks = new ArrayList<>();
         this.availableSensors = new ArrayList<>();
         this.activeSensors = new ArrayList<>();
         this.sinks = new ArrayList<>();
         this.computeDemandPoints(configuration.getDimX(), configuration.getDimY());
-        this.addSensors(configuration);
-        this.constroiVetCobertura();
         this.numCoveredPoints = 0;
         this.currentCoveragePercent = 0;
         this.area = configuration.getDimX() * configuration.getDimY();
@@ -65,29 +73,24 @@ public class SensorNetwork {
         }
     }
 
-    private void addSensors(SimulationConfiguration config) {
-        int idCounter = 0;
-        for (SensorConfiguration sensorConfig : config.getSensorConfigurations()) {
-            this.sensors.add(new WSNSensor(idCounter++, sensorConfig.getX(), sensorConfig.getY(),
-                    config.getSensorRadius(), config.getCommRadius(), config.getBatteryEnergy(),
-                    config.getActivationPower(), config.getReceivePower(), config.getMaintenancePower(),
-                    config.getCommRatio()));
-        }
-        this.availableSensorsAndSinks.addAll(this.sensors);
-        this.availableSensors.addAll(this.sensors);
-        this.addSinks(config);
+    public void addSensors(Sensor sensor) {
+        this.sensors.add(sensor);
+        this.availableSensorsAndSinks.add(sensor);
+        this.availableSensors.add(sensor);
+
     }
 
-    private void addSinks(SimulationConfiguration config) {
-        int idSink = this.sensors.size(); // pois sera o ultimo na lista de sensores.
-        for (SensorConfiguration sinkConfig : config.getSinkConfigurations()) {
-            Sink vSink = new WSNSink(idSink++, sinkConfig.getX(), sinkConfig.getY(), config.getCommRatio());
-            this.availableSensorsAndSinks.add(vSink);
-            this.sinks.add(vSink);
-        }
+    public void addSinks(Sink sink) {
+        this.availableSensorsAndSinks.add(sink);
+        this.sinks.add(sink);
     }
 
     public void prepararRede() {
+        if (this.isPrepared()) {
+            throw new SinalgoFatalException("Double initialization of the SensorNetwork object");
+        }
+        this.setPrepared(true);
+        this.constroiVetCobertura();
         this.constroiMatrizConectividade();
         this.criaListVizinhosRC();
     }

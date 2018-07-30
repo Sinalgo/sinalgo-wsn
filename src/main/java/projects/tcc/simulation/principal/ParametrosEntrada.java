@@ -6,7 +6,6 @@ import lombok.Getter;
 public class ParametrosEntrada {
 
     private String nomeQuant;
-    private String caminhoEntrada;
     private String caminhoSaida;
     private int numTeste;
     private int numTesteInicial;
@@ -18,7 +17,6 @@ public class ParametrosEntrada {
         this.nomeQuant = args[i++];
         this.numTesteInicial = Integer.parseInt(args[i++]);
         this.numTeste = Integer.parseInt(args[i++]);
-        this.caminhoEntrada = args[i++];
         this.caminhoSaida = args[i++];
 
         this.mFatorCobMO = Integer.parseInt(args[i]);
