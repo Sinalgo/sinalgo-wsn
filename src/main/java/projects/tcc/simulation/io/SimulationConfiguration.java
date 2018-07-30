@@ -31,6 +31,9 @@ public class SimulationConfiguration {
     private transient double coverageFactor;
     private transient int dimX;
     private transient int dimY;
+    private transient double crossoverRate;
+    private transient int numberOfGenerations;
+    private transient int populationSize;
 
     private final List<SensorConfiguration> sinkConfigurations;
     private final List<SensorConfiguration> sensorConfigurations;

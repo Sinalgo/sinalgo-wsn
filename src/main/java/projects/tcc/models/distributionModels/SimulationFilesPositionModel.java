@@ -2,8 +2,8 @@ package projects.tcc.models.distributionModels;
 
 import lombok.AccessLevel;
 import lombok.Getter;
-import projects.tcc.simulation.io.ConfigurationLoader;
 import projects.tcc.simulation.io.SimulationConfiguration;
+import projects.tcc.simulation.io.SimulationConfigurationLoader;
 import sinalgo.exception.SinalgoFatalException;
 import sinalgo.models.DistributionModel;
 import sinalgo.nodes.Position;
@@ -19,9 +19,9 @@ public class SimulationFilesPositionModel extends DistributionModel {
     private final Iterator<SimulationConfiguration.SensorConfiguration> sinkConfigurationIterator;
 
     public SimulationFilesPositionModel() {
-        this.configurationIterator = ConfigurationLoader.getConfiguration().getSensorConfigurations().iterator();
-        this.sinkConfigurationIterator = ConfigurationLoader.getConfiguration().getSinkConfigurations().iterator();
-        this.setNumberOfNodes(ConfigurationLoader.getConfiguration().getSensorConfigurations().size());
+        this.configurationIterator = SimulationConfigurationLoader.getConfiguration().getSensorConfigurations().iterator();
+        this.sinkConfigurationIterator = SimulationConfigurationLoader.getConfiguration().getSinkConfigurations().iterator();
+        this.setNumberOfNodes(SimulationConfigurationLoader.getConfiguration().getSensorConfigurations().size());
     }
 
     @Override

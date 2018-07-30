@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Log
-public class ConfigurationLoader {
+public class SimulationConfigurationLoader {
 
     @Setter(AccessLevel.PRIVATE)
     private static SimulationConfiguration configuration;
@@ -36,6 +36,18 @@ public class ConfigurationLoader {
     @Getter(AccessLevel.PRIVATE)
     @Setter(AccessLevel.PRIVATE)
     private static Double coverageFactor;
+
+    @Getter(AccessLevel.PRIVATE)
+    @Setter(AccessLevel.PRIVATE)
+    private static Double crossoverRate;
+
+    @Getter(AccessLevel.PRIVATE)
+    @Setter(AccessLevel.PRIVATE)
+    private static Integer numberOfGenerations;
+
+    @Getter(AccessLevel.PRIVATE)
+    @Setter(AccessLevel.PRIVATE)
+    private static Integer populationSize;
 
     public static SimulationConfiguration getConfiguration() {
         if (configuration == null) {
@@ -57,6 +69,19 @@ public class ConfigurationLoader {
         setCoverageFactor(coverageFactor);
     }
 
+    public static void overrideCrossoverRate(double crossoverRate) {
+        setCrossoverRate(crossoverRate);
+    }
+
+    public static void overrideNumberOfGenerations(int numberOfGenerations) {
+        setNumberOfGenerations(numberOfGenerations);
+    }
+
+    public static void overridePopulationSize(int populationSize) {
+        setPopulationSize(populationSize);
+    }
+
+
     private static void load() {
         loadFromSinalgoConfig();
         setConfiguration(load("projects/tcc/input/json/" + getConfigFileName() + ".json"));
@@ -76,6 +101,15 @@ public class ConfigurationLoader {
             if (getDimY() == null) {
                 setDimY(Configuration.getDimY());
             }
+            if (getCrossoverRate() == null) {
+                setCrossoverRate(Configuration.getDoubleParameter("crossoverRate"));
+            }
+            if (getPopulationSize() == null) {
+                setPopulationSize(Configuration.getIntegerParameter("populationSize"));
+            }
+            if (getNumberOfGenerations() == null) {
+                setNumberOfGenerations(Configuration.getIntegerParameter("numberOfGenerations"));
+            }
         } catch (CorruptConfigurationEntryException e) {
             throw new SinalgoFatalException("Corrupt configuration, could not find file " +
                     "to use as input for the simulation", e);
@@ -92,6 +126,9 @@ public class ConfigurationLoader {
             config.setCoverageFactor(getCoverageFactor());
             config.setDimX(getDimX());
             config.setDimY(getDimY());
+            config.setCrossoverRate(getCrossoverRate());
+            config.setNumberOfGenerations(getNumberOfGenerations());
+            config.setPopulationSize(getPopulationSize());
             return config;
         } catch (Exception e) {
             log.severe("Error while loading " + resourcePath);

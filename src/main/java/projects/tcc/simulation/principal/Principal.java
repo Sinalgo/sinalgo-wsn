@@ -1,9 +1,9 @@
 package projects.tcc.simulation.principal;
 
 import projects.tcc.simulation.algorithms.online.SolucaoViaAGMO;
-import projects.tcc.simulation.io.ConfigurationLoader;
 import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.io.SimulationConfiguration.SensorConfiguration;
+import projects.tcc.simulation.io.SimulationConfigurationLoader;
 import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.data.Sensor;
 import projects.tcc.simulation.wsn.data.Sink;
@@ -20,9 +20,12 @@ public class Principal {
     public static void main(String[] args) throws Exception {
         ParametrosEntrada parmEntrada = new ParametrosEntrada(args);
         String nomeArqEntrada = parmEntrada.getNomeQuant() + "50";
-        ConfigurationLoader.overrideConfigurationFile(nomeArqEntrada);
-        ConfigurationLoader.overrideCoverageFactor(parmEntrada.getMFatorCobMO());
-        ConfigurationLoader.overrideDimensions(50, 50);
+        SimulationConfigurationLoader.overrideConfigurationFile(nomeArqEntrada);
+        SimulationConfigurationLoader.overrideCoverageFactor(parmEntrada.getMFatorCobMO());
+        SimulationConfigurationLoader.overrideDimensions(50, 50);
+        SimulationConfigurationLoader.overrideCrossoverRate(0.9);
+        SimulationConfigurationLoader.overridePopulationSize(300);
+        SimulationConfigurationLoader.overrideNumberOfGenerations(150);
 
         // ============== Variaveis para Simulacao ====================
         for (int i = parmEntrada.getNumTesteInicial(); i < parmEntrada.getNumTeste(); i++) {
@@ -41,7 +44,7 @@ public class Principal {
             tempoRede.iniciar();
 
             Files.createDirectories(Paths.get(parmEntrada.getCaminhoSaida()));
-            SolucaoViaAGMO solucao = new SolucaoViaAGMO(rede, parmEntrada.getCaminhoSaida());
+            SolucaoViaAGMO solucao = new SolucaoViaAGMO(SimulationConfigurationLoader.getConfiguration(), parmEntrada.getCaminhoSaida());
             solucao.simularRede(i);
 
             tempoRede.finalizar();
@@ -52,7 +55,7 @@ public class Principal {
     }
 
     private static List<Sensor> createSensors() {
-        SimulationConfiguration config = ConfigurationLoader.getConfiguration();
+        SimulationConfiguration config = SimulationConfigurationLoader.getConfiguration();
         int idCounter = 0;
         List<Sensor> sensors = new ArrayList<>();
         for (SensorConfiguration sensorConfig : config.getSensorConfigurations()) {
@@ -65,7 +68,7 @@ public class Principal {
     }
 
     private static List<Sink> createSinks() {
-        SimulationConfiguration config = ConfigurationLoader.getConfiguration();
+        SimulationConfiguration config = SimulationConfigurationLoader.getConfiguration();
         int idSink = config.getSensorConfigurations().size(); // pois sera o ultimo na lista de sensores.
         List<Sink> sinks = new ArrayList<>();
         for (SensorConfiguration sinkConfig : config.getSinkConfigurations()) {

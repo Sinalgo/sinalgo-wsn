@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="ConfigurationConverter" type="Application" factoryName="Application" nameIsGenerated="true">
-    <option name="MAIN_CLASS_NAME" value="projects.tcc.simulation.io.ConfigurationConverter" />
+  <configuration default="false" name="SimulationConfigurationConverter" type="Application" factoryName="Application" nameIsGenerated="true">
+    <option name="MAIN_CLASS_NAME" value="projects.tcc.simulation.io.SimulationConfigurationConverter" />
     <module name="Sinalgo_main" />
     <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
     <extension name="coverage">

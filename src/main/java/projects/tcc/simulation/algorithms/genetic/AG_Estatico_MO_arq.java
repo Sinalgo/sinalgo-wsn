@@ -1,5 +1,6 @@
 package projects.tcc.simulation.algorithms.genetic;
 
+import projects.tcc.simulation.io.SimulationConfigurationLoader;
 import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.data.Sensor;
 
@@ -13,14 +14,12 @@ public class AG_Estatico_MO_arq {
 
     public static boolean[] resolveAG_Estatico_MO(SensorNetwork rede, int numeroGeracoes, int tamanhoPopulacao, double txCruzamento) {
 
-        List<Sensor> listSensensores = rede.getAvailableSensors();
-
         rede.calCustosCaminho(); //atulizando o custo de caminho de cada sensor ao sink;
 
         int vNumBits = rede.getAvailableSensors().size();
 
         Populacao popCromo = new Populacao(tamanhoPopulacao, vNumBits, rede.getVetIdsSensDisp(), txCruzamento);
-        double raioSens = listSensensores.get(0).getSensRadius();
+        double raioSens = SimulationConfigurationLoader.getConfiguration().getSensorRadius();
         popCromo.startPop(rede.getArea(), raioSens, rede.getCoverageFactor());
         calculaFuncaoObjetivo(rede, popCromo.getPopCromossomo());
         calculaFuncaoObjetivo2(popCromo.getPopCromossomo());

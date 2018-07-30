@@ -3,8 +3,8 @@ package projects.tcc.simulation.wsn;
 import lombok.Getter;
 import lombok.Setter;
 import projects.tcc.simulation.algorithms.graph.Graph;
-import projects.tcc.simulation.io.ConfigurationLoader;
 import projects.tcc.simulation.io.SimulationConfiguration;
+import projects.tcc.simulation.io.SimulationConfigurationLoader;
 import projects.tcc.simulation.wsn.data.Sensor;
 import projects.tcc.simulation.wsn.data.Sink;
 import sinalgo.exception.SinalgoFatalException;
@@ -38,7 +38,7 @@ public class SensorNetwork {
 
     public static SensorNetwork getCurrentInstance() {
         if (currentInstance == null) {
-            currentInstance = new SensorNetwork(ConfigurationLoader.getConfiguration());
+            currentInstance = new SensorNetwork(SimulationConfigurationLoader.getConfiguration());
         }
         return currentInstance;
     }

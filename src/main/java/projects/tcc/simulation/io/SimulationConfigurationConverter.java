@@ -24,7 +24,7 @@ import java.util.Map;
  * Utility class to convert the legacy input format to JSON
  */
 @Log
-public class ConfigurationConverter {
+public class SimulationConfigurationConverter {
 
     public static void main(String[] args) {
         try {

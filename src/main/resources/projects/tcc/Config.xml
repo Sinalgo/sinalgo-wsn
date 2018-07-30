@@ -233,11 +233,17 @@
 
         <CoverageFactor value="95"/>
 
+        <PopulationSize value="300"/>
+
+        <NumberOfGenerations value="150"/>
+
+        <CrossoverRate value="0.9"/>
+
         <MessageTransmission ConstantTime="1"/>
 
         <Node defaultSize="10"/>
 
-        <GeometricNodeCollection rMax="100"/>
+        <GeometricNodeCollection rMax="1000"/>
 
         <UDG rMax="100"/>
 

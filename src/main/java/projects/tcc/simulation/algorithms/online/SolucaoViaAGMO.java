@@ -1,6 +1,7 @@
 package projects.tcc.simulation.algorithms.online;
 
 import projects.tcc.simulation.algorithms.genetic.AG_Estatico_MO_arq;
+import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.principal.Saidas;
 import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.Simulation;
@@ -17,11 +18,11 @@ public class SolucaoViaAGMO {
     private double txCruzamento;
     private String caminhoSaida;
 
-    public SolucaoViaAGMO(SensorNetwork sensorNetwork, String caminhoSaida) {
-        this.sensorNetwork = sensorNetwork;
-        this.numeroGeracoes = 150;
-        this.tamanhoPopulacao = 300;
-        this.txCruzamento = 0.9;
+    public SolucaoViaAGMO(SimulationConfiguration config, String caminhoSaida) {
+        this.sensorNetwork = SensorNetwork.getCurrentInstance();
+        this.numeroGeracoes = config.getNumberOfGenerations();
+        this.tamanhoPopulacao = config.getPopulationSize();
+        this.txCruzamento = config.getCrossoverRate();
         this.caminhoSaida = caminhoSaida;
     }
 
