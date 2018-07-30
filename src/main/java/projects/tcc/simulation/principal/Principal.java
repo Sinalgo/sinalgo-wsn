@@ -10,6 +10,8 @@ import projects.tcc.simulation.wsn.data.Sink;
 import projects.tcc.simulation.wsn.data.impl.WSNSensor;
 import projects.tcc.simulation.wsn.data.impl.WSNSink;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,6 +40,7 @@ public class Principal {
 
             tempoRede.iniciar();
 
+            Files.createDirectories(Paths.get(parmEntrada.getCaminhoSaida()));
             SolucaoViaAGMO solucao = new SolucaoViaAGMO(rede, parmEntrada.getCaminhoSaida());
             solucao.simularRede(i);
 
