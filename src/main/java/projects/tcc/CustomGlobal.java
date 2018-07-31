@@ -110,7 +110,6 @@ public class CustomGlobal extends AbstractCustomGlobal {
         }
         if (drawSensorRadius) {
             SensorNetwork.currentInstance().getActiveSensors().forEach(s -> drawRadius(g, pt, s, Color.MAGENTA, s.getSensRadius()));
-            SensorNetwork.currentInstance().getSinks().forEach(s -> drawRadius(g, pt, s, Color.ORANGE, s.getCommRadius()));
         }
     }
 
