@@ -165,7 +165,7 @@ public class SensorNetwork {
         return energiaGastaAcum;
     }
 
-    public double enAtivPeriodo() {
+    public double computePeriodActivationEnergy() {
         double enAtivAcum = 0;
         for (Sensor aListSensoresDisp : this.availableSensors) {
             if (aListSensoresDisp.isUseActivationPower() && aListSensoresDisp.isActive()) {

@@ -80,7 +80,7 @@ public class Simulation {
         ///////////////////////////////////////////////////////////////////////////////
 
         //Incluindo Energia consumida por Ativacao.
-        this.networkConsumedEnergy += this.network.enAtivPeriodo();
+        this.networkConsumedEnergy += this.network.computePeriodActivationEnergy();
         //-----------------------------------------
         this.currentCoveragePercent = this.network.computeCoverage();
 
