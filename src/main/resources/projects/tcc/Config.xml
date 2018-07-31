@@ -147,10 +147,10 @@
                 value="ConstantTime"/>
 
         <!--Default connectivity model used when none is specified -->
-        <defaultConnectivityModel value="SimulationConnectivityModel"/>
+        <defaultConnectivityModel value="tcc:SimulationConnectivityModel"/>
 
         <!--Default distribution model used when none is specified -->
-        <defaultDistributionModel value="SimulationFilesPositionModel"/>
+        <defaultDistributionModel value="tcc:SimulationFilesPositionModel"/>
 
         <!--Default interference model used when none is specified -->
         <defaultInterferenceModel value="NoInterference"/>
@@ -162,7 +162,7 @@
         <defaultReliabilityModel value="ReliableDelivery"/>
 
         <!--Default node implementation used when none is specified -->
-        <defaultNodeImplementation value="DummyNode"/>
+        <defaultNodeImplementation value="tcc:SensorNode"/>
 
         <!--*********************************************************************** -->
         <!-- Node storage, position transformation -->

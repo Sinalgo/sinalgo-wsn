@@ -2,7 +2,6 @@ package projects.tcc.nodes.nodeImplementations;
 
 import lombok.Getter;
 import lombok.experimental.Delegate;
-import projects.tcc.nodes.SimulationNode;
 import projects.tcc.simulation.algorithms.online.SolucaoViaAGMOSinalgo;
 import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.io.SimulationConfigurationLoader;
@@ -10,12 +9,15 @@ import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.data.Sink;
 import projects.tcc.simulation.wsn.data.impl.WSNSink;
 import sinalgo.exception.SinalgoWrappedException;
+import sinalgo.gui.transformation.PositionTransformation;
 import sinalgo.nodes.messages.Inbox;
+
+import java.awt.*;
 
 public class SinkNode extends SensorNode implements Sink {
 
     @Getter
-    @Delegate(types = Sink.class, excludes = SimulationNode.class)
+    @Delegate(types = Sink.class)
     private Sink sensor;
 
     private int stage = 0;
@@ -35,11 +37,17 @@ public class SinkNode extends SensorNode implements Sink {
     }
 
     private void runSimulation() {
-        SolucaoViaAGMOSinalgo simulation = SolucaoViaAGMOSinalgo.currentInstance();
+        SolucaoViaAGMOSinalgo solucao = SolucaoViaAGMOSinalgo.currentInstance();
         try {
-            simulation.simularRede(stage++);
+            solucao.simularRede(stage++);
         } catch (Exception e) {
             throw new SinalgoWrappedException(e);
         }
+    }
+
+    @Override
+    public void draw(Graphics g, PositionTransformation pt, boolean highlight) {
+        this.setColor(Color.BLUE);
+        super.drawAsDisk(g, pt, highlight, 30);
     }
 }

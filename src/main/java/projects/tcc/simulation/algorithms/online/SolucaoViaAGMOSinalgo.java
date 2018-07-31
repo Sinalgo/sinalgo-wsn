@@ -6,6 +6,7 @@ import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.io.SimulationConfigurationLoader;
 import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.Simulation;
+import sinalgo.tools.Tools;
 
 public class SolucaoViaAGMOSinalgo {
 
@@ -61,7 +62,8 @@ public class SolucaoViaAGMOSinalgo {
                     System.out.println("===== EVENTO TEMPO = " + currentPeriod);
                 }
             } else {
-                System.out.println("Não foi mais possível se manter acima do mínimo de cobertura");
+                Tools.stopSimulation();
+                Tools.minorError("Não foi mais possível se manter acima do mínimo de cobertura");
             }
             System.out.println("==> Reestruturação foi requisitada " + redeSim.getRestructureCount());
         }

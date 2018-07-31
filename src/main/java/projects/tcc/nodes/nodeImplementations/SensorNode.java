@@ -8,11 +8,14 @@ import projects.tcc.simulation.io.SimulationConfigurationLoader;
 import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.data.Sensor;
 import projects.tcc.simulation.wsn.data.impl.WSNSensor;
+import sinalgo.gui.transformation.PositionTransformation;
+
+import java.awt.*;
 
 public class SensorNode extends SimulationNode implements Sensor {
 
     @Getter
-    @Delegate(types = Sensor.class, excludes = SimulationNode.class)
+    @Delegate(types = Sensor.class)
     private Sensor sensor;
 
     @Override
@@ -24,5 +27,11 @@ public class SensorNode extends SimulationNode implements Sensor {
                 config.getActivationPower(), config.getReceivePower(),
                 config.getMaintenancePower(), config.getCommRatio());
         SensorNetwork.currentInstance().addSensors(this);
+    }
+
+    @Override
+    public void draw(Graphics g, PositionTransformation pt, boolean highlight) {
+        this.setColor(this.isFailed() ? Color.RED : this.isActive() ? Color.GREEN : Color.BLACK);
+        super.drawAsDisk(g, pt, highlight, this.isFailed() ? 10 : this.isActive() ? 20 : 10);
     }
 }

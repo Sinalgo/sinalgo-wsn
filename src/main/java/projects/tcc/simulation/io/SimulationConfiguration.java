@@ -1,9 +1,14 @@
 package projects.tcc.simulation.io;
 
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import sinalgo.exception.SinalgoFatalException;
 import sinalgo.nodes.Position;
 
+import java.util.Iterator;
 import java.util.List;
 
 @Data
@@ -37,5 +42,29 @@ public class SimulationConfiguration {
 
     private final List<SensorConfiguration> sinkConfigurations;
     private final List<SensorConfiguration> sensorConfigurations;
+
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    private transient Iterator<SensorConfiguration> sensorConfigurationIterator;
+
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    private transient Iterator<SensorConfiguration> sinkConfigurationIterator;
+
+    public Position getNextPosition() {
+        if (this.sensorConfigurationIterator == null) {
+            this.sensorConfigurationIterator = this.getSensorConfigurations().iterator();
+        }
+        if (this.sensorConfigurationIterator.hasNext()) {
+            return this.sensorConfigurationIterator.next().toPosition();
+        }
+        if (this.sinkConfigurationIterator == null) {
+            this.sinkConfigurationIterator = this.getSinkConfigurations().iterator();
+        }
+        if (this.sinkConfigurationIterator.hasNext()) {
+            return this.sinkConfigurationIterator.next().toPosition();
+        }
+        throw new SinalgoFatalException("No more positions available!");
+    }
 
 }
