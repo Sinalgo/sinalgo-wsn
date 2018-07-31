@@ -138,9 +138,9 @@ public class AG_Estatico_MO_arq {
         for (int j = 0; j < tamPopCromo; j++) {
             Cromossomo cromoA = popCromo.get(j);
             for (int i = 0; i < tamPopCromo; i++) {
-                Cromossomo cromoB = popCromo.get(i);
                 if (j != i) {
                     //Marca com 1 todos os que são dominados pela coluna J!!!
+                    Cromossomo cromoB = popCromo.get(i);
                     matDomin[i][j] = testeDominancia(cromoA, cromoB) ? 1 : 0;
                 } else {
                     matDomin[i][j] = 0;
