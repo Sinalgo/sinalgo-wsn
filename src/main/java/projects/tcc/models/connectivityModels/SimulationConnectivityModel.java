@@ -14,8 +14,7 @@ public class SimulationConnectivityModel extends ConnectivityModelHelper {
         }
         SensorNode s1 = (SensorNode) from;
         SensorNode s2 = (SensorNode) to;
-        return (s1.equals(s2.getParent()) || s2.equals(s1.getParent()))
-                &&
+        return (s1.equals(s2.getParent()) || s2.equals(s1.getParent())) &&
                 ((s1.isConnected() && s2.isConnected())
                         || (s1.isConnected() && s2 instanceof Sink)
                         || (s2.isConnected() && s1 instanceof Sink));
