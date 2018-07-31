@@ -1,5 +1,6 @@
 package projects.tcc.simulation.algorithms.graph;
 
+import projects.tcc.simulation.io.SimulationOutput;
 import projects.tcc.simulation.wsn.data.Sensor;
 import projects.tcc.simulation.wsn.data.impl.WSNSensor;
 
@@ -84,10 +85,10 @@ public class Dijkstra {
         computePaths(s0);
 
         for (Sensor v : vertices) {
-            System.out.println("Distance to " + v + ": " + v.getMinDistance());
-            System.out.println("Sensor: " + v + " - tem o pai o Sensor: " + v.getParent());
+            SimulationOutput.println("Distance to " + v + ": " + v.getMinDistance());
+            SimulationOutput.println("Sensor: " + v + " - tem o pai o Sensor: " + v.getParent());
             List<Sensor> path = getShortestPathTo(v);
-            System.out.println("Path: " + path);
+            SimulationOutput.println("Path: " + path);
         }
     }
 }

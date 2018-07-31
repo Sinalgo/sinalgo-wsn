@@ -1,6 +1,7 @@
 package projects.tcc.simulation.wsn.data;
 
 import projects.tcc.simulation.algorithms.graph.GraphEdge;
+import projects.tcc.simulation.io.SimulationOutput;
 import sinalgo.nodes.Position;
 
 import java.util.List;
@@ -70,8 +71,8 @@ public interface Sensor {
         while (DISTANCES_ARRAY[i] <= distancia) {
             i++;
             if (i == DISTANCES_ARRAY.length) {
-                System.out.println("\n\nERROR: Distância ao Pai não informada corretamente");
-                System.out.println("Valor da Distância: " + distancia);
+                SimulationOutput.println("\n\nERROR: Distância ao Pai não informada corretamente");
+                SimulationOutput.println("Valor da Distância: " + distancia);
             }
         }
 

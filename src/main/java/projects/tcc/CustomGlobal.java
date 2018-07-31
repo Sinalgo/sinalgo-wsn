@@ -39,15 +39,18 @@ package projects.tcc;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import projects.tcc.simulation.io.SimulationOutput;
 import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.data.Sensor;
 import sinalgo.exception.SinalgoFatalException;
 import sinalgo.gui.transformation.PositionTransformation;
 import sinalgo.runtime.AbstractCustomGlobal;
 import sinalgo.runtime.Global;
+import sinalgo.tools.Tools;
 import sinalgo.tools.logging.Logging;
 
 import java.awt.*;
+import java.io.PrintStream;
 
 /**
  * This class holds customized global state and methods for the framework. The
@@ -173,6 +176,9 @@ public class CustomGlobal extends AbstractCustomGlobal {
 
     @Override
     public void preRun() {
+        PrintStream ps = Tools.getTextOutputPrintStream();
+        SimulationOutput.setPrintFunction(ps::print);
+        SimulationOutput.setPrintlnFunction(ps::println);
 //        // start the communication automatically if the AutoStart flag is set.
 //        try {
 //            if (Configuration.hasParameter("AutoStart") && Configuration.getBooleanParameter("AutoStart")) {

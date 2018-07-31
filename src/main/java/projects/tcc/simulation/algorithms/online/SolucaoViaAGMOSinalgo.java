@@ -1,9 +1,10 @@
 package projects.tcc.simulation.algorithms.online;
 
 import projects.tcc.simulation.algorithms.genetic.AG_Estatico_MO_arq;
-import projects.tcc.simulation.io.FakeSimulationOutput;
 import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.io.SimulationConfigurationLoader;
+import projects.tcc.simulation.io.SimulationOutput;
+import projects.tcc.simulation.io.SinalgoSimulationOutput;
 import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.Simulation;
 import sinalgo.tools.Tools;
@@ -46,26 +47,26 @@ public class SolucaoViaAGMOSinalgo {
         }
         Simulation redeSim = Simulation.currentInstance();
         if (this.sensorNetwork.getCurrentCoveragePercent() >= this.sensorNetwork.getCoverageFactor()) {
-            boolean evento = redeSim.simulatePeriod(currentPeriod, new FakeSimulationOutput());
+            boolean evento = redeSim.simulatePeriod(currentPeriod, new SinalgoSimulationOutput());
             boolean reestruturar = redeSim.isRestructureNetwork();
             if (reestruturar) {
                 //gerando a POP de Cromossomos inicial para o AG
                 boolean[] vetSensAtiv = AG_Estatico_MO_arq.resolveAG_Estatico_MO(this.sensorNetwork, this.numeroGeracoes, this.tamanhoPopulacao, this.txCruzamento);
                 this.sensorNetwork.buildInitialNetwork(vetSensAtiv);
-                System.out.println("===== EVENTO e REESTRUTUROU TEMPO = " + currentPeriod);
+                SimulationOutput.println("===== EVENTO e REESTRUTUROU TEMPO = " + currentPeriod);
             }
             if (evento && !reestruturar) {
                 if (!this.sensorNetwork.supplyCoverageOnline()) {
                     this.sensorNetwork.supplyCoverage();
                     this.sensorNetwork.desligarSensoresDesconexos();
                 }
-                System.out.println("===== EVENTO TEMPO = " + currentPeriod);
+                SimulationOutput.println("===== EVENTO TEMPO = " + currentPeriod);
             }
         } else {
             Tools.stopSimulation();
             Tools.minorError("Não foi mais possível se manter acima do mínimo de cobertura");
         }
-        System.out.println("==> Reestruturação foi requisitada " + redeSim.getRestructureCount());
+        SimulationOutput.println("==> Reestruturação foi requisitada " + redeSim.getRestructureCount());
     }
 
 }

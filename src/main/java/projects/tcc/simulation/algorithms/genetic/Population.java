@@ -1,5 +1,7 @@
 package projects.tcc.simulation.algorithms.genetic;
 
+import projects.tcc.simulation.io.SimulationOutput;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -122,7 +124,7 @@ public class Population {
     public void realizaCasamento() {
         int vTamanhoPopulacao = this.popCromossomo.size();
         if (vTamanhoPopulacao < 2) {
-            System.out.println("Populacao pequena. Quebre meu galho\n");
+            SimulationOutput.println("Populacao pequena. Quebre meu galho\n");
             System.exit(1);
         }
 
@@ -229,7 +231,7 @@ public class Population {
                 aPopCromossomo.setIdPareto(aPopCromossomo.getIdPareto() - 1);
             }
             if (aPopCromossomo.getIdPareto() < 1) {
-                System.out.println("ERRO: valor de idPareto < 1");
+                SimulationOutput.println("ERRO: valor de idPareto < 1");
                 System.exit(0);
             }
         }

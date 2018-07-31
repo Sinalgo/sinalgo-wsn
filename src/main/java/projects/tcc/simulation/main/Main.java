@@ -36,7 +36,7 @@ public class Main {
             createSensors().forEach(network::addSensors);
             createSinks().forEach(network::addSinks);
 
-            System.out.println("\n\n========= Teste Numero: " + i + " =========");
+            SimulationOutput.println("\n\n========= Teste Numero: " + i + " =========");
 
             /////////////////////////// MEDICAO DE TEMPO //////////////////////
             Chronometer networkTime = new Chronometer();

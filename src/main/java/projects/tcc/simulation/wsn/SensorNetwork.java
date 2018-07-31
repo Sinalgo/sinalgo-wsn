@@ -5,6 +5,7 @@ import lombok.Setter;
 import projects.tcc.simulation.algorithms.graph.Graph;
 import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.io.SimulationConfigurationLoader;
+import projects.tcc.simulation.io.SimulationOutput;
 import projects.tcc.simulation.wsn.data.Sensor;
 import projects.tcc.simulation.wsn.data.Sink;
 import sinalgo.exception.SinalgoFatalException;
@@ -185,7 +186,7 @@ public class SensorNetwork {
             }
         }
         if (numSensDesligados > 0) {
-            System.out.println("Numero de Sensores desligados por nao conectividade: " + numSensDesligados);
+            SimulationOutput.println("Numero de Sensores desligados por nao conectividade: " + numSensDesligados);
         }
     }
 
@@ -388,7 +389,7 @@ public class SensorNetwork {
         }
         this.activeSensors.addAll(activatedSensors);
         if (numSensCox > 0) {
-            System.out.println("Numero de Sensores Ativos na Conectividade: " + numSensCox);
+            SimulationOutput.println("Numero de Sensores Ativos na Conectividade: " + numSensCox);
         }
     }
 
@@ -420,7 +421,7 @@ public class SensorNetwork {
                     this.deactivateSensor(chosen);
                     continue;
                 } else {
-                    System.out.println("Sensor Escolhido = " + chosen);
+                    SimulationOutput.println("Sensor Escolhido = " + chosen);
                     if (!(chosen.getParent() instanceof Sink)) {
                         this.updateExclusivelyCoveredPoints(chosen.getParent());
                     }
@@ -428,7 +429,7 @@ public class SensorNetwork {
                 fatorPontoDemanda = this.numCoveredPoints;
             } else {
                 //nao ha sensores para ativar
-                System.out.println("Nao ha mais sensores para ativar e suprir a cobertura");
+                SimulationOutput.println("Nao ha mais sensores para ativar e suprir a cobertura");
                 fatorPontoDemanda = this.coverageArray.length;
             }
 
@@ -505,7 +506,7 @@ public class SensorNetwork {
         if (this.currentCoveragePercent >= this.coverageFactor) {
             return true;
         }
-        System.out.println("Não foi possível suprimir cobertura Online");
+        SimulationOutput.println("Não foi possível suprimir cobertura Online");
         return false;
     }
 

@@ -5,9 +5,9 @@ import projects.tcc.simulation.wsn.Simulation;
 
 import java.io.IOException;
 
-public class FakeSimulationOutput extends SimulationOutput {
+public class SinalgoSimulationOutput extends SimulationOutput {
 
-    public FakeSimulationOutput() {
+    public SinalgoSimulationOutput() {
         super(SensorNetwork.currentInstance(), Simulation.currentInstance(), null);
     }
 

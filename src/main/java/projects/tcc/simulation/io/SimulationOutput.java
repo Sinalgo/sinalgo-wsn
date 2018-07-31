@@ -1,5 +1,8 @@
 package projects.tcc.simulation.io;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.Simulation;
 import projects.tcc.simulation.wsn.data.Sensor;
@@ -10,12 +13,28 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.function.Consumer;
 
+@Getter(AccessLevel.PROTECTED)
 public class SimulationOutput {
 
     private SensorNetwork network;
     private Simulation simulation;
     private String folder;
+
+    @Setter
+    private static Consumer<String> printFunction = System.out::print;
+
+    @Setter
+    private static Consumer<String> printlnFunction = System.out::println;
+
+    public static void print(String str) {
+        printFunction.accept(str);
+    }
+
+    public static void println(String str) {
+        printlnFunction.accept(str);
+    }
 
     public SimulationOutput(SensorNetwork network, Simulation simulation, String folder) {
         this.network = network;
@@ -34,12 +53,12 @@ public class SimulationOutput {
     }
 
     public void generateConsoleOutput(int periodo) {
-        System.out.println("\n\n\n\n");
-        System.out.println("Tempo = " + periodo);
-        System.out.println("Numero de Sensores Ativos: " + this.network.getActiveSensorCount());
-        System.out.println("Energia Residual: " + this.simulation.getNetworkResidualEnergy());
-        System.out.println("Energia Consumida: " + this.simulation.getNetworkConsumedEnergy());
-        System.out.println("Cobertura Atual: " + this.simulation.getCurrentCoveragePercentage());
+        println("\n\n\n\n");
+        println("Tempo = " + periodo);
+        println("Numero de Sensores Ativos: " + this.network.getActiveSensorCount());
+        println("Energia Residual: " + this.simulation.getNetworkResidualEnergy());
+        println("Energia Consumida: " + this.simulation.getNetworkConsumedEnergy());
+        println("Cobertura Atual: " + this.simulation.getCurrentCoveragePercentage());
     }
 
     public void generateSimulatorOutput(int currentStage) throws IOException {
