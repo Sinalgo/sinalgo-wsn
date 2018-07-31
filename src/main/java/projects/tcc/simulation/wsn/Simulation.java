@@ -1,7 +1,7 @@
 package projects.tcc.simulation.wsn;
 
 import lombok.Getter;
-import projects.tcc.simulation.principal.Saidas;
+import projects.tcc.simulation.main.SimulationOutput;
 import projects.tcc.simulation.wsn.data.Sensor;
 
 import java.util.ArrayList;
@@ -19,108 +19,108 @@ public class Simulation {
     private int minBatteryThreshold;        // limite que se considera como bateria esgotada.
     private double consumedEnergyThreshold; //usado no teste de reestruturacao da rede.
 
-    private int somaModDiffAtivos;
-    private boolean reestrutrarRede;
-    private double energiaResAnt;
-    private int contChamadaReest;
+    private int activeSensorsDelta;
+    private boolean restructureNetwork;
+    private double previousResidualEnergy;
+    private int restructureCount;
 
-    private List<Sensor> listSensores;
+    private List<Sensor> sensors;
 
-    private SensorNetwork rede;
+    private SensorNetwork network;
 
-    private List<Integer> nSensorAtivos;
-    private List<Integer> nEstagio;
+    private List<Integer> activeSensorCount;
+    private List<Integer> currentStage;
 
-    private List<Sensor> listSensFalhosNoPer;
+    private List<Sensor> periodFailedSensors;
 
-    public double getPorcCobAtual() {
-        return this.rede.getCurrentCoveragePercent();
+    public double getCurrentCoveragePercentage() {
+        return this.network.getCurrentCoveragePercent();
     }
 
-    public Simulation(SensorNetwork rede) {
+    public Simulation(SensorNetwork network) {
         this.residualEnergy = new ArrayList<>();
         this.consumedEnergy = new ArrayList<>();
         this.coverageArray = new ArrayList<>();
 
-        this.nSensorAtivos = new ArrayList<>();
-        this.nEstagio = new ArrayList<>();
+        this.activeSensorCount = new ArrayList<>();
+        this.currentStage = new ArrayList<>();
 
-        this.rede = rede;
-        this.listSensores = rede.getAvailableSensors();
+        this.network = network;
+        this.sensors = network.getAvailableSensors();
 
         this.minBatteryThreshold = 10;
 
-        this.listSensFalhosNoPer = new ArrayList<>();
+        this.periodFailedSensors = new ArrayList<>();
 
-        this.somaModDiffAtivos = 0;
-        this.energiaResAnt = 0.0;
+        this.activeSensorsDelta = 0;
+        this.previousResidualEnergy = 0.0;
         this.consumedEnergyThreshold = 0.05;
-        this.reestrutrarRede = false;
-        this.contChamadaReest = 0;
+        this.restructureNetwork = false;
+        this.restructureCount = 0;
     }
 
-    public boolean simulaUmPer(int estagioAtual, Saidas saida) throws Exception {
-        saida.generateSimulatorOutput(estagioAtual);
-        this.listSensFalhosNoPer.clear();
+    public boolean simulatePeriod(int currentStage, SimulationOutput output) throws Exception {
+        output.generateSimulatorOutput(currentStage);
+        this.periodFailedSensors.clear();
 
         // ========= Verificacao e Calculo de Energia no Periodo de tempo =========
         this.networkResidualEnergy = 0;
         this.networkConsumedEnergy = 0;
-        for (Sensor sensor : this.listSensores) {
+        for (Sensor sensor : this.sensors) {
             this.networkResidualEnergy += sensor.getBatteryEnergy();
         }
 
         //Calculando a energia consumida
-        this.networkConsumedEnergy = this.rede.calculaEnergiaConsPer();
+        this.networkConsumedEnergy = this.network.calculaEnergiaConsPer();
 
         //////////////////////// necessario para algumas aplicacoes //////////////////
-        if (this.testeReestruturarRede(estagioAtual)) {
-            this.contChamadaReest++;
+        if (this.testNetworkRestructure(currentStage)) {
+            this.restructureCount++;
         }
         ///////////////////////////////////////////////////////////////////////////////
 
         //Incluindo Energia consumida por Ativacao.
-        this.networkConsumedEnergy += this.rede.enAtivPeriodo();
+        this.networkConsumedEnergy += this.network.enAtivPeriodo();
         //-----------------------------------------
-        this.currentCoveragePercent = this.rede.calcCobertura();
+        this.currentCoveragePercent = this.network.computeCoverage();
 
-        this.nSensorAtivos.add(this.rede.getNumSensAtivos());
-        this.nEstagio.add(estagioAtual);
+        this.activeSensorCount.add(this.network.getActiveSensorCount());
+        this.currentStage.add(currentStage);
 
         this.residualEnergy.add(this.networkResidualEnergy);
         this.consumedEnergy.add(this.networkConsumedEnergy);
         this.coverageArray.add(this.currentCoveragePercent);
 
         //gerar impressao na tela
-        saida.gerarSaidaTela(estagioAtual);
+        output.generateConsoleOutput(currentStage);
 
-        this.rede.calculaEnergiaPeriodo();
+        this.network.computePeriodConsumedEnergy();
 
         //Verificando se algum sensor nao estara na proxima simulacao
-        boolean evento = this.rede.retirarSensoresFalhaEnergia(this.listSensFalhosNoPer, this.minBatteryThreshold);
-        this.rede.setPeriodFailedSensors(this.listSensFalhosNoPer);
+        boolean sensorsFailed = this.network.removeFailedSensors(this.periodFailedSensors, this.minBatteryThreshold);
+        this.network.setPeriodFailedSensors(this.periodFailedSensors);
 
-        return evento;
+        return sensorsFailed;
     }
 
-    private boolean testeReestruturarRede(int estagioAtual) {
-        this.reestrutrarRede = false;
+    private boolean testNetworkRestructure(int currentStage) {
+        this.restructureNetwork = false;
         //testando se ira reestruturar - nao considerar EA ///////////////////////////
-        if (this.networkConsumedEnergy - this.energiaResAnt > this.consumedEnergyThreshold * this.energiaResAnt) {
-            this.energiaResAnt = this.networkConsumedEnergy;
-            if (estagioAtual > 1) {
-                this.somaModDiffAtivos = 0;
-                this.reestrutrarRede = true;
+        if (this.networkConsumedEnergy - this.previousResidualEnergy > this.consumedEnergyThreshold * this.previousResidualEnergy) {
+            this.previousResidualEnergy = this.networkConsumedEnergy;
+            if (currentStage > 1) {
+                this.activeSensorsDelta = 0;
+                this.restructureNetwork = true;
             }
         }
-        if (estagioAtual > 0) {
-            this.somaModDiffAtivos = Math.abs(this.nSensorAtivos.get(this.nSensorAtivos.size() - 1) - this.rede.getNumSensAtivos());
-            if (this.somaModDiffAtivos > this.consumedEnergyThreshold * this.rede.getAvailableSensors().size()) {
-                this.somaModDiffAtivos = 0;
-                this.reestrutrarRede = true;
+        if (currentStage > 0) {
+            this.activeSensorsDelta = Math.abs(this.activeSensorCount.get(this.activeSensorCount.size() - 1) - this.network.getActiveSensorCount());
+            if (Double.compare(this.activeSensorsDelta, this.consumedEnergyThreshold * this.network.getAvailableSensors().size()) > 0) {
+                this.activeSensorsDelta = 0;
+                this.restructureNetwork = true;
             }
         }
-        return this.reestrutrarRede;
+        return this.restructureNetwork;
     }
 
 }

@@ -8,7 +8,7 @@ import static projects.tcc.simulation.algorithms.genetic.FitnessType.TYPE_1;
 import static projects.tcc.simulation.algorithms.genetic.FitnessType.TYPE_2;
 
 
-public class Populacao {
+public class Population {
 
     private double mProbCruz;
     private int tamPopOrig;
@@ -19,7 +19,7 @@ public class Populacao {
     private int[] idsVetBits;
     private int minSensAtiv;
 
-    public Populacao(int vTamPop, int vNumBits, int[] vetIds, double mProbCruz) {
+    public Population(int vTamPop, int vNumBits, int[] vetIds, double mProbCruz) {
         this.mProbCruz = mProbCruz;
         this.tamPopOrig = vTamPop;
         this.numBits = vNumBits;

@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Principal" type="Application" factoryName="Application">
-    <option name="MAIN_CLASS_NAME" value="projects.tcc.simulation.principal.Principal" />
+    <option name="MAIN_CLASS_NAME" value="projects.tcc.simulation.main.Main" />
     <module name="Sinalgo_main" />
     <option name="PROGRAM_PARAMETERS" value="500 0 10 &quot;$USER_HOME$/saida-rssf/&quot; 95 0" />
     <extension name="coverage">

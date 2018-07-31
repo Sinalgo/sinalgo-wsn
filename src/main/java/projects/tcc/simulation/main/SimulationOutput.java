@@ -1,4 +1,4 @@
-package projects.tcc.simulation.principal;
+package projects.tcc.simulation.main;
 
 import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.Simulation;
@@ -11,20 +11,20 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
-public class Saidas {
+public class SimulationOutput {
 
-    private SensorNetwork rede;
+    private SensorNetwork network;
     private Simulation simulation;
     private String folder;
 
-    public Saidas(SensorNetwork rede, Simulation simulation, String folder) {
-        this.rede = rede;
+    public SimulationOutput(SensorNetwork network, Simulation simulation, String folder) {
+        this.network = network;
         this.simulation = simulation;
         this.folder = folder;
-        this.apagarArqSimulacao();
+        this.deleteSimulationFile();
     }
 
-    private void apagarArqSimulacao() {
+    private void deleteSimulationFile() {
         try {
             //Apagar um arquivo
             Files.deleteIfExists(Paths.get(this.folder, "simulacao"));
@@ -33,13 +33,13 @@ public class Saidas {
         }
     }
 
-    public void gerarSaidaTela(int periodo) {
+    public void generateConsoleOutput(int periodo) {
         System.out.println("\n\n\n\n");
         System.out.println("Tempo = " + periodo);
-        System.out.println("Numero de Sensores Ativos: " + this.rede.getNumSensAtivos());
+        System.out.println("Numero de Sensores Ativos: " + this.network.getActiveSensorCount());
         System.out.println("Energia Residual: " + this.simulation.getNetworkResidualEnergy());
         System.out.println("Energia Consumida: " + this.simulation.getNetworkConsumedEnergy());
-        System.out.println("Cobertura Atual: " + this.simulation.getPorcCobAtual());
+        System.out.println("Cobertura Atual: " + this.simulation.getCurrentCoveragePercentage());
     }
 
     public void generateSimulatorOutput(int currentStage) throws IOException {
@@ -47,14 +47,14 @@ public class Saidas {
         FileWriter fw = new FileWriter(outputFolder, true);
         PrintWriter pw = new PrintWriter(fw, true);
         pw.println(currentStage);
-        int pCob = (int) (this.simulation.getPorcCobAtual() * 100);
+        int pCob = (int) (this.simulation.getCurrentCoveragePercentage() * 100);
         pw.println(pCob);
-        for (Sensor s : this.rede.getSensors()) {
-            int estadoSensor = s.isFailed() ? 3 : s.isActive() ? 1 : 2;
-            int pai = s.isActive() && s.getParent() != null ? s.getParent().getSensorId() : -1;
-            double bateria = s.getBatteryEnergy();
+        for (Sensor s : this.network.getSensors()) {
+            int sensorState = s.isFailed() ? 3 : s.isActive() ? 1 : 2;
+            int parentId = s.isActive() && s.getParent() != null ? s.getParent().getSensorId() : -1;
+            double batteryEnergy = s.getBatteryEnergy();
 
-            pw.print(estadoSensor + "\t" + bateria + "\t" + pai);
+            pw.print(sensorState + "\t" + batteryEnergy + "\t" + parentId);
             pw.println();
         }
         pw.println();
@@ -82,11 +82,11 @@ public class Saidas {
         pw.close();
     }
 
-    public static void geraArqSaidaTempo(String nomeArq, String pasta, double tHibrido) throws IOException {
-        String arq = pasta + nomeArq;
+    public static void generateTimeOutput(String fileName, String folder, double time) throws IOException {
+        String arq = folder + fileName;
         FileWriter fw = new FileWriter(arq);
         PrintWriter pw = new PrintWriter(fw);
-        pw.print(tHibrido);
+        pw.print(time);
         pw.close();
     }
 

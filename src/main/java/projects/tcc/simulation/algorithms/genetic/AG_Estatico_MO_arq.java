@@ -12,16 +12,16 @@ import static projects.tcc.simulation.algorithms.genetic.FitnessType.TYPE_2;
 
 public class AG_Estatico_MO_arq {
 
-    public static boolean[] resolveAG_Estatico_MO(SensorNetwork rede, int numeroGeracoes, int tamanhoPopulacao, double txCruzamento) {
+    public static boolean[] resolveAG_Estatico_MO(SensorNetwork network, int numberOfGenerations, int tamanhoPopulacao, double crossoverRate) {
 
-        rede.calCustosCaminho(); //atulizando o custo de caminho de cada sensor ao sink;
+        network.computeCostToSink(); //atulizando o custo de caminho de cada sensor ao sink;
 
-        int vNumBits = rede.getAvailableSensors().size();
+        int sensorCount = network.getAvailableSensors().size();
 
-        Populacao popCromo = new Populacao(tamanhoPopulacao, vNumBits, rede.getVetIdsSensDisp(), txCruzamento);
-        double raioSens = SimulationConfigurationLoader.getConfiguration().getSensorRadius();
-        popCromo.startPop(rede.getArea(), raioSens, rede.getCoverageFactor());
-        calculaFuncaoObjetivo(rede, popCromo.getPopCromossomo());
+        Population popCromo = new Population(tamanhoPopulacao, sensorCount, network.getAvailableSensorsArray(), crossoverRate);
+        double sensorRadius = SimulationConfigurationLoader.getConfiguration().getSensorRadius();
+        popCromo.startPop(network.getArea(), sensorRadius, network.getCoverageFactor());
+        calculaFuncaoObjetivo(network, popCromo.getPopCromossomo());
         calculaFuncaoObjetivo2(popCromo.getPopCromossomo());
         limpaPareto(popCromo.getPopCromossomo());
         gerarParetos(popCromo.getPopCromossomo());
@@ -29,11 +29,11 @@ public class AG_Estatico_MO_arq {
         popCromo.setMelhorPareto();
         List<Cromossomo> vMelhorPareto = popCromo.copyMelhorPareto();
 
-        for (int cNumeroGeracoes = 0; cNumeroGeracoes < numeroGeracoes; cNumeroGeracoes++) {
+        for (int cNumeroGeracoes = 0; cNumeroGeracoes < numberOfGenerations; cNumeroGeracoes++) {
             popCromo.realizaCasamento();
             popCromo.realizaMutacao();
 
-            calculaFuncaoObjetivo(rede, popCromo.getPopCromossomo());
+            calculaFuncaoObjetivo(network, popCromo.getPopCromossomo());
             calculaFuncaoObjetivo2(popCromo.getPopCromossomo());
 
             limpaPareto(popCromo.getPopCromossomo());
@@ -63,7 +63,7 @@ public class AG_Estatico_MO_arq {
         vMelhorPareto = popCromo.copyMelhorPareto();
         //Separando os melhores paretos para uma média.
         List<Cromossomo> conjMelhorPareto = new ArrayList<>(vMelhorPareto);
-        popCromo.setMelhorCromo(decSolPareto(conjMelhorPareto, rede));
+        popCromo.setMelhorCromo(decSolPareto(conjMelhorPareto, network));
         limpaPareto(conjMelhorPareto);
         gerarParetos(conjMelhorPareto);
         popCromo.calcularFO_MO_3();
@@ -85,7 +85,7 @@ public class AG_Estatico_MO_arq {
     }
 
     private static void avaliarIndividuo(SensorNetwork rede, Cromossomo individuo, double penAtiv, int penNCob) {
-        int naoCoberturaAuxiliar = rede.avaliaNaoCoberturaSemConect(individuo.getListIdsAtivo());
+        int naoCoberturaAuxiliar = rede.computeDisconnectedCoverage(individuo.getListIdsAtivo());
         individuo.setNaoCobertura(naoCoberturaAuxiliar);
         rede.activateSensors(individuo.getVetorBits());
         double custoCaminhoTotal = 0;
@@ -213,7 +213,7 @@ public class AG_Estatico_MO_arq {
         }
     }
 
-    private static boolean elitismoMelhorPareto(Populacao popCromo,
+    private static boolean elitismoMelhorPareto(Population popCromo,
                                                 List<Cromossomo> melhorPareto) {
         List<Cromossomo> paretoPopCorrente = popCromo.getMelhorPareto();
 

@@ -1,4 +1,4 @@
-package projects.tcc.simulation.principal;
+package projects.tcc.simulation.main;
 
 import projects.tcc.simulation.algorithms.online.SolucaoViaAGMO;
 import projects.tcc.simulation.io.SimulationConfiguration;
@@ -15,41 +15,41 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Principal {
+public class Main {
 
     public static void main(String[] args) throws Exception {
-        ParametrosEntrada parmEntrada = new ParametrosEntrada(args);
-        String nomeArqEntrada = parmEntrada.getNomeQuant() + "50";
-        SimulationConfigurationLoader.overrideConfigurationFile(nomeArqEntrada);
-        SimulationConfigurationLoader.overrideCoverageFactor(parmEntrada.getMFatorCobMO());
+        InputParameters inputParameters = new InputParameters(args);
+        String inputFileName = inputParameters.getInputAmount() + "50";
+        SimulationConfigurationLoader.overrideConfigurationFile(inputFileName);
+        SimulationConfigurationLoader.overrideCoverageFactor(inputParameters.getCoverageFactor());
         SimulationConfigurationLoader.overrideDimensions(50, 50);
         SimulationConfigurationLoader.overrideCrossoverRate(0.9);
         SimulationConfigurationLoader.overridePopulationSize(300);
         SimulationConfigurationLoader.overrideNumberOfGenerations(150);
 
         // ============== Variaveis para Simulacao ====================
-        for (int i = parmEntrada.getNumTesteInicial(); i < parmEntrada.getNumTeste(); i++) {
+        for (int i = inputParameters.getInitialTestNumber(); i < inputParameters.getLastTestNumber(); i++) {
 
             // =================== Iniciando a Simulacao ==================
-            SensorNetwork rede = SensorNetwork.newInstance();
-            createSensors().forEach(rede::addSensors);
-            createSinks().forEach(rede::addSinks);
+            SensorNetwork network = SensorNetwork.newInstance();
+            createSensors().forEach(network::addSensors);
+            createSinks().forEach(network::addSinks);
 
             System.out.println("\n\n========= Teste Numero: " + i + " =========");
 
             /////////////////////////// MEDICAO DE TEMPO //////////////////////
-            MedirTempo tempoRede = new MedirTempo();
+            Chronometer networkTime = new Chronometer();
 
-            tempoRede.iniciar();
+            networkTime.start();
 
-            Files.createDirectories(Paths.get(parmEntrada.getCaminhoSaida()));
-            SolucaoViaAGMO solucao = new SolucaoViaAGMO(SimulationConfigurationLoader.getConfiguration(), parmEntrada.getCaminhoSaida());
+            Files.createDirectories(Paths.get(inputParameters.getOutputPath()));
+            SolucaoViaAGMO solucao = new SolucaoViaAGMO(SimulationConfigurationLoader.getConfiguration(), inputParameters.getOutputPath());
             solucao.simularRede(i);
 
-            tempoRede.finalizar();
+            networkTime.end();
 
-            String sTempo = "tempo" + i + ".out";
-            Saidas.geraArqSaidaTempo(sTempo, parmEntrada.getCaminhoSaida(), tempoRede.getTempoTotal());
+            String timeFileName = "tempo" + i + ".out";
+            SimulationOutput.generateTimeOutput(timeFileName, inputParameters.getOutputPath(), networkTime.getTotalTime());
         }
     }
 

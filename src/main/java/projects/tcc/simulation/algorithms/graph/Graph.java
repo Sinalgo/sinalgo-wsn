@@ -1,26 +1,28 @@
 package projects.tcc.simulation.algorithms.graph;
 
+import lombok.extern.java.Log;
 import projects.tcc.simulation.wsn.data.Sensor;
 import projects.tcc.simulation.wsn.data.Sink;
 
 import java.util.List;
 
+@Log
 public class Graph {
 
-    private List<Sensor> listSensores_Sink;
-    private double[][] matrizConectividade;
+    private List<Sensor> sensorSinkList;
+    private double[][] connectivityMatrix;
 
-    public Graph(List<Sensor> listSensores, double[][] matrizConectividade) {
-        this.listSensores_Sink = listSensores;
-        this.matrizConectividade = matrizConectividade;
+    public Graph(List<Sensor> sensorSinkList, double[][] connectivityMatrix) {
+        this.sensorSinkList = sensorSinkList;
+        this.connectivityMatrix = connectivityMatrix;
     }
 
     public void build() {
-        for (Sensor vertA : this.listSensores_Sink) {
+        for (Sensor vertA : this.sensorSinkList) {
             for (Sensor vertB : vertA.getNeighborhood()) {
-                double vDistancia = this.matrizConectividade[vertA.getSensorId()][vertB.getSensorId()];
-                double peso = Sensor.getCurrentPerDistance(vDistancia);
-                vertA.getAdjacencies().add(new GraphEdge(vertB, peso));
+                double distance = this.connectivityMatrix[vertA.getSensorId()][vertB.getSensorId()];
+                double weight = Sensor.getCurrentPerDistance(distance);
+                vertA.getAdjacencies().add(new GraphEdge(vertB, weight));
             }
         }
     }
@@ -28,32 +30,28 @@ public class Graph {
     public void computeMinimalPathsTo(Sensor sens) {
         if (sens instanceof Sink) {
             Dijkstra.computePaths(sens);
-            this.registrarCustoCaminhoSens();
+            for (Sensor vert : this.sensorSinkList) {
+                vert.setCostToSink(vert.getMinDistance());
+            }
         } else {
-            System.out.println("O Caminho Mínimo para o sensor escolhido nao foi calculado pois ele nao é o Sink.");
+            log.severe("Tried to compute paths to non-sink sensor");
         }
     }
 
-    private void registrarCustoCaminhoSens() {
-        for (Sensor vert : this.listSensores_Sink) {
-            vert.setCostToSink(vert.getMinDistance());
-        }
-    }
-
-    public void construirGrafoConect() {
-        double penalidade = 2500;
-        for (Sensor vertA : this.listSensores_Sink) {
+    public void buildConnectionGraph() {
+        double penalty = 2500;
+        for (Sensor vertA : this.sensorSinkList) {
             for (Sensor vertB : vertA.getNeighborhood()) {
                 if (!vertB.isFailed()) {
-                    double vDistancia = this.matrizConectividade[vertA.getSensorId()][vertB.getSensorId()];
-                    double peso = Sensor.getCurrentPerDistance(vDistancia);
+                    double distance = this.connectivityMatrix[vertA.getSensorId()][vertB.getSensorId()];
+                    double weight = Sensor.getCurrentPerDistance(distance);
                     if ((vertA.isActive() && !vertB.isActive()) ||
                             (!vertA.isActive() && vertB.isActive())) {
-                        peso = peso * penalidade;
+                        weight = weight * penalty;
                     } else if (!vertA.isActive() && !vertB.isActive()) {
-                        peso = peso * penalidade * penalidade;
+                        weight = weight * penalty * penalty;
                     }
-                    vertA.getAdjacencies().add(new GraphEdge(vertB, peso));
+                    vertA.getAdjacencies().add(new GraphEdge(vertB, weight));
                 }
             }
         }
