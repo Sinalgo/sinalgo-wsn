@@ -99,7 +99,6 @@ public class CustomGlobal extends AbstractCustomGlobal {
             SensorNetwork.currentInstance().getDemandPoints().forEach(p -> {
                         Color backupColor = g.getColor();
                         g.setColor(Color.DARK_GRAY);
-                        pt.translateToGUIPosition(p);
                         pt.drawLine(g, p, p);
                         g.setColor(backupColor);
                     }
