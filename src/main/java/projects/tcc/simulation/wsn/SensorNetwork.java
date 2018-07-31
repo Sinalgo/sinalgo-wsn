@@ -36,7 +36,7 @@ public class SensorNetwork {
 
     private static SensorNetwork currentInstance;
 
-    public static SensorNetwork getCurrentInstance() {
+    public static SensorNetwork currentInstance() {
         if (currentInstance == null) {
             return newInstance();
         }

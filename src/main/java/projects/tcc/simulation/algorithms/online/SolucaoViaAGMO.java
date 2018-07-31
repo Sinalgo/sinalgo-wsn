@@ -2,7 +2,7 @@ package projects.tcc.simulation.algorithms.online;
 
 import projects.tcc.simulation.algorithms.genetic.AG_Estatico_MO_arq;
 import projects.tcc.simulation.io.SimulationConfiguration;
-import projects.tcc.simulation.main.SimulationOutput;
+import projects.tcc.simulation.io.SimulationOutput;
 import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.Simulation;
 
@@ -19,7 +19,7 @@ public class SolucaoViaAGMO {
     private String caminhoSaida;
 
     public SolucaoViaAGMO(SimulationConfiguration config, String caminhoSaida) {
-        this.sensorNetwork = SensorNetwork.getCurrentInstance();
+        this.sensorNetwork = SensorNetwork.currentInstance();
         this.numeroGeracoes = config.getNumberOfGenerations();
         this.tamanhoPopulacao = config.getPopulationSize();
         this.txCruzamento = config.getCrossoverRate();
@@ -37,7 +37,7 @@ public class SolucaoViaAGMO {
         }
         System.out.println(String.join(" ", vetSensAtivStr));
         this.sensorNetwork.buildInitialNetwork(vetSensAtiv);
-        Simulation redeSim = new Simulation(this.sensorNetwork);
+        Simulation redeSim = Simulation.newInstance();
         SimulationOutput saida = new SimulationOutput(this.sensorNetwork, redeSim, this.caminhoSaida);
         int perAtual = 0;
         while (this.sensorNetwork.getCurrentCoveragePercent() >= this.sensorNetwork.getCoverageFactor()) {

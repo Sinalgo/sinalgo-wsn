@@ -1,7 +1,7 @@
 package projects.tcc.simulation.wsn;
 
 import lombok.Getter;
-import projects.tcc.simulation.main.SimulationOutput;
+import projects.tcc.simulation.io.SimulationOutput;
 import projects.tcc.simulation.wsn.data.Sensor;
 
 import java.util.ArrayList;
@@ -33,11 +33,25 @@ public class Simulation {
 
     private List<Sensor> periodFailedSensors;
 
+    private static Simulation currentInstance;
+
+    public static Simulation currentInstance() {
+        if (currentInstance == null) {
+            return newInstance();
+        }
+        return currentInstance;
+    }
+
+    public static Simulation newInstance() {
+        currentInstance = new Simulation();
+        return currentInstance;
+    }
+
     public double getCurrentCoveragePercentage() {
         return this.network.getCurrentCoveragePercent();
     }
 
-    public Simulation(SensorNetwork network) {
+    private Simulation() {
         this.residualEnergy = new ArrayList<>();
         this.consumedEnergy = new ArrayList<>();
         this.coverageArray = new ArrayList<>();
@@ -45,7 +59,7 @@ public class Simulation {
         this.activeSensorCount = new ArrayList<>();
         this.currentStage = new ArrayList<>();
 
-        this.network = network;
+        this.network = SensorNetwork.currentInstance();
         this.sensors = network.getAvailableSensors();
 
         this.minBatteryThreshold = 10;

@@ -23,6 +23,6 @@ public class SensorNode extends SimulationNode implements Sensor {
                 config.getSensorRadius(), config.getCommRadius(), config.getBatteryEnergy(),
                 config.getActivationPower(), config.getReceivePower(),
                 config.getMaintenancePower(), config.getCommRatio());
-        SensorNetwork.getCurrentInstance().addSensors(this);
+        SensorNetwork.currentInstance().addSensors(this);
     }
 }

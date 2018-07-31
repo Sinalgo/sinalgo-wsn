@@ -1,5 +1,7 @@
-package projects.tcc.simulation.main;
+package projects.tcc.simulation.io;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.Simulation;
 import projects.tcc.simulation.wsn.data.Sensor;
@@ -11,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SimulationOutput {
 
     private SensorNetwork network;
@@ -82,9 +85,8 @@ public class SimulationOutput {
         pw.close();
     }
 
-    public static void generateTimeOutput(String fileName, String folder, double time) throws IOException {
-        String arq = folder + fileName;
-        FileWriter fw = new FileWriter(arq);
+    public void generateTimeOutput(String fileName, double time) throws IOException {
+        FileWriter fw = new FileWriter(this.folder + fileName);
         PrintWriter pw = new PrintWriter(fw);
         pw.print(time);
         pw.close();

@@ -4,6 +4,7 @@ import projects.tcc.simulation.algorithms.online.SolucaoViaAGMO;
 import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.io.SimulationConfiguration.SensorConfiguration;
 import projects.tcc.simulation.io.SimulationConfigurationLoader;
+import projects.tcc.simulation.io.SimulationOutput;
 import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.data.Sensor;
 import projects.tcc.simulation.wsn.data.Sink;
@@ -49,7 +50,8 @@ public class Main {
             networkTime.end();
 
             String timeFileName = "tempo" + i + ".out";
-            SimulationOutput.generateTimeOutput(timeFileName, inputParameters.getOutputPath(), networkTime.getTotalTime());
+            new SimulationOutput(null, null, inputParameters.getOutputPath())
+                    .generateTimeOutput(timeFileName, networkTime.getTotalTime());
         }
     }
 
