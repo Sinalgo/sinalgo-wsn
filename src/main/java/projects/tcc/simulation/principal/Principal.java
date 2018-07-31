@@ -31,10 +31,9 @@ public class Principal {
         for (int i = parmEntrada.getNumTesteInicial(); i < parmEntrada.getNumTeste(); i++) {
 
             // =================== Iniciando a Simulacao ==================
-            SensorNetwork rede = SensorNetwork.getCurrentInstance();
+            SensorNetwork rede = SensorNetwork.newInstance();
             createSensors().forEach(rede::addSensors);
             createSinks().forEach(rede::addSinks);
-            rede.prepararRede();
 
             System.out.println("\n\n========= Teste Numero: " + i + " =========");
 

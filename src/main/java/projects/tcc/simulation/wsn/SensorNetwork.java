@@ -7,7 +7,6 @@ import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.io.SimulationConfigurationLoader;
 import projects.tcc.simulation.wsn.data.Sensor;
 import projects.tcc.simulation.wsn.data.Sink;
-import sinalgo.exception.SinalgoFatalException;
 import sinalgo.nodes.Position;
 
 import java.util.ArrayList;
@@ -32,14 +31,19 @@ public class SensorNetwork {
 
     private double coverageFactor;
 
-    private boolean prepared = false;
+    private boolean initialized = false;
 
     private static SensorNetwork currentInstance;
 
     public static SensorNetwork getCurrentInstance() {
         if (currentInstance == null) {
-            currentInstance = new SensorNetwork(SimulationConfigurationLoader.getConfiguration());
+            return newInstance();
         }
+        return currentInstance;
+    }
+
+    public static SensorNetwork newInstance() {
+        currentInstance = new SensorNetwork(SimulationConfigurationLoader.getConfiguration());
         return currentInstance;
     }
 
@@ -85,14 +89,13 @@ public class SensorNetwork {
         this.sinks.add(sink);
     }
 
-    public void prepararRede() {
-        if (this.isPrepared()) {
-            throw new SinalgoFatalException("Double initialization of the SensorNetwork object");
+    private void prepararRede() {
+        if (!this.isInitialized()) {
+            this.setInitialized(true);
+            this.constroiVetCobertura();
+            this.constroiMatrizConectividade();
+            this.criaListVizinhosRC();
         }
-        this.setPrepared(true);
-        this.constroiVetCobertura();
-        this.constroiMatrizConectividade();
-        this.criaListVizinhosRC();
     }
 
     private void constroiMatrizConectividade() {
@@ -478,6 +481,7 @@ public class SensorNetwork {
     }
 
     public void constroiRedeInicial(boolean[] vetBoolean) {
+        this.prepararRede();
         this.activateSensors(vetBoolean);
 
         // criando a conectividade inicial das redes e atualizando a cobertura.
