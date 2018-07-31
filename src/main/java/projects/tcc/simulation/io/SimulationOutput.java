@@ -1,7 +1,5 @@
 package projects.tcc.simulation.io;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.Simulation;
 import projects.tcc.simulation.wsn.data.Sensor;
@@ -13,7 +11,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SimulationOutput {
 
     private SensorNetwork network;

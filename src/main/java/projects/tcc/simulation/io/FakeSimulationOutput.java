@@ -1,8 +1,15 @@
 package projects.tcc.simulation.io;
 
+import projects.tcc.simulation.wsn.SensorNetwork;
+import projects.tcc.simulation.wsn.Simulation;
+
 import java.io.IOException;
 
 public class FakeSimulationOutput extends SimulationOutput {
+
+    public FakeSimulationOutput() {
+        super(SensorNetwork.currentInstance(), Simulation.currentInstance(), null);
+    }
 
     @Override
     public void generateSimulatorOutput(int currentStage) throws IOException {

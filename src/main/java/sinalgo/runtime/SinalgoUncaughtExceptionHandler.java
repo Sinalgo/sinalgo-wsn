@@ -55,34 +55,36 @@ public class SinalgoUncaughtExceptionHandler implements UncaughtExceptionHandler
 
     @Override
     public void uncaughtException(Thread t, Throwable e) {
-        if (e instanceof IllegalComponentStateException
-                && Objects.equals(e.getMessage(), "component must be showing on the screen to determine its location")) {
-            return;
-        } else if (e instanceof SinalgoWrappedException) {
-            fatalError(e.getCause());
-        } else if (e instanceof OutOfMemoryError) {
-            SinalgoRuntime.setNodes(null);
-            Tools.disposeRecycledObjects(Logging.getLogger().getOutputStream());
-            System.gc();
-            Runtime r = Runtime.getRuntime();
-            long maxMem = r.maxMemory() / 1048576;
-            fatalError("Sinalgo ran out of memory. (" + maxMem + " MB is not enough). \n"
-                    + "To allow the VM to use more memory, modify the javaVMmaxMem entry of the config file.", e);
-        } else if (e instanceof SinalgoFatalException) {
-            fatalError(String.format("%s" + (e.getCause() != null ? ":\n%s" : ""), e.getMessage(), e.getCause()),
-                    (e.getCause() != null ? e.getCause() : e));
-        }
+        // Workaround
+        if (!(e instanceof IllegalComponentStateException)
+                || !Objects.equals(e.getMessage(), "component must be showing on the screen to determine its location")) {
+            e.printStackTrace();
+            if (e instanceof SinalgoWrappedException) {
+                fatalError(e.getCause());
+            } else if (e instanceof OutOfMemoryError) {
+                SinalgoRuntime.setNodes(null);
+                Tools.disposeRecycledObjects(Logging.getLogger().getOutputStream());
+                System.gc();
+                Runtime r = Runtime.getRuntime();
+                long maxMem = r.maxMemory() / 1048576;
+                fatalError("Sinalgo ran out of memory. (" + maxMem + " MB is not enough). \n"
+                        + "To allow the VM to use more memory, modify the javaVMmaxMem entry of the config file.", e);
+            } else if (e instanceof SinalgoFatalException) {
+                fatalError(String.format("%s" + (e.getCause() != null ? ":\n%s" : ""), e.getMessage(), e.getCause()),
+                        (e.getCause() != null ? e.getCause() : e));
+            }
 
-        StringBuilder st = new StringBuilder("    ");
-        StackTraceElement[] ste = e.getStackTrace();
-        for (StackTraceElement element : ste) {
-            st.append(element.toString()).append("\n    ");
+            StringBuilder st = new StringBuilder("    ");
+            StackTraceElement[] ste = e.getStackTrace();
+            for (StackTraceElement element : ste) {
+                st.append(element.toString()).append("\n    ");
+            }
+            fatalError("There was an Exception in Thread " + t + " \n\n"
+                    + "Exception: " + e + ": \n\n"
+                    + "Message: " + e.getMessage() + "\n\n"
+                    + "Cause: " + e.getCause() + "\n\n"
+                    + "StackTrace: " + st, e);
         }
-        fatalError("There was an Exception in Thread " + t + " \n\n"
-                + "Exception: " + e + ": \n\n"
-                + "Message: " + e.getMessage() + "\n\n"
-                + "Cause: " + e.getCause() + "\n\n"
-                + "StackTrace: " + st, e);
     }
 
     /**

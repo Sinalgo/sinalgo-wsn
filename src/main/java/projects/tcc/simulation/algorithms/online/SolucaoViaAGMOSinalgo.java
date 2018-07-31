@@ -43,30 +43,29 @@ public class SolucaoViaAGMOSinalgo {
             boolean[] vetSensAtiv = AG_Estatico_MO_arq.resolveAG_Estatico_MO(this.sensorNetwork, this.numeroGeracoes, this.tamanhoPopulacao, this.txCruzamento);
             /////////////////////////// REDE INICIAL ///////////////////////////////
             this.sensorNetwork.buildInitialNetwork(vetSensAtiv);
-        } else {
-            Simulation redeSim = Simulation.currentInstance();
-            if (this.sensorNetwork.getCurrentCoveragePercent() >= this.sensorNetwork.getCoverageFactor()) {
-                boolean evento = redeSim.simulatePeriod(currentPeriod, new FakeSimulationOutput());
-                boolean reestruturar = redeSim.isRestructureNetwork();
-                if (reestruturar) {
-                    //gerando a POP de Cromossomos inicial para o AG
-                    boolean[] vetSensAtiv = AG_Estatico_MO_arq.resolveAG_Estatico_MO(this.sensorNetwork, this.numeroGeracoes, this.tamanhoPopulacao, this.txCruzamento);
-                    this.sensorNetwork.buildInitialNetwork(vetSensAtiv);
-                    System.out.println("===== EVENTO e REESTRUTUROU TEMPO = " + currentPeriod);
-                }
-                if (evento && !reestruturar) {
-                    if (!this.sensorNetwork.supplyCoverageOnline()) {
-                        this.sensorNetwork.supplyCoverage();
-                        this.sensorNetwork.desligarSensoresDesconexos();
-                    }
-                    System.out.println("===== EVENTO TEMPO = " + currentPeriod);
-                }
-            } else {
-                Tools.stopSimulation();
-                Tools.minorError("Não foi mais possível se manter acima do mínimo de cobertura");
-            }
-            System.out.println("==> Reestruturação foi requisitada " + redeSim.getRestructureCount());
         }
+        Simulation redeSim = Simulation.currentInstance();
+        if (this.sensorNetwork.getCurrentCoveragePercent() >= this.sensorNetwork.getCoverageFactor()) {
+            boolean evento = redeSim.simulatePeriod(currentPeriod, new FakeSimulationOutput());
+            boolean reestruturar = redeSim.isRestructureNetwork();
+            if (reestruturar) {
+                //gerando a POP de Cromossomos inicial para o AG
+                boolean[] vetSensAtiv = AG_Estatico_MO_arq.resolveAG_Estatico_MO(this.sensorNetwork, this.numeroGeracoes, this.tamanhoPopulacao, this.txCruzamento);
+                this.sensorNetwork.buildInitialNetwork(vetSensAtiv);
+                System.out.println("===== EVENTO e REESTRUTUROU TEMPO = " + currentPeriod);
+            }
+            if (evento && !reestruturar) {
+                if (!this.sensorNetwork.supplyCoverageOnline()) {
+                    this.sensorNetwork.supplyCoverage();
+                    this.sensorNetwork.desligarSensoresDesconexos();
+                }
+                System.out.println("===== EVENTO TEMPO = " + currentPeriod);
+            }
+        } else {
+            Tools.stopSimulation();
+            Tools.minorError("Não foi mais possível se manter acima do mínimo de cobertura");
+        }
+        System.out.println("==> Reestruturação foi requisitada " + redeSim.getRestructureCount());
     }
 
 }
