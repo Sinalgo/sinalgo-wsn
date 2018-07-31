@@ -1,7 +1,6 @@
 package projects.tcc.nodes.nodeImplementations;
 
 import lombok.Getter;
-import lombok.experimental.Delegate;
 import projects.tcc.simulation.algorithms.online.SolucaoViaAGMOSinalgo;
 import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.io.SimulationConfigurationLoader;
@@ -14,10 +13,9 @@ import sinalgo.nodes.messages.Inbox;
 
 import java.awt.*;
 
-public class SinkNode extends SensorNode implements Sink {
+public class SinkNode extends SensorNode {
 
     @Getter
-    @Delegate(types = Sink.class)
     private Sink sensor;
 
     private int stage = 0;
@@ -27,7 +25,7 @@ public class SinkNode extends SensorNode implements Sink {
         SimulationConfiguration config = SimulationConfigurationLoader.getConfiguration();
         this.sensor = new WSNSink((int) this.getID() - 1, this.getPosition().getXCoord(),
                 this.getPosition().getYCoord(), config.getCommRadius());
-        SensorNetwork.currentInstance().addSinks(this);
+        SensorNetwork.currentInstance().addSinks(this.getSensor());
         this.runSimulation();
     }
 

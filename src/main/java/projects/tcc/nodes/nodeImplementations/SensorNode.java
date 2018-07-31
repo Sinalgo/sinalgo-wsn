@@ -1,7 +1,6 @@
 package projects.tcc.nodes.nodeImplementations;
 
 import lombok.Getter;
-import lombok.experimental.Delegate;
 import projects.tcc.nodes.SimulationNode;
 import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.io.SimulationConfigurationLoader;
@@ -12,10 +11,9 @@ import sinalgo.gui.transformation.PositionTransformation;
 
 import java.awt.*;
 
-public class SensorNode extends SimulationNode implements Sensor {
+public class SensorNode extends SimulationNode {
 
     @Getter
-    @Delegate(types = Sensor.class)
     private Sensor sensor;
 
     @Override
@@ -26,12 +24,12 @@ public class SensorNode extends SimulationNode implements Sensor {
                 config.getSensorRadius(), config.getCommRadius(), config.getBatteryEnergy(),
                 config.getActivationPower(), config.getReceivePower(),
                 config.getMaintenancePower(), config.getCommRatio());
-        SensorNetwork.currentInstance().addSensors(this);
+        SensorNetwork.currentInstance().addSensors(this.getSensor());
     }
 
     @Override
     public void draw(Graphics g, PositionTransformation pt, boolean highlight) {
-        this.setColor(this.isFailed() ? Color.RED : this.isActive() ? Color.GREEN : Color.BLACK);
-        super.drawAsDisk(g, pt, highlight, this.isFailed() ? 10 : this.isActive() ? 20 : 10);
+        this.setColor(this.getSensor().isFailed() ? Color.RED : this.getSensor().isActive() ? Color.GREEN : Color.BLACK);
+        super.drawAsDisk(g, pt, highlight, this.getSensor().isFailed() ? 10 : this.getSensor().isActive() ? 20 : 10);
     }
 }
