@@ -39,10 +39,15 @@ package projects.tcc;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import projects.tcc.simulation.wsn.SensorNetwork;
+import projects.tcc.simulation.wsn.data.Sensor;
 import sinalgo.exception.SinalgoFatalException;
+import sinalgo.gui.transformation.PositionTransformation;
 import sinalgo.runtime.AbstractCustomGlobal;
 import sinalgo.runtime.Global;
 import sinalgo.tools.logging.Logging;
+
+import java.awt.*;
 
 /**
  * This class holds customized global state and methods for the framework. The
@@ -68,6 +73,54 @@ import sinalgo.tools.logging.Logging;
 public class CustomGlobal extends AbstractCustomGlobal {
 
     private Logging log = Logging.getLogger("tcc_log.txt");
+
+    private boolean drawPoints = false;
+    private boolean drawCommRadius = false;
+    private boolean drawSensorRadius = false;
+
+    @GlobalMethod(menuText = "Toggle Draw Demand Points")
+    public void toggleDrawDemandPoints() {
+        drawPoints = !drawPoints;
+    }
+
+    @GlobalMethod(menuText = "Toggle Draw Comm Radius")
+    public void toggleDrawCommRadius() {
+        drawCommRadius = !drawCommRadius;
+    }
+
+    @GlobalMethod(menuText = "Toggle Draw Sensor Radius")
+    public void toggleDrawSensorRadius() {
+        drawSensorRadius = !drawSensorRadius;
+    }
+
+    @Override
+    public void customPaint(Graphics g, PositionTransformation pt) {
+        if (drawPoints) {
+            SensorNetwork.currentInstance().getDemandPoints().forEach(p -> {
+                        Color backupColor = g.getColor();
+                        g.setColor(Color.DARK_GRAY);
+                        pt.translateToGUIPosition(p);
+                        pt.drawLine(g, p, p);
+                        g.setColor(backupColor);
+                    }
+            );
+        }
+        if (drawCommRadius) {
+            SensorNetwork.currentInstance().getActiveSensors().forEach(s -> drawRadius(g, pt, s, Color.ORANGE, s.getCommRadius()));
+            SensorNetwork.currentInstance().getSinks().forEach(s -> drawRadius(g, pt, s, Color.ORANGE, s.getCommRadius()));
+        }
+        if (drawSensorRadius) {
+            SensorNetwork.currentInstance().getActiveSensors().forEach(s -> drawRadius(g, pt, s, Color.MAGENTA, s.getSensRadius()));
+            SensorNetwork.currentInstance().getSinks().forEach(s -> drawRadius(g, pt, s, Color.ORANGE, s.getCommRadius()));
+        }
+    }
+
+    private void drawRadius(Graphics g, PositionTransformation pt, Sensor s, Color orange, double commRadius) {
+        Color backupColor = g.getColor();
+        g.setColor(orange);
+        pt.drawCircle(g, s.getPosition(), commRadius);
+        g.setColor(backupColor);
+    }
 
     // The user can optionally specify exitAfter in the config file to indicate
     // after how many rounds the simulation should stop.
