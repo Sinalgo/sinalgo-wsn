@@ -51,6 +51,7 @@ import sinalgo.tools.logging.Logging;
 
 import java.awt.*;
 import java.io.PrintStream;
+import java.lang.reflect.Method;
 
 /**
  * This class holds customized global state and methods for the framework. The
@@ -80,20 +81,38 @@ public class CustomGlobal extends AbstractCustomGlobal {
     private boolean drawPoints = false;
     private boolean drawCommRadius = false;
     private boolean drawSensorRadius = false;
+    private boolean drawAll = false;
 
-    @GlobalMethod(menuText = "Toggle Draw Demand Points")
+    @GlobalMethod(menuText = "Toggle Draw Demand Points", subMenu = "View")
     public void toggleDrawDemandPoints() {
         drawPoints = !drawPoints;
+        drawAll &= drawPoints;
     }
 
-    @GlobalMethod(menuText = "Toggle Draw Comm Radius")
+    @GlobalMethod(menuText = "Toggle Draw Comm Radius", subMenu = "View", order = 1)
     public void toggleDrawCommRadius() {
         drawCommRadius = !drawCommRadius;
+        drawAll &= drawCommRadius;
     }
 
-    @GlobalMethod(menuText = "Toggle Draw Sensor Radius")
+    @GlobalMethod(menuText = "Toggle Draw Sensor Radius", subMenu = "View", order = 2)
     public void toggleDrawSensorRadius() {
         drawSensorRadius = !drawSensorRadius;
+        drawAll &= drawSensorRadius;
+    }
+
+    @GlobalMethod(menuText = "Toggle All", subMenu = "View", order = 3)
+    public void toggleAll() {
+        if (drawAll) {
+            drawSensorRadius = false;
+            drawCommRadius = false;
+            drawPoints = false;
+        } else {
+            drawSensorRadius = true;
+            drawCommRadius = true;
+            drawPoints = true;
+        }
+        drawAll = !drawAll;
     }
 
     @Override
@@ -242,16 +261,24 @@ public class CustomGlobal extends AbstractCustomGlobal {
 //        S1Node.setSending(!S1Node.isSending());
 //    }
 
-//    @Override
-//    public String includeGlobalMethodInMenu(Method m, String defaultText) {
-//        if (m.getName().equals("stopSending")) {
-//            if (Tools.getNodeList().size() == 0) {
-//                return null; // don't display this menu option
-//            }
-//            return S1Node.isSending() ? "Stop Sending" : "Continue Sending";
-//        }
-//        return defaultText;
-//    }
+    @Override
+    public String includeGlobalMethodInMenu(Method m, String defaultText) {
+        switch (m.getName()) {
+            case "toggleDrawDemandPoints":
+                return getEnableDisableString(drawPoints) + "Demand Points";
+            case "toggleDrawCommRadius":
+                return getEnableDisableString(drawCommRadius) + "Comm. Radius";
+            case "toggleDrawSensorRadius":
+                return getEnableDisableString(drawSensorRadius) + "Sensorinig Radius";
+            case "toggleAll":
+                return getEnableDisableString(drawAll) + "All";
+        }
+        return defaultText;
+    }
+
+    private String getEnableDisableString(boolean toggleStatus) {
+        return toggleStatus ? "Disable drawing " : "Enable drawing ";
+    }
 
     @Override
     public void checkProjectRequirements() {
