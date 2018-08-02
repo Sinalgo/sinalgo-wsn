@@ -54,11 +54,11 @@ public class SimulationOutput {
 
     public void generateConsoleOutput(int periodo) {
         println("\n\n\n\n");
-        println("Round = " + periodo);
-        println("Active Sensors: " + this.network.getActiveSensorCount());
-        println("Res. Energy: " + this.simulation.getNetworkResidualEnergy());
-        println("Cons. Energy: " + this.simulation.getNetworkConsumedEnergy());
-        println("Coverage: " + this.simulation.getCurrentCoveragePercentage());
+        println(String.format("Round = %d", periodo));
+        println(String.format("Active Sensors: %d", this.network.getActiveSensorCount()));
+        println(String.format("Res. Energy: %.3f", this.simulation.getNetworkResidualEnergy()));
+        println(String.format("Cons. Energy: %.3f", this.simulation.getNetworkConsumedEnergy()));
+        println(String.format("Coverage: %.5f", this.simulation.getCurrentCoveragePercentage()));
     }
 
     public void generateSimulatorOutput(int currentStage) throws IOException {
