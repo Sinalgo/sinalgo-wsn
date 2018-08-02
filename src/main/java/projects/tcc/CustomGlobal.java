@@ -39,6 +39,7 @@ package projects.tcc;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import projects.tcc.simulation.algorithms.online.SolucaoViaAGMOSinalgo;
 import projects.tcc.simulation.io.SimulationOutput;
 import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.data.Sensor;
@@ -115,6 +116,11 @@ public class CustomGlobal extends AbstractCustomGlobal {
         drawAll = !drawAll;
     }
 
+    @GlobalMethod(menuText = "Toggle stop simulation on Sensor failure", subMenu = "Simulation")
+    public void togglePauseOnSensorFailure() {
+        SolucaoViaAGMOSinalgo.currentInstance().setStopSimulationOnFailure(!SolucaoViaAGMOSinalgo.currentInstance().isStopSimulationOnFailure());
+    }
+
     @Override
     public void customPaint(Graphics g, PositionTransformation pt) {
         if (drawPoints) {
@@ -127,11 +133,21 @@ public class CustomGlobal extends AbstractCustomGlobal {
             );
         }
         if (drawCommRadius) {
-            SensorNetwork.currentInstance().getActiveSensors().forEach(s -> drawRadius(g, pt, s, Color.ORANGE, s.getCommRadius()));
+            SensorNetwork.currentInstance().getActiveSensors()
+                    .forEach(s -> {
+                        if (s.isConnected()) {
+                            drawRadius(g, pt, s, Color.ORANGE, s.getCommRadius());
+                        }
+                    });
             SensorNetwork.currentInstance().getSinks().forEach(s -> drawRadius(g, pt, s, Color.ORANGE, s.getCommRadius()));
         }
         if (drawSensorRadius) {
-            SensorNetwork.currentInstance().getActiveSensors().forEach(s -> drawRadius(g, pt, s, Color.MAGENTA, s.getSensRadius()));
+            SensorNetwork.currentInstance().getActiveSensors()
+                    .forEach(s -> {
+                        if (s.isConnected()) {
+                            drawRadius(g, pt, s, Color.MAGENTA, s.getSensRadius());
+                        }
+                    });
         }
     }
 
@@ -272,6 +288,9 @@ public class CustomGlobal extends AbstractCustomGlobal {
                 return getEnableDisableString(drawSensorRadius) + "Sensorinig Radius";
             case "toggleAll":
                 return getEnableDisableString(drawAll) + "All";
+            case "togglePauseOnSensorFailure":
+                return (SolucaoViaAGMOSinalgo.currentInstance().isStopSimulationOnFailure()
+                        ? "Disable" : "Enable") + " stop simulation on Sensor failure";
         }
         return defaultText;
     }

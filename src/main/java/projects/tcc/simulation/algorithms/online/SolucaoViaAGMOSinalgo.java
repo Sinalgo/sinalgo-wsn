@@ -1,5 +1,7 @@
 package projects.tcc.simulation.algorithms.online;
 
+import lombok.Getter;
+import lombok.Setter;
 import projects.tcc.simulation.algorithms.genetic.AG_Estatico_MO_arq;
 import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.io.SimulationConfigurationLoader;
@@ -16,6 +18,13 @@ public class SolucaoViaAGMOSinalgo {
     private int numeroGeracoes;
     private int tamanhoPopulacao;
     private double txCruzamento;
+
+    @Getter
+    @Setter
+    private boolean stopSimulationOnFailure;
+
+    @Setter
+    private boolean ignoreOnline = true;
 
     private static SolucaoViaAGMOSinalgo currentInstance;
 
@@ -49,13 +58,16 @@ public class SolucaoViaAGMOSinalgo {
         if (this.sensorNetwork.getCurrentCoveragePercent() >= this.sensorNetwork.getCoverageFactor()) {
             boolean evento = redeSim.simulatePeriod(currentPeriod, new SinalgoSimulationOutput());
             boolean reestruturar = redeSim.isRestructureNetwork();
-            if (reestruturar) {
+            if (reestruturar || (evento && ignoreOnline)) {
                 //gerando a POP de Cromossomos inicial para o AG
                 boolean[] vetSensAtiv = AG_Estatico_MO_arq.resolveAG_Estatico_MO(this.sensorNetwork, this.numeroGeracoes, this.tamanhoPopulacao, this.txCruzamento);
                 this.sensorNetwork.buildInitialNetwork(vetSensAtiv);
                 SimulationOutput.println("===== EVENTO e REESTRUTUROU TEMPO = " + currentPeriod);
+                if (isStopSimulationOnFailure()) {
+                    Tools.stopSimulation();
+                }
             }
-            if (evento && !reestruturar) {
+            if (evento && !reestruturar && !ignoreOnline) {
                 if (!this.sensorNetwork.supplyCoverageOnline()) {
                     this.sensorNetwork.supplyCoverage();
                     this.sensorNetwork.desligarSensoresDesconexos();
