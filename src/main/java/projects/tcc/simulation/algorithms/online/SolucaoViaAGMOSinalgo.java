@@ -11,6 +11,9 @@ import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.Simulation;
 import sinalgo.tools.Tools;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class SolucaoViaAGMOSinalgo {
 
     private SensorNetwork sensorNetwork;
@@ -19,12 +22,18 @@ public class SolucaoViaAGMOSinalgo {
     private int tamanhoPopulacao;
     private double txCruzamento;
 
+    @Setter
+    private SimulationOutput simulationOutput;
+
     @Getter
     @Setter
     private boolean stopSimulationOnFailure;
 
     @Setter
-    private boolean ignoreOnline = true;
+    private static Runnable stopSimulationMethod = Tools::stopSimulation;
+
+    @Setter
+    private static Runnable onStopSimulationMessageMethod = () -> Tools.minorError("Não foi mais possível se manter acima do mínimo de cobertura");
 
     private static SolucaoViaAGMOSinalgo currentInstance;
 
@@ -45,6 +54,7 @@ public class SolucaoViaAGMOSinalgo {
         this.numeroGeracoes = config.getNumberOfGenerations();
         this.tamanhoPopulacao = config.getPopulationSize();
         this.txCruzamento = config.getCrossoverRate();
+        this.simulationOutput = new SinalgoSimulationOutput();
     }
 
     public void simularRede(int currentPeriod) throws Exception {
@@ -52,31 +62,30 @@ public class SolucaoViaAGMOSinalgo {
         if (currentPeriod == 0) {
             boolean[] vetSensAtiv = AG_Estatico_MO_arq.resolveAG_Estatico_MO(this.sensorNetwork, this.numeroGeracoes, this.tamanhoPopulacao, this.txCruzamento);
             /////////////////////////// REDE INICIAL ///////////////////////////////
+            List<String> vetSensAtivStr = new ArrayList<>(vetSensAtiv.length);
+            for (boolean i : vetSensAtiv) {
+                vetSensAtivStr.add(i ? "1" : "0");
+            }
+            SimulationOutput.println(String.join(" ", vetSensAtivStr) + "\n");
             this.sensorNetwork.buildInitialNetwork(vetSensAtiv);
         }
         Simulation redeSim = Simulation.currentInstance();
         if (this.sensorNetwork.getCurrentCoveragePercent() >= this.sensorNetwork.getCoverageFactor()) {
-            boolean evento = redeSim.simulatePeriod(currentPeriod, new SinalgoSimulationOutput());
+            boolean evento = redeSim.simulatePeriod(currentPeriod, this.simulationOutput);
             boolean reestruturar = redeSim.isRestructureNetwork();
-            if (reestruturar || (evento && ignoreOnline)) {
+            if (reestruturar || evento) {
                 //gerando a POP de Cromossomos inicial para o AG
-                boolean[] vetSensAtiv = AG_Estatico_MO_arq.resolveAG_Estatico_MO(this.sensorNetwork, this.numeroGeracoes, this.tamanhoPopulacao, this.txCruzamento);
+                boolean[] vetSensAtiv = AG_Estatico_MO_arq.resolveAG_Estatico_MO(this.sensorNetwork,
+                        this.numeroGeracoes, this.tamanhoPopulacao, this.txCruzamento);
                 this.sensorNetwork.buildInitialNetwork(vetSensAtiv);
                 SimulationOutput.println("===== EVENTO e REESTRUTUROU TEMPO = " + currentPeriod);
                 if (isStopSimulationOnFailure()) {
-                    Tools.stopSimulation();
+                    stopSimulationMethod.run();
                 }
-            }
-            if (evento && !reestruturar && !ignoreOnline) {
-                if (!this.sensorNetwork.supplyCoverageOnline()) {
-                    this.sensorNetwork.supplyCoverage();
-                    this.sensorNetwork.desligarSensoresDesconexos();
-                }
-                SimulationOutput.println("===== EVENTO TEMPO = " + currentPeriod);
             }
         } else {
-            Tools.stopSimulation();
-            Tools.minorError("Não foi mais possível se manter acima do mínimo de cobertura");
+            stopSimulationMethod.run();
+            onStopSimulationMessageMethod.run();
         }
         SimulationOutput.println("==> Reestruturação foi requisitada " + redeSim.getRestructureCount());
     }

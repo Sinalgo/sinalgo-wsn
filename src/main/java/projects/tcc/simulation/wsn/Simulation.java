@@ -24,10 +24,6 @@ public class Simulation {
     private double previousResidualEnergy;
     private int restructureCount;
 
-    private List<Sensor> sensors;
-
-    private SensorNetwork network;
-
     private List<Integer> activeSensorCount;
     private List<Integer> currentStage;
 
@@ -48,7 +44,7 @@ public class Simulation {
     }
 
     public double getCurrentCoveragePercentage() {
-        return this.network.getCurrentCoveragePercent();
+        return SensorNetwork.currentInstance().getCurrentCoveragePercent();
     }
 
     private Simulation() {
@@ -58,9 +54,6 @@ public class Simulation {
 
         this.activeSensorCount = new ArrayList<>();
         this.currentStage = new ArrayList<>();
-
-        this.network = SensorNetwork.currentInstance();
-        this.sensors = network.getAvailableSensors();
 
         this.minBatteryThreshold = 10;
 
@@ -77,15 +70,17 @@ public class Simulation {
         output.generateSimulatorOutput(currentStage);
         this.periodFailedSensors.clear();
 
+        SensorNetwork network = SensorNetwork.currentInstance();
+
         // ========= Verificacao e Calculo de Energia no Periodo de tempo =========
         this.networkResidualEnergy = 0;
         this.networkConsumedEnergy = 0;
-        for (Sensor sensor : this.sensors) {
+        for (Sensor sensor : network.getAvailableSensors()) {
             this.networkResidualEnergy += sensor.getBatteryEnergy();
         }
 
         //Calculando a energia consumida
-        this.networkConsumedEnergy = this.network.calculaEnergiaConsPer();
+        this.networkConsumedEnergy = network.calculaEnergiaConsPer();
 
         //////////////////////// necessario para algumas aplicacoes //////////////////
         if (this.testNetworkRestructure(currentStage)) {
@@ -94,11 +89,11 @@ public class Simulation {
         ///////////////////////////////////////////////////////////////////////////////
 
         //Incluindo Energia consumida por Ativacao.
-        this.networkConsumedEnergy += this.network.computePeriodActivationEnergy();
+        this.networkConsumedEnergy += network.computePeriodActivationEnergy();
         //-----------------------------------------
-        this.currentCoveragePercent = this.network.computeCoverage();
+        this.currentCoveragePercent = network.computeCoverage();
 
-        this.activeSensorCount.add(this.network.getActiveSensorCount());
+        this.activeSensorCount.add(network.getActiveSensorCount());
         this.currentStage.add(currentStage);
 
         this.residualEnergy.add(this.networkResidualEnergy);
@@ -108,11 +103,11 @@ public class Simulation {
         //gerar impressao na tela
         output.generateConsoleOutput(currentStage);
 
-        this.network.computePeriodConsumedEnergy();
+        network.computePeriodConsumedEnergy();
 
         //Verificando se algum sensor nao estara na proxima simulacao
-        boolean sensorsFailed = this.network.removeFailedSensors(this.periodFailedSensors, this.minBatteryThreshold);
-        this.network.setPeriodFailedSensors(this.periodFailedSensors);
+        boolean sensorsFailed = network.removeFailedSensors(this.periodFailedSensors, this.minBatteryThreshold);
+        network.setPeriodFailedSensors(this.periodFailedSensors);
 
         return sensorsFailed;
     }
@@ -128,8 +123,9 @@ public class Simulation {
             }
         }
         if (currentStage > 0) {
-            this.activeSensorsDelta = Math.abs(this.activeSensorCount.get(this.activeSensorCount.size() - 1) - this.network.getActiveSensorCount());
-            if (Double.compare(this.activeSensorsDelta, this.consumedEnergyThreshold * this.network.getAvailableSensors().size()) > 0) {
+            SensorNetwork network = SensorNetwork.currentInstance();
+            this.activeSensorsDelta = Math.abs(this.activeSensorCount.get(this.activeSensorCount.size() - 1) - network.getActiveSensorCount());
+            if (Double.compare(this.activeSensorsDelta, this.consumedEnergyThreshold * network.getAvailableSensors().size()) > 0) {
                 this.activeSensorsDelta = 0;
                 this.restructureNetwork = true;
             }

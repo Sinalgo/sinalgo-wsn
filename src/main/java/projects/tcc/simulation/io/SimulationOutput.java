@@ -53,7 +53,7 @@ public class SimulationOutput {
     }
 
     public void generateConsoleOutput(int periodo) {
-        println("\n\n\n\n");
+        println("\n");
         println(String.format("Round = %d", periodo));
         println(String.format("Active Sensors: %d", this.network.getActiveSensorCount()));
         println(String.format("Res. Energy: %.3f", this.simulation.getNetworkResidualEnergy()));

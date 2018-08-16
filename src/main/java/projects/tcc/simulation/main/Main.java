@@ -1,6 +1,7 @@
 package projects.tcc.simulation.main;
 
 import projects.tcc.simulation.algorithms.online.SolucaoViaAGMO;
+import projects.tcc.simulation.algorithms.online.SolucaoViaAGMOSinalgo;
 import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.io.SimulationConfiguration.SensorConfiguration;
 import projects.tcc.simulation.io.SimulationConfigurationLoader;
@@ -28,6 +29,11 @@ public class Main {
         SimulationConfigurationLoader.overridePopulationSize(300);
         SimulationConfigurationLoader.overrideNumberOfGenerations(150);
 
+        SolucaoViaAGMOSinalgo.setOnStopSimulationMessageMethod(() -> {
+        });
+        SolucaoViaAGMOSinalgo.setStopSimulationMethod(() -> {
+        });
+
         // ============== Variaveis para Simulacao ====================
         for (int i = inputParameters.getInitialTestNumber(); i < inputParameters.getLastTestNumber(); i++) {
 
@@ -44,7 +50,7 @@ public class Main {
             networkTime.start();
 
             Files.createDirectories(Paths.get(inputParameters.getOutputPath()));
-            SolucaoViaAGMO solucao = new SolucaoViaAGMO(SimulationConfigurationLoader.getConfiguration(), inputParameters.getOutputPath());
+            SolucaoViaAGMO solucao = new SolucaoViaAGMO(inputParameters.getOutputPath());
             solucao.simularRede(i);
 
             networkTime.end();
