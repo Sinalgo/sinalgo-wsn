@@ -45,6 +45,7 @@ public class SinkNode extends SensorNode {
             Message m = inbox.next();
             if (m instanceof SimulationMessage) {
                 this.totalReceivedMessages++;
+                ((SimulationMessage) m).getNodes().push(this.toString());
                 System.out.println(String.join(", ", ((SimulationMessage) m).getNodes()));
             }
         }
@@ -68,4 +69,5 @@ public class SinkNode extends SensorNode {
         this.setColor(Color.BLUE);
         super.drawAsDisk(g, pt, highlight, 30);
     }
+
 }

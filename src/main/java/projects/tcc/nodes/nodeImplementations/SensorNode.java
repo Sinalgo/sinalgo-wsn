@@ -47,25 +47,17 @@ public class SensorNode extends SimulationNode {
     @Override
     public void handleMessages(Inbox inbox) {
         for (Edge e : this.getOutgoingConnections()) {
-            if (e.getEndNode() instanceof SensorNode &&
-                    ((SensorNode) e.getEndNode()).getSensor().equals(this.getSensor().getParent())) {
+            if (e.getEndNode() instanceof SensorNode) {
                 sendMessage(new SimulationMessage(), e);
-                break;
             }
         }
         while (inbox.hasNext()) {
             Message m = inbox.next();
             if (m instanceof SimulationMessage && inbox.getSender() instanceof SensorNode) {
                 this.totalReceivedMessages++;
-                if (this.getSensor().getParent() == null ||
-                        ((SensorNode) inbox.getSender()).getSensor().equals(this.getSensor().getParent())) {
-                    continue;
-                }
                 for (Edge e : this.getOutgoingConnections()) {
-                    if (e.getEndNode() instanceof SensorNode &&
-                            ((SensorNode) e.getEndNode()).getSensor().equals(this.getSensor().getParent())) {
+                    if (e.getEndNode() instanceof SensorNode) {
                         sendMessage(m, e);
-                        break;
                     }
                 }
             }
