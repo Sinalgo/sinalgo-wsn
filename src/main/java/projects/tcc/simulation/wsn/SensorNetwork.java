@@ -12,9 +12,11 @@ import sinalgo.exception.SinalgoFatalException;
 import sinalgo.nodes.Position;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Setter
@@ -251,22 +253,21 @@ public class SensorNetwork {
 
     //funcao utilizada pelo AG
     public int computeDisconnectedCoverage(List<Integer> activeSensorIds) {
-        Map<Position, Long> demandPointsAux = new LinkedHashMap<>();
+        Set<Position> auxCoverage = new HashSet<>();
         int numPontosCobertosAux = 0;
         for (int cSensor : activeSensorIds) {
-            numPontosCobertosAux += this.computeDisconnectedCoverage(this.sensors.get(cSensor), demandPointsAux);
+            numPontosCobertosAux += this.computeDisconnectedCoverage(this.sensors.get(cSensor), auxCoverage);
         }
-        return (this.getNumPontosDemanda() - numPontosCobertosAux);
+        return this.getNumPontosDemanda() - numPontosCobertosAux;
     }
 
     //funcao para utilizacao no metodo computeDisconnectedCoverage(List<Integer> listIdSensAtivo)
-    private int computeDisconnectedCoverage(Sensor sensor, Map<Position, Long> auxCoverageMap) {
+    private int computeDisconnectedCoverage(Sensor sensor, Set<Position> auxCoverage) {
         int auxCoveredPointsCount = 0;
         for (Position point : sensor.getCoveredPoints()) {
-            if (auxCoverageMap.getOrDefault(point, 0L) == 0) {
+            if (auxCoverage.add(point)) {
                 auxCoveredPointsCount++;
             }
-            auxCoverageMap.merge(point, 1L, Long::sum);
         }
         return auxCoveredPointsCount;
     }

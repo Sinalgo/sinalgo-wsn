@@ -134,6 +134,7 @@ public class Run {
 
             String cp = System.getProperty("user.dir");
             cmds.add("-Xmx" + Configuration.getJavaVMmaxMem() + "m");
+            cmds.add("-Djava.rmi.server.hostname=localhost");
             cmds.add("-cp");
             // Uses the old Class Path as its set by Gradle
             cmds.add(System.getProperty("java.class.path"));
