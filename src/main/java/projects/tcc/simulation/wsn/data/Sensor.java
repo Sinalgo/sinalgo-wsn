@@ -120,8 +120,8 @@ public class Sensor {
     private double commRatio; //Taxa de comunicação durante a transmissão em uma u.t.
 
     private Map<Sensor, NeighborData> neighborhood;
-    private List<Position> coveredPoints;
-    private List<Position> exclusivelyCoveredPoints;
+    private List<IndexedPosition> coveredPoints;
+    private List<IndexedPosition> exclusivelyCoveredPoints;
     private double costToSink;
 
     private List<GraphEdge> adjacencies;

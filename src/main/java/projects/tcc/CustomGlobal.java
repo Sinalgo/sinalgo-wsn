@@ -44,6 +44,7 @@ import projects.tcc.simulation.io.SimulationOutput;
 import projects.tcc.simulation.wsn.SensorNetwork;
 import sinalgo.exception.SinalgoFatalException;
 import sinalgo.gui.transformation.PositionTransformation;
+import sinalgo.nodes.Position;
 import sinalgo.runtime.AbstractCustomGlobal;
 import sinalgo.runtime.Global;
 import sinalgo.tools.Tools;
@@ -129,13 +130,12 @@ public class CustomGlobal extends AbstractCustomGlobal {
     @Override
     public void customPaint(Graphics g, PositionTransformation pt) {
         if (this.drawPoints) {
-            SensorNetwork.currentInstance().getDemandPoints().keySet().forEach(p -> {
-                        Color backupColor = g.getColor();
-                        g.setColor(Color.DARK_GRAY);
-                        pt.drawLine(g, p, p);
-                        g.setColor(backupColor);
-                    }
-            );
+            for (Position p : SensorNetwork.currentInstance().getDemandPoints()) {
+                Color backupColor = g.getColor();
+                g.setColor(Color.DARK_GRAY);
+                pt.drawLine(g, p, p);
+                g.setColor(backupColor);
+            }
         }
     }
 
