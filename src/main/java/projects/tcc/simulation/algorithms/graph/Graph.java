@@ -17,10 +17,8 @@ public class Graph {
 
     public void build() {
         for (Sensor vertA : this.sensorSinkList) {
-            vertA.getNeighborhood().forEach((vertB, distance) -> {
-                double weight = Sensor.getCurrentPerDistance(distance);
-                vertA.getAdjacencies().add(new GraphEdge(vertB, weight));
-            });
+            vertA.getNeighborhood().forEach((vertB, neighborData) ->
+                    vertA.getAdjacencies().add(new GraphEdge(vertB, neighborData.getCurrent())));
         }
     }
 
@@ -38,9 +36,9 @@ public class Graph {
     public void buildConnectionGraph() {
         double penalty = 2500;
         for (Sensor vertA : this.sensorSinkList) {
-            vertA.getNeighborhood().forEach((vertB, distance) -> {
+            vertA.getNeighborhood().forEach((vertB, neighborData) -> {
                 if (!vertB.isFailed()) {
-                    double weight = Sensor.getCurrentPerDistance(distance);
+                    double weight = neighborData.getCurrent();
                     if ((vertA.isActive() && !vertB.isActive()) ||
                             (!vertA.isActive() && vertB.isActive())) {
                         weight = weight * penalty;

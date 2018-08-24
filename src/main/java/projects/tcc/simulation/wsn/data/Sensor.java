@@ -1,7 +1,9 @@
 package projects.tcc.simulation.wsn.data;
 
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import projects.tcc.simulation.algorithms.graph.GraphEdge;
 import projects.tcc.simulation.io.SimulationOutput;
@@ -16,6 +18,13 @@ import java.util.Map;
 @Getter
 @EqualsAndHashCode(of = "sensorId")
 public class Sensor {
+
+    @Getter
+    @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class NeighborData {
+        private final double distance;
+        private final double current;
+    }
 
     private static double DISTANCES_ARRAY[] = {
             5.142,
@@ -75,7 +84,7 @@ public class Sensor {
     };
 
     //Vetor de Corrente x Distância
-    public static double getCurrentPerDistance(double distancia) {
+    private static double getCurrentPerDistance(double distancia) {
         int i = 0;
         while (DISTANCES_ARRAY[i] <= distancia) {
             i++;
@@ -86,6 +95,10 @@ public class Sensor {
         }
 
         return CURRENT_ARRAY[i];
+    }
+
+    public static NeighborData buildNeighborData(double distance) {
+        return new NeighborData(distance, getCurrentPerDistance(distance));
     }
 
     private final int sensorId;
@@ -106,9 +119,9 @@ public class Sensor {
     private double maintenancePower;
     private double commRatio; //Taxa de comunicação durante a transmissão em uma u.t.
 
-    private Map<Sensor, Double> neighborhood;
-    private List<Integer> coveredPoints;
-    private List<Integer> exclusivelyCoveredPoints;
+    private Map<Sensor, NeighborData> neighborhood;
+    private List<Position> coveredPoints;
+    private List<Position> exclusivelyCoveredPoints;
     private double costToSink;
 
     private List<GraphEdge> adjacencies;
@@ -175,17 +188,13 @@ public class Sensor {
         return totalChildCount;
     }
 
-    public double getDistanceToParent() {
-        return this.getNeighborhood().get(this.getParent());
-    }
-
     public void drawEnergySpent(double energySpent) {
         this.setBatteryEnergy(Math.max(this.getBatteryEnergy() - energySpent, 0));
     }
 
-    public double getPowerToTransmit(double distanceToParent, int totalChildCount) {
-        double current = Sensor.getCurrentPerDistance(distanceToParent);
-        return this.commRatio * current * (totalChildCount + 1);
+    public double getPowerToTransmit(Sensor neighbor, int totalChildCount) {
+        double current = this.getNeighborhood().get(neighbor).getCurrent();
+        return this.getCommRatio() * current * (totalChildCount + 1);
     }
 
     public void disconnectChildren() {

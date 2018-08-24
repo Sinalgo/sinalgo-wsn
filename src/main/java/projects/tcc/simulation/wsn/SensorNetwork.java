@@ -12,7 +12,10 @@ import sinalgo.exception.SinalgoFatalException;
 import sinalgo.nodes.Position;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Setter
 @Getter
@@ -24,10 +27,9 @@ public class SensorNetwork {
     private List<Sensor> activeSensors;
     private List<Sensor> periodFailedSensors;
     private List<Sink> sinks;
-    private int[] coverageArray;
     private int numCoveredPoints;
     private double currentCoveragePercent;
-    private List<Position> demandPoints;
+    private Map<Position, AtomicLong> demandPoints;
     private double area;
 
     private double coverageFactor;
@@ -70,10 +72,10 @@ public class SensorNetwork {
     }
 
     private void computeDemandPoints(int width, int lenght) {
-        this.setDemandPoints(new ArrayList<>());
+        this.setDemandPoints(new LinkedHashMap<>());
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < lenght; j++) {
-                this.getDemandPoints().add(new Position(i + 0.5, j + 0.5, 0));
+                this.getDemandPoints().put(new Position(i + 0.5, j + 0.5, 0), new AtomicLong());
             }
         }
     }
@@ -92,23 +94,19 @@ public class SensorNetwork {
     private void setUp() {
         if (!this.isInitialized()) {
             this.setInitialized(true);
-            this.constroiVetCobertura();
+            this.addCoveredPoints();
             this.criaListVizinhosRC();
         }
     }
 
-    private void constroiVetCobertura() {
-        this.coverageArray = new int[this.demandPoints.size()];
+    private void addCoveredPoints() {
         for (Sensor sens : this.sensors) {
-            List<Integer> listPontosCobertos = new ArrayList<>();
-            for (int j = 0; j < this.demandPoints.size(); j++) {
-                Position pontoDemanda = this.demandPoints.get(j);
+            for (Position pontoDemanda : this.getDemandPoints().keySet()) {
                 double vDistancia = sens.getPosition().distanceTo(pontoDemanda);
                 if (vDistancia <= sens.getSensRadius()) {
-                    listPontosCobertos.add(j);
+                    sens.getCoveredPoints().add(pontoDemanda);
                 }
             }
-            sens.setCoveredPoints(listPontosCobertos);
         }
     }
 
@@ -119,7 +117,7 @@ public class SensorNetwork {
                     double vDistancia = sensor1.getPosition().distanceTo(sensor2.getPosition());
                     double vRaio = sensor1.getCommRadius();
                     if (Double.compare(vDistancia, vRaio) <= 0) {
-                        sensor1.getNeighborhood().put(sensor2, vDistancia);
+                        sensor1.getNeighborhood().put(sensor2, Sensor.buildNeighborData(vDistancia));
                     }
                 }
             }
@@ -135,8 +133,7 @@ public class SensorNetwork {
         for (Sensor s : listSens) {
             int vNumeroFilhos = s.queryDescendants();
             double enRec = s.getReceivePower() * vNumeroFilhos;
-            double vDistanciaAoPai = s.getDistanceToParent();
-            double enTrans = s.getPowerToTransmit(vDistanciaAoPai, vNumeroFilhos);
+            double enTrans = s.getPowerToTransmit(s.getParent(), vNumeroFilhos);
             double enManut = s.getMaintenancePower();
             double energiaGasta = enRec + enTrans + enManut;
 
@@ -154,19 +151,6 @@ public class SensorNetwork {
             }
         }
         return enAtivAcum;
-    }
-
-    public void desligarSensoresDesconexos() {
-        int numSensDesligados = 0;
-        for (Sensor s : this.activeSensors) {
-            if (!s.isConnected()) {
-                this.deactivateSensor(s);
-                numSensDesligados++;
-            }
-        }
-        if (numSensDesligados > 0) {
-            SimulationOutput.println("Numero de Sensores desligados por nao conectividade: " + numSensDesligados);
-        }
     }
 
     private void deactivateSensor(Sensor s) {
@@ -194,17 +178,16 @@ public class SensorNetwork {
 
     public double computeCoverage() {
         this.retirarCoberturaDesconexos();
-        this.currentCoveragePercent = (double) this.numCoveredPoints / (double) this.coverageArray.length;
+        this.currentCoveragePercent = (double) this.numCoveredPoints / (double) this.getNumPontosDemanda();
         return this.currentCoveragePercent;
     }
 
     private void retirarCoberturaDesconexos() {
         for (Sensor s : this.activeSensors) {
             if (!s.isConnected()) {
-                List<Integer> listPontosCobertos = s.getCoveredPoints();
-                for (Integer listPontosCoberto : listPontosCobertos) {
-                    this.coverageArray[listPontosCoberto]--;
-                    if (this.coverageArray[listPontosCoberto] == 0) {
+                for (Position pontoCoberto : s.getCoveredPoints()) {
+                    long coverage = this.getDemandPoints().get(pontoCoberto).decrementAndGet();
+                    if (coverage == 0) {
                         this.numCoveredPoints--;
                     }
                 }
@@ -213,7 +196,9 @@ public class SensorNetwork {
     }
 
     private void computeInitialCoverage() {
-        this.coverageArray = new int[this.demandPoints.size()];
+        for (AtomicLong v : this.getDemandPoints().values()) {
+            v.set(0);
+        }
         this.numCoveredPoints = 0;
         for (Sensor sens : this.activeSensors) {
             this.computeDisconnectedCoverage(sens);
@@ -230,11 +215,7 @@ public class SensorNetwork {
         for (Sensor s : this.activeSensors) {
             int totalNumerOfChildren = s.queryDescendants();
             double receiveEnergy = s.getReceivePower() * totalNumerOfChildren;
-
-            double distanceToParent = s.getDistanceToParent();
-            double consumedCurrent = Sensor.getCurrentPerDistance(distanceToParent);
-
-            double transmitEnergy = s.getCommRatio() * consumedCurrent * (totalNumerOfChildren + 1);
+            double transmitEnergy = s.getPowerToTransmit(s.getParent(), totalNumerOfChildren);
             double maintenanceEnergy = s.getMaintenancePower();
 
             s.drawEnergySpent(receiveEnergy + transmitEnergy + maintenanceEnergy);
@@ -270,40 +251,36 @@ public class SensorNetwork {
 
     //funcao utilizada pelo AG
     public int computeDisconnectedCoverage(List<Integer> activeSensorIds) {
-        int[] vetCoberturaAux = new int[this.demandPoints.size()];
+        Map<Position, Long> demandPointsAux = new LinkedHashMap<>();
         int numPontosCobertosAux = 0;
         for (int cSensor : activeSensorIds) {
-            numPontosCobertosAux += this.computeDisconnectedCoverage(this.sensors.get(cSensor), vetCoberturaAux);
+            numPontosCobertosAux += this.computeDisconnectedCoverage(this.sensors.get(cSensor), demandPointsAux);
         }
-        return (vetCoberturaAux.length - numPontosCobertosAux);
+        return (this.getNumPontosDemanda() - numPontosCobertosAux);
     }
 
     //funcao para utilizacao no metodo computeDisconnectedCoverage(List<Integer> listIdSensAtivo)
-    private int computeDisconnectedCoverage(Sensor sensor, int[] auxCoverageMatrix) {
+    private int computeDisconnectedCoverage(Sensor sensor, Map<Position, Long> auxCoverageMap) {
         int auxCoveredPointsCount = 0;
-        List<Integer> coveredPoints = sensor.getCoveredPoints();
-        for (Integer point : coveredPoints) {
-            if (auxCoverageMatrix[point] == 0) {
+        for (Position point : sensor.getCoveredPoints()) {
+            if (auxCoverageMap.getOrDefault(point, 0L) == 0) {
                 auxCoveredPointsCount++;
             }
-            auxCoverageMatrix[point]++;
+            auxCoverageMap.merge(point, 1L, Long::sum);
         }
         return auxCoveredPointsCount;
     }
 
     private void computeDisconnectedCoverage(Sensor sensor) {
-        List<Integer> coveredPoints = sensor.getCoveredPoints();
         if (sensor.isActive()) {
-            for (Integer point : coveredPoints) {
-                if (this.coverageArray[point] == 0) {
+            for (Position point : sensor.getCoveredPoints()) {
+                if (this.getDemandPoints().get(point).getAndIncrement() == 0) {
                     this.numCoveredPoints++;
                 }
-                this.coverageArray[point]++;
             }
         } else {
-            for (Integer point : coveredPoints) {
-                this.coverageArray[point]--;
-                if (this.coverageArray[point] == 0) {
+            for (Position point : sensor.getCoveredPoints()) {
+                if (this.getDemandPoints().get(point).decrementAndGet() == 0) {
                     this.numCoveredPoints--;
                 }
             }
@@ -380,7 +357,7 @@ public class SensorNetwork {
         }
         List<Sensor> disconnectedSensors = new ArrayList<>();
         double fatorPontoDemanda = this.numCoveredPoints;
-        while (Double.compare(fatorPontoDemanda / this.coverageArray.length, this.coverageFactor) < 0) {
+        while (Double.compare(fatorPontoDemanda / this.getNumPontosDemanda(), this.coverageFactor) < 0) {
             Sensor chosen = this.chooseReplacement(disconnectedSensors);
             if (chosen != null) {
                 this.activateSensor(chosen);
@@ -408,7 +385,7 @@ public class SensorNetwork {
             } else {
                 //nao ha sensores para ativar
                 SimulationOutput.println("Nao ha mais sensores para ativar e suprir a cobertura");
-                fatorPontoDemanda = this.coverageArray.length;
+                fatorPontoDemanda = this.getNumPontosDemanda();
             }
 
         }
@@ -444,8 +421,8 @@ public class SensorNetwork {
     private int updateExclusivelyCoveredPoints(Sensor sens) {
         sens.getExclusivelyCoveredPoints().clear();
         int discoveredPoints = 0;
-        for (int point : sens.getCoveredPoints()) {
-            if (this.coverageArray[point] == 0) {
+        for (Position point : sens.getCoveredPoints()) {
+            if (this.getDemandPoints().get(point).get() == 0) {
                 discoveredPoints++;
                 sens.getExclusivelyCoveredPoints().add(point);
             }
