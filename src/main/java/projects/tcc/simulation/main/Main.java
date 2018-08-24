@@ -9,8 +9,6 @@ import projects.tcc.simulation.io.SimulationOutput;
 import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.data.Sensor;
 import projects.tcc.simulation.wsn.data.Sink;
-import projects.tcc.simulation.wsn.data.impl.WSNSensor;
-import projects.tcc.simulation.wsn.data.impl.WSNSink;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -66,7 +64,7 @@ public class Main {
         int idCounter = 0;
         List<Sensor> sensors = new ArrayList<>();
         for (SensorConfiguration sensorConfig : config.getSensorConfigurations()) {
-            sensors.add(new WSNSensor(idCounter++, sensorConfig.getX(), sensorConfig.getY(),
+            sensors.add(new Sensor(idCounter++, sensorConfig.getX(), sensorConfig.getY(),
                     config.getSensorRadius(), config.getCommRadius(), config.getBatteryEnergy(),
                     config.getActivationPower(), config.getReceivePower(), config.getMaintenancePower(),
                     config.getCommRatio()));
@@ -79,7 +77,7 @@ public class Main {
         int idSink = config.getSensorConfigurations().size(); // pois sera o ultimo na lista de sensores.
         List<Sink> sinks = new ArrayList<>();
         for (SensorConfiguration sinkConfig : config.getSinkConfigurations()) {
-            sinks.add(new WSNSink(idSink++, sinkConfig.getX(), sinkConfig.getY(), config.getCommRatio()));
+            sinks.add(new Sink(idSink++, sinkConfig.getX(), sinkConfig.getY(), config.getCommRatio()));
         }
         return sinks;
     }

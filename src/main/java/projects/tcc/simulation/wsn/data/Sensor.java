@@ -1,14 +1,21 @@
 package projects.tcc.simulation.wsn.data;
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import projects.tcc.simulation.algorithms.graph.GraphEdge;
 import projects.tcc.simulation.io.SimulationOutput;
 import sinalgo.nodes.Position;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public interface Sensor {
+@Setter
+@Getter
+@EqualsAndHashCode(of = "sensorId")
+public class Sensor {
 
-    double DISTANCES_ARRAY[] = {
+    private static double DISTANCES_ARRAY[] = {
             5.142,
             5.769,
             6.473,
@@ -36,7 +43,7 @@ public interface Sensor {
             81.496,
             91.440};
 
-    double[] CURRENT_ARRAY = {
+    private static double[] CURRENT_ARRAY = {
             8.6,
             8.8,
             9.0,
@@ -66,7 +73,7 @@ public interface Sensor {
     };
 
     //Vetor de Corrente x Distância
-    static double getCurrentPerDistance(double distancia) {
+    public static double getCurrentPerDistance(double distancia) {
         int i = 0;
         while (DISTANCES_ARRAY[i] <= distancia) {
             i++;
@@ -79,105 +86,110 @@ public interface Sensor {
         return CURRENT_ARRAY[i];
     }
 
-    void resetConnections();
+    private final int sensorId;
+    private final Position position;
+    private double batteryEnergy;
+    private double batteryCapacity;
+    private List<Sensor> children;
+    private Sensor parent;
+    private double sensRadius;
+    private double commRadius;
+    private boolean active;
+    private boolean useActivationPower;
+    private boolean connected;
+    private boolean failed;
 
-    void addChild(Sensor child);
+    private double activationPower;
+    private double receivePower;
+    private double maintenancePower;
+    private double commRatio; //Taxa de comunicação durante a transmissão em uma u.t.
 
-    int queryDescendants();
+    private List<Sensor> neighborhood;
+    private List<Integer> coveredPoints;
+    private List<Integer> exclusivelyCoveredPoints;
+    private double costToSink;
 
-    void drawEnergySpent(double energySpent);
+    private List<GraphEdge> adjacencies;
+    private double minDistance;
+    private Sensor previous;
 
-    double getPowerToTransmit(double vDistanciaAoPai, int vNumeroFilhos2);
+    public Sensor(int sensorId, double x, double y, double commRadius, double commRatio) {
+        this.sensorId = sensorId;
+        this.position = new Position(x, y, 0);
+        this.setCommRadius(commRadius);
 
-    void disconnectChildren();
+        this.setActive(true);
 
-    void connectChildren(List<Sensor> reconnectedSensors);
+        this.setChildren(new ArrayList<>());
+        this.setNeighborhood(new ArrayList<>());
 
-    int getSensorId();
+        this.setAdjacencies(new ArrayList<>());
+        this.setMinDistance(Double.POSITIVE_INFINITY);
 
-    Position getPosition();
+        this.setCommRatio(commRatio);
+    }
 
-    double getBatteryEnergy();
+    public Sensor(int sensorId, double x, double y, double sensRadius, double commRadius,
+                  double batteryEnergy, double activationPower, double receivePower,
+                  double maintenancePower, double commRatio) {
+        this(sensorId, x, y, commRadius, commRatio);
 
-    double getBatteryCapacity();
+        this.setActivationPower(activationPower);
+        this.setReceivePower(receivePower);
+        this.setMaintenancePower(maintenancePower);
 
-    List<Sensor> getChildren();
+        this.setBatteryEnergy(batteryEnergy);
+        this.setBatteryCapacity(batteryEnergy);
+        this.setSensRadius(sensRadius);
 
-    Sensor getParent();
+        this.setParent(null);
 
-    double getSensRadius();
+        this.setActive(false);
+        this.setFailed(false);
+        this.setConnected(false);
 
-    double getCommRadius();
+        this.setCoveredPoints(new ArrayList<>());
+        this.setExclusivelyCoveredPoints(new ArrayList<>());
+    }
 
-    boolean isActive();
+    public void resetConnections() {
+        this.setParent(null);
+        this.setPrevious(null);
+        this.setConnected(false);
+        this.getAdjacencies().clear();
+        this.setMinDistance(Double.POSITIVE_INFINITY);
+        this.getChildren().clear();
+    }
 
-    boolean isUseActivationPower();
+    public void addChild(Sensor child) {
+        this.getChildren().add(child);
+    }
 
-    boolean isConnected();
+    public int queryDescendants() {
+        int totalChildCount = this.getChildren().size();
+        for (Sensor child : this.getChildren()) {
+            totalChildCount += child.queryDescendants();
+        }
+        return totalChildCount;
+    }
 
-    boolean isFailed();
+    public void drawEnergySpent(double energySpent) {
+        this.setBatteryEnergy(Math.max(this.getBatteryEnergy() - energySpent, 0));
+    }
 
-    double getActivationPower();
+    public double getPowerToTransmit(double distanceToParent, int totalChildCount) {
+        double current = Sensor.getCurrentPerDistance(distanceToParent);
+        return this.commRatio * current * (totalChildCount + 1);
+    }
 
-    double getReceivePower();
+    public void disconnectChildren() {
+        for (Sensor child : this.getChildren()) {
+            child.setConnected(false);
+            child.disconnectChildren();
+        }
+    }
 
-    double getMaintenancePower();
-
-    double getCommRatio();
-
-    List<Sensor> getNeighborhood();
-
-    List<Integer> getCoveredPoints();
-
-    List<Integer> getExclusivelyCoveredPoints();
-
-    double getCostToSink();
-
-    List<GraphEdge> getAdjacencies();
-
-    double getMinDistance();
-
-    Sensor getPrevious();
-
-    void setBatteryEnergy(double batteryEnergy);
-
-    void setBatteryCapacity(double batteryCapacity);
-
-    void setChildren(List<Sensor> children);
-
-    void setParent(Sensor parent);
-
-    void setSensRadius(double sensRadius);
-
-    void setCommRadius(double commRadius);
-
-    void setActive(boolean active);
-
-    void setUseActivationPower(boolean useActivationPower);
-
-    void setConnected(boolean connected);
-
-    void setFailed(boolean failed);
-
-    void setActivationPower(double activationPower);
-
-    void setReceivePower(double receivePower);
-
-    void setMaintenancePower(double maintenancePower);
-
-    void setCommRatio(double commRatio);
-
-    void setNeighborhood(List<Sensor> neighborhood);
-
-    void setCoveredPoints(List<Integer> coveredPoints);
-
-    void setExclusivelyCoveredPoints(List<Integer> exclusivelyCoveredPoints);
-
-    void setCostToSink(double costToSink);
-
-    void setAdjacencies(List<GraphEdge> adjacencies);
-
-    void setMinDistance(double minDistance);
-
-    void setPrevious(Sensor previous);
+    public String toString() {
+        return Integer.toString(this.getSensorId());
+    }
 }

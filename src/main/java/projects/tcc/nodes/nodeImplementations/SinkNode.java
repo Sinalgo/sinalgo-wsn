@@ -9,7 +9,6 @@ import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.io.SimulationConfigurationLoader;
 import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.data.Sink;
-import projects.tcc.simulation.wsn.data.impl.WSNSink;
 import sinalgo.exception.SinalgoWrappedException;
 import sinalgo.gui.transformation.PositionTransformation;
 import sinalgo.nodes.messages.Inbox;
@@ -30,7 +29,7 @@ public class SinkNode extends SensorNode {
     @Override
     public void init() {
         SimulationConfiguration config = SimulationConfigurationLoader.getConfiguration();
-        this.sensor = new WSNSink((int) this.getID() - 1, this.getPosition().getXCoord(),
+        this.sensor = new Sink((int) this.getID() - 1, this.getPosition().getXCoord(),
                 this.getPosition().getYCoord(), config.getCommRadius());
         SensorNetwork.currentInstance().addSinks(this.getSensor());
         this.runSimulation();

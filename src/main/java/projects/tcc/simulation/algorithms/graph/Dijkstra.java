@@ -2,7 +2,6 @@ package projects.tcc.simulation.algorithms.graph;
 
 import projects.tcc.simulation.io.SimulationOutput;
 import projects.tcc.simulation.wsn.data.Sensor;
-import projects.tcc.simulation.wsn.data.impl.WSNSensor;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,11 +54,11 @@ public class Dijkstra {
 
     public static void main(String[] args) {
 
-        Sensor s0 = new WSNSensor(0, 1, 1, 15, 0.25);
-        Sensor s1 = new WSNSensor(1, 1, 5, 15, 0.25);
-        Sensor s2 = new WSNSensor(2, 5, 1, 15, 0.25);
-        Sensor s3 = new WSNSensor(3, 5, 5, 15, 0.25);
-        Sensor s4 = new WSNSensor(4, 5, 15, 15, 0.25);
+        Sensor s0 = new Sensor(0, 1, 1, 15, 0.25);
+        Sensor s1 = new Sensor(1, 1, 5, 15, 0.25);
+        Sensor s2 = new Sensor(2, 5, 1, 15, 0.25);
+        Sensor s3 = new Sensor(3, 5, 5, 15, 0.25);
+        Sensor s4 = new Sensor(4, 5, 15, 15, 0.25);
 
 
         s0.getAdjacencies().add(new GraphEdge(s1, 5));
