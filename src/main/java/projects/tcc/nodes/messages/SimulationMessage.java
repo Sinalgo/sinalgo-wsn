@@ -15,4 +15,8 @@ public class SimulationMessage extends Message {
     public Message clone() {
         return this;
     }
+
+    public void reset() {
+        this.getNodes().clear();
+    }
 }

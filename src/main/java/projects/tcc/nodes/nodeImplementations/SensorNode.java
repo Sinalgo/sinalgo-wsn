@@ -2,6 +2,7 @@ package projects.tcc.nodes.nodeImplementations;
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import projects.tcc.MessageCache;
 import projects.tcc.nodes.SimulationNode;
 import projects.tcc.nodes.messages.SimulationMessage;
 import projects.tcc.simulation.io.SimulationConfiguration;
@@ -53,7 +54,7 @@ public class SensorNode extends SimulationNode {
     public void handleMessages(Inbox inbox) {
         for (Edge e : this.getOutgoingConnections()) {
             if (e.getEndNode() instanceof SensorNode) {
-                sendMessage(new SimulationMessage(), e);
+                sendMessage(MessageCache.pop(), e);
             }
         }
         while (inbox.hasNext()) {

@@ -2,6 +2,7 @@ package projects.tcc.nodes.nodeImplementations;
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import projects.tcc.MessageCache;
 import projects.tcc.nodes.messages.SimulationMessage;
 import projects.tcc.simulation.algorithms.online.SolucaoViaAGMOSinalgo;
 import projects.tcc.simulation.io.SimulationConfiguration;
@@ -47,6 +48,7 @@ public class SinkNode extends SensorNode {
                 this.totalReceivedMessages++;
                 ((SimulationMessage) m).getNodes().push(this.toString());
                 System.out.println(String.join(", ", ((SimulationMessage) m).getNodes()));
+                MessageCache.push((SimulationMessage) m);
             }
         }
         if (size > 0) {
