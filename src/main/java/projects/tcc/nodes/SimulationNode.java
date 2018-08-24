@@ -51,8 +51,8 @@ public abstract class SimulationNode extends Node {
 
     @Override
     public String toString() {
-        return String.format("[%s: Tx=%d, Rx=%d]", super.toString(),
-                this.getTotalSentMessages(), this.getTotalReceivedMessages());
+        return "[" + super.toString() + ": Tx=" +
+                this.getTotalSentMessages() + ", Rx=" + this.getTotalReceivedMessages() + "]";
     }
 
     @Override

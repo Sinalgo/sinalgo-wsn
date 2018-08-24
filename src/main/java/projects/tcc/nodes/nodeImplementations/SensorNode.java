@@ -63,16 +63,16 @@ public class SensorNode extends SimulationNode {
                 this.totalReceivedMessages++;
                 for (Edge e : this.getOutgoingConnections()) {
                     if (e.getEndNode() instanceof SensorNode) {
-                        sendMessage(m, e);
+                        sendMessage((SimulationMessage) m, e);
                     }
                 }
             }
         }
     }
 
-    private void sendMessage(Message m, Edge e) {
+    private void sendMessage(SimulationMessage m, Edge e) {
         this.totalSentMessages++;
-        ((SimulationMessage) m).getNodes().push(this.toString());
+        m.getNodes().push(this.toString());
         this.send(m, e.getEndNode());
     }
 
