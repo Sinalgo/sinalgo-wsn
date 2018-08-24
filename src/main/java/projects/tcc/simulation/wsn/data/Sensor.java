@@ -8,7 +8,9 @@ import projects.tcc.simulation.io.SimulationOutput;
 import sinalgo.nodes.Position;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Setter
 @Getter
@@ -104,7 +106,7 @@ public class Sensor {
     private double maintenancePower;
     private double commRatio; //Taxa de comunicação durante a transmissão em uma u.t.
 
-    private List<Sensor> neighborhood;
+    private Map<Sensor, Double> neighborhood;
     private List<Integer> coveredPoints;
     private List<Integer> exclusivelyCoveredPoints;
     private double costToSink;
@@ -121,7 +123,7 @@ public class Sensor {
         this.setActive(true);
 
         this.setChildren(new ArrayList<>());
-        this.setNeighborhood(new ArrayList<>());
+        this.setNeighborhood(new LinkedHashMap<>());
 
         this.setAdjacencies(new ArrayList<>());
         this.setMinDistance(Double.POSITIVE_INFINITY);
@@ -171,6 +173,10 @@ public class Sensor {
             totalChildCount += child.queryDescendants();
         }
         return totalChildCount;
+    }
+
+    public double getDistanceToParent() {
+        return this.getNeighborhood().get(this.getParent());
     }
 
     public void drawEnergySpent(double energySpent) {

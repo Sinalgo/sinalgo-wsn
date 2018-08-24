@@ -27,7 +27,6 @@ public class SensorNetwork {
     private int[] coverageArray;
     private int numCoveredPoints;
     private double currentCoveragePercent;
-    private double[][] conectivityMatrix;
     private List<Position> demandPoints;
     private double area;
 
@@ -94,23 +93,7 @@ public class SensorNetwork {
         if (!this.isInitialized()) {
             this.setInitialized(true);
             this.constroiVetCobertura();
-            this.constroiMatrizConectividade();
             this.criaListVizinhosRC();
-        }
-    }
-
-    private void constroiMatrizConectividade() {
-        int numSensoresDisp_Sink = this.availableSensorsAndSinks.size();
-        this.conectivityMatrix = new double[numSensoresDisp_Sink][numSensoresDisp_Sink];
-        for (Sensor sensor1 : this.availableSensorsAndSinks) {
-            for (Sensor sensor2 : this.availableSensorsAndSinks) {
-                if (!sensor1.equals(sensor2)) {
-                    double vDistancia = sensor1.getPosition().distanceTo(sensor2.getPosition());
-                    this.conectivityMatrix[sensor1.getSensorId()][sensor2.getSensorId()] = vDistancia;
-                } else {
-                    this.conectivityMatrix[sensor1.getSensorId()][sensor2.getSensorId()] = -1;
-                }
-            }
         }
     }
 
@@ -131,17 +114,15 @@ public class SensorNetwork {
 
     private void criaListVizinhosRC() {
         for (Sensor sensor1 : this.availableSensorsAndSinks) {
-            List<Sensor> listSensVizinhos = new ArrayList<>();
             for (Sensor sensor2 : this.availableSensorsAndSinks) {
                 if (!sensor1.equals(sensor2)) {
-                    double vDistancia = this.conectivityMatrix[sensor1.getSensorId()][sensor2.getSensorId()];
-                    double vRaio = (float) sensor1.getCommRadius();
-                    if (vDistancia <= vRaio) {
-                        listSensVizinhos.add(sensor2);
+                    double vDistancia = sensor1.getPosition().distanceTo(sensor2.getPosition());
+                    double vRaio = sensor1.getCommRadius();
+                    if (Double.compare(vDistancia, vRaio) <= 0) {
+                        sensor1.getNeighborhood().put(sensor2, vDistancia);
                     }
                 }
             }
-            sensor1.setNeighborhood(listSensVizinhos);
         }
     }
 
@@ -152,11 +133,9 @@ public class SensorNetwork {
     private double calculaEnergiaConsPer(List<Sensor> listSens) {
         double energiaGastaAcum = 0;
         for (Sensor s : listSens) {
-            int idSens = s.getSensorId();
-            int sensPai = s.getParent().getSensorId();
             int vNumeroFilhos = s.queryDescendants();
             double enRec = s.getReceivePower() * vNumeroFilhos;
-            double vDistanciaAoPai = this.conectivityMatrix[idSens][sensPai];
+            double vDistanciaAoPai = s.getDistanceToParent();
             double enTrans = s.getPowerToTransmit(vDistanciaAoPai, vNumeroFilhos);
             double enManut = s.getMaintenancePower();
             double energiaGasta = enRec + enTrans + enManut;
@@ -252,7 +231,7 @@ public class SensorNetwork {
             int totalNumerOfChildren = s.queryDescendants();
             double receiveEnergy = s.getReceivePower() * totalNumerOfChildren;
 
-            double distanceToParent = this.conectivityMatrix[s.getSensorId()][s.getParent().getSensorId()];
+            double distanceToParent = s.getDistanceToParent();
             double consumedCurrent = Sensor.getCurrentPerDistance(distanceToParent);
 
             double transmitEnergy = s.getCommRatio() * consumedCurrent * (totalNumerOfChildren + 1);
@@ -332,7 +311,7 @@ public class SensorNetwork {
     }
 
     public void computeCostToSink() {
-        Graph graph = new Graph(this.availableSensorsAndSinks, this.conectivityMatrix);
+        Graph graph = new Graph(this.availableSensorsAndSinks);
         graph.build();
         graph.computeMinimalPathsTo(this.sinks.get(0));
     }
@@ -354,7 +333,7 @@ public class SensorNetwork {
         for (Sensor sens : this.availableSensorsAndSinks) {
             sens.resetConnections();
         }
-        Graph graph = new Graph(this.availableSensorsAndSinks, this.conectivityMatrix);
+        Graph graph = new Graph(this.availableSensorsAndSinks);
         graph.buildConnectionGraph();
         graph.computeMinimalPathsTo(this.sinks.get(0));
         this.activateNeededParents();

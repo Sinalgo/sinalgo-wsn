@@ -10,20 +10,17 @@ import java.util.List;
 public class Graph {
 
     private List<Sensor> sensorSinkList;
-    private double[][] connectivityMatrix;
 
-    public Graph(List<Sensor> sensorSinkList, double[][] connectivityMatrix) {
+    public Graph(List<Sensor> sensorSinkList) {
         this.sensorSinkList = sensorSinkList;
-        this.connectivityMatrix = connectivityMatrix;
     }
 
     public void build() {
         for (Sensor vertA : this.sensorSinkList) {
-            for (Sensor vertB : vertA.getNeighborhood()) {
-                double distance = this.connectivityMatrix[vertA.getSensorId()][vertB.getSensorId()];
+            vertA.getNeighborhood().forEach((vertB, distance) -> {
                 double weight = Sensor.getCurrentPerDistance(distance);
                 vertA.getAdjacencies().add(new GraphEdge(vertB, weight));
-            }
+            });
         }
     }
 
@@ -41,9 +38,8 @@ public class Graph {
     public void buildConnectionGraph() {
         double penalty = 2500;
         for (Sensor vertA : this.sensorSinkList) {
-            for (Sensor vertB : vertA.getNeighborhood()) {
+            vertA.getNeighborhood().forEach((vertB, distance) -> {
                 if (!vertB.isFailed()) {
-                    double distance = this.connectivityMatrix[vertA.getSensorId()][vertB.getSensorId()];
                     double weight = Sensor.getCurrentPerDistance(distance);
                     if ((vertA.isActive() && !vertB.isActive()) ||
                             (!vertA.isActive() && vertB.isActive())) {
@@ -53,7 +49,7 @@ public class Graph {
                     }
                     vertA.getAdjacencies().add(new GraphEdge(vertB, weight));
                 }
-            }
+            });
         }
     }
 }
