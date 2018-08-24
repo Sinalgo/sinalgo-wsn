@@ -42,7 +42,6 @@ import lombok.Setter;
 import projects.tcc.simulation.algorithms.online.SolucaoViaAGMOSinalgo;
 import projects.tcc.simulation.io.SimulationOutput;
 import projects.tcc.simulation.wsn.SensorNetwork;
-import projects.tcc.simulation.wsn.data.Sensor;
 import sinalgo.exception.SinalgoFatalException;
 import sinalgo.gui.transformation.PositionTransformation;
 import sinalgo.runtime.AbstractCustomGlobal;
@@ -80,40 +79,46 @@ public class CustomGlobal extends AbstractCustomGlobal {
     private Logging log = Logging.getLogger("tcc_log.txt");
 
     private boolean drawPoints = false;
+
+    @Getter
     private boolean drawCommRadius = false;
+
+    @Getter
     private boolean drawSensorRadius = false;
+
+    @Getter
     private boolean drawAll = false;
 
     @GlobalMethod(menuText = "Toggle Draw Demand Points", subMenu = "View")
     public void toggleDrawDemandPoints() {
-        drawPoints = !drawPoints;
-        drawAll &= drawPoints;
+        this.drawPoints = !this.drawPoints;
+        this.drawAll &= this.drawPoints;
     }
 
     @GlobalMethod(menuText = "Toggle Draw Comm Radius", subMenu = "View", order = 1)
     public void toggleDrawCommRadius() {
-        drawCommRadius = !drawCommRadius;
-        drawAll &= drawCommRadius;
+        this.drawCommRadius = !this.drawCommRadius;
+        this.drawAll &= this.drawCommRadius;
     }
 
     @GlobalMethod(menuText = "Toggle Draw Sensor Radius", subMenu = "View", order = 2)
     public void toggleDrawSensorRadius() {
-        drawSensorRadius = !drawSensorRadius;
-        drawAll &= drawSensorRadius;
+        this.drawSensorRadius = !this.drawSensorRadius;
+        this.drawAll &= this.drawSensorRadius;
     }
 
     @GlobalMethod(menuText = "Toggle All", subMenu = "View", order = 3)
     public void toggleAll() {
-        if (drawAll) {
-            drawSensorRadius = false;
-            drawCommRadius = false;
-            drawPoints = false;
+        if (this.drawAll) {
+            this.drawSensorRadius = false;
+            this.drawCommRadius = false;
+            this.drawPoints = false;
         } else {
-            drawSensorRadius = true;
-            drawCommRadius = true;
-            drawPoints = true;
+            this.drawSensorRadius = true;
+            this.drawCommRadius = true;
+            this.drawPoints = true;
         }
-        drawAll = !drawAll;
+        this.drawAll = !this.drawAll;
     }
 
     @GlobalMethod(menuText = "Toggle stop simulation on Sensor failure", subMenu = "Simulation")
@@ -123,7 +128,7 @@ public class CustomGlobal extends AbstractCustomGlobal {
 
     @Override
     public void customPaint(Graphics g, PositionTransformation pt) {
-        if (drawPoints) {
+        if (this.drawPoints) {
             SensorNetwork.currentInstance().getDemandPoints().forEach(p -> {
                         Color backupColor = g.getColor();
                         g.setColor(Color.DARK_GRAY);
@@ -132,30 +137,6 @@ public class CustomGlobal extends AbstractCustomGlobal {
                     }
             );
         }
-        if (drawCommRadius) {
-            SensorNetwork.currentInstance().getActiveSensors()
-                    .forEach(s -> {
-                        if (s.isConnected()) {
-                            drawRadius(g, pt, s, Color.ORANGE, s.getCommRadius());
-                        }
-                    });
-            SensorNetwork.currentInstance().getSinks().forEach(s -> drawRadius(g, pt, s, Color.ORANGE, s.getCommRadius()));
-        }
-        if (drawSensorRadius) {
-            SensorNetwork.currentInstance().getActiveSensors()
-                    .forEach(s -> {
-                        if (s.isConnected()) {
-                            drawRadius(g, pt, s, Color.MAGENTA, s.getSensRadius());
-                        }
-                    });
-        }
-    }
-
-    private void drawRadius(Graphics g, PositionTransformation pt, Sensor s, Color orange, double commRadius) {
-        Color backupColor = g.getColor();
-        g.setColor(orange);
-        pt.drawCircle(g, s.getPosition(), commRadius);
-        g.setColor(backupColor);
     }
 
     // The user can optionally specify exitAfter in the config file to indicate

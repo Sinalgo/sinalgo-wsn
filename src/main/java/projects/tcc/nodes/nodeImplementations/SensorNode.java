@@ -41,7 +41,12 @@ public class SensorNode extends SimulationNode {
     @Override
     public void draw(Graphics g, PositionTransformation pt, boolean highlight) {
         this.setColor(this.getSensor().isFailed() ? Color.RED : this.getSensor().isActive() ? Color.GREEN : Color.BLACK);
-        super.drawAsDisk(g, pt, highlight, this.getSensor().isFailed() ? 10 : this.getSensor().isActive() ? 20 : 10);
+        this.setDefaultDrawingSizeInPixels(this.getSensor().isFailed() ? 10 : this.getSensor().isActive() ? 20 : 10);
+        this.superDraw(g, pt, highlight);
+    }
+
+    protected void superDraw(Graphics g, PositionTransformation pt, boolean highlight) {
+        super.draw(g, pt, highlight);
     }
 
     @Override

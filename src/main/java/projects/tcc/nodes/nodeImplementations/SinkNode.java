@@ -67,7 +67,8 @@ public class SinkNode extends SensorNode {
     @Override
     public void draw(Graphics g, PositionTransformation pt, boolean highlight) {
         this.setColor(Color.BLUE);
-        super.drawAsDisk(g, pt, highlight, 30);
+        this.setDefaultDrawingSizeInPixels(30);
+        this.superDraw(g, pt, highlight);
     }
 
 }
