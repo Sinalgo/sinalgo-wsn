@@ -57,10 +57,11 @@ public class SolucaoViaAGMOSinalgo {
         this.simulationOutput = new SinalgoSimulationOutput();
     }
 
-    public void simularRede(int currentPeriod) throws Exception {
+    public boolean[] simularRede(int currentPeriod) throws Exception {
         //gerando a POP de Cromossomos inicial para o AG
+        boolean[] vetSensAtiv = null;
         if (currentPeriod == 0) {
-            boolean[] vetSensAtiv = AG_Estatico_MO_arq.resolveAG_Estatico_MO(this.sensorNetwork, this.numeroGeracoes, this.tamanhoPopulacao, this.txCruzamento);
+            vetSensAtiv = AG_Estatico_MO_arq.resolveAG_Estatico_MO(this.sensorNetwork, this.numeroGeracoes, this.tamanhoPopulacao, this.txCruzamento);
             /////////////////////////// REDE INICIAL ///////////////////////////////
             List<String> vetSensAtivStr = new ArrayList<>(vetSensAtiv.length);
             for (boolean i : vetSensAtiv) {
@@ -75,7 +76,7 @@ public class SolucaoViaAGMOSinalgo {
             boolean reestruturar = redeSim.isRestructureNetwork();
             if (reestruturar || evento) {
                 //gerando a POP de Cromossomos inicial para o AG
-                boolean[] vetSensAtiv = AG_Estatico_MO_arq.resolveAG_Estatico_MO(this.sensorNetwork,
+                vetSensAtiv = AG_Estatico_MO_arq.resolveAG_Estatico_MO(this.sensorNetwork,
                         this.numeroGeracoes, this.tamanhoPopulacao, this.txCruzamento);
                 this.sensorNetwork.buildInitialNetwork(vetSensAtiv);
                 SimulationOutput.println("===== EVENTO e REESTRUTUROU TEMPO = " + currentPeriod);
@@ -88,6 +89,7 @@ public class SolucaoViaAGMOSinalgo {
             onStopSimulationMessageMethod.run();
         }
         SimulationOutput.println("==> Reestruturação foi requisitada " + redeSim.getRestructureCount());
+        return vetSensAtiv;
     }
 
 }

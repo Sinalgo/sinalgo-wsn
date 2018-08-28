@@ -15,6 +15,7 @@ import sinalgo.nodes.messages.Inbox;
 import sinalgo.nodes.messages.Message;
 
 import java.awt.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class SensorNode extends SimulationNode {
 
@@ -26,7 +27,7 @@ public class SensorNode extends SimulationNode {
 
     @Getter
     private Sensor sensor;
-
+    
     @Override
     public void init() {
         SimulationConfiguration config = SimulationConfigurationLoader.getConfiguration();
@@ -69,9 +70,16 @@ public class SensorNode extends SimulationNode {
         }
     }
 
+    @Override
+    public void preStep() {
+        for (Sensor child : this.getSensor().getChildren()) {
+            this.consecutiveChildrenFailures.putIfAbsent(child, new AtomicInteger());
+        }
+    }
+
     private void sendMessage(SimulationMessage m, Edge e) {
         this.totalSentMessages++;
-        m.getNodes().push(this.toString());
+        m.getNodes().push(this);
         this.send(m, e.getEndNode());
     }
 

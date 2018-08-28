@@ -3,6 +3,7 @@ package projects.tcc.nodes.nodeImplementations;
 import lombok.AccessLevel;
 import lombok.Getter;
 import projects.tcc.MessageCache;
+import projects.tcc.nodes.messages.ActivationMessage;
 import projects.tcc.nodes.messages.SimulationMessage;
 import projects.tcc.simulation.algorithms.online.SolucaoViaAGMOSinalgo;
 import projects.tcc.simulation.io.SimulationConfiguration;
@@ -15,6 +16,7 @@ import sinalgo.nodes.messages.Inbox;
 import sinalgo.nodes.messages.Message;
 
 import java.awt.*;
+import java.util.stream.Collectors;
 
 public class SinkNode extends SensorNode {
 
@@ -25,6 +27,8 @@ public class SinkNode extends SensorNode {
 
     @Getter(AccessLevel.PROTECTED)
     private long totalReceivedMessages;
+
+    private boolean[] activeSensors;
 
     @Override
     public void init() {
@@ -45,21 +49,26 @@ public class SinkNode extends SensorNode {
             Message m = inbox.next();
             if (m instanceof SimulationMessage) {
                 this.totalReceivedMessages++;
-                ((SimulationMessage) m).getNodes().push(this.toString());
-                System.out.println(String.join(", ", ((SimulationMessage) m).getNodes()));
+                ((SimulationMessage) m).getNodes().push(this);
+                System.out.println(((SimulationMessage) m).getNodes().stream()
+                        .map(SensorNode::toString)
+                        .collect(Collectors.joining(", ")));
                 MessageCache.push((SimulationMessage) m);
             }
         }
         if (size > 0) {
             System.out.println("END logging received messages for round\n");
         }
-        this.runSimulation();
+        this.activeSensors = this.runSimulation();
+        if (this.activeSensors != null) {
+            this.broadcast(new ActivationMessage(this.activeSensors));
+        }
     }
 
-    private void runSimulation() {
+    private boolean[] runSimulation() {
         SolucaoViaAGMOSinalgo solucao = SolucaoViaAGMOSinalgo.currentInstance();
         try {
-            solucao.simularRede(stage++);
+            return solucao.simularRede(stage++);
         } catch (Exception e) {
             throw new SinalgoWrappedException(e);
         }
