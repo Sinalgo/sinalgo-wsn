@@ -76,9 +76,12 @@ public class AG_Estatico_MO_arq {
         List<Sensor> popSensores = rede.getAvailableSensors();
         double penAtiv = popSensores.get(0).getActivationPower() + popSensores.get(0).getMaintenancePower();
         int penNCob = 0;//100000 utilizado no mono-objetivo;
-        pCromossomos.parallelStream()
-                .filter(Cromossomo::isAvaliarFO)
-                .forEach(indv -> avaliarIndividuo(rede, indv, penAtiv, penNCob));
+        for (Cromossomo indv : pCromossomos) {
+            // avalia apenas quem precisa
+            if (indv.isAvaliarFO()) {
+                avaliarIndividuo(rede, indv, penAtiv, penNCob);
+            }
+        }
     }
 
     private static void avaliarIndividuo(SensorNetwork rede, Cromossomo individuo, double penAtiv, int penNCob) {
@@ -88,7 +91,6 @@ public class AG_Estatico_MO_arq {
             activeSensors.add(rede.getSensors().get(activeSensorId));
         }
         individuo.setNaoCobertura(naoCoberturaAuxiliar);
-        rede.activateSensors(individuo.getVetorBits());
         double custoCaminhoTotal = 0;
         for (Sensor sens : activeSensors) {
             custoCaminhoTotal += sens.getCostToSink();

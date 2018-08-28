@@ -24,10 +24,7 @@ public class SensorNetwork {
     private List<Sensor> activeSensors;
     private List<Sensor> periodFailedSensors;
     private List<Sink> sinks;
-    private int numCoveredPoints;
     private double currentCoveragePercent;
-    private IndexedPosition[] demandPoints;
-    private int[] coverageMatrix;
     private double area;
 
     private double coverageFactor;
@@ -70,6 +67,7 @@ public class SensorNetwork {
     }
 
     private void computeDemandPoints(int width, int length) {
+        IndexedPosition.resetCounter();
         this.setDemandPoints(new IndexedPosition[width * length]);
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < length; j++) {

@@ -17,4 +17,8 @@ public class IndexedPosition extends Position {
     public IndexedPosition(double x, double y, double z) {
         super(x, y, z);
     }
+
+    public static void resetCounter() {
+        nextID = 0;
+    }
 }
