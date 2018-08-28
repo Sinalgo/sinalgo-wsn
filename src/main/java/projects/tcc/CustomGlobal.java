@@ -130,7 +130,7 @@ public class CustomGlobal extends AbstractCustomGlobal {
     @Override
     public void customPaint(Graphics g, PositionTransformation pt) {
         if (this.drawPoints) {
-            for (Position p : SensorNetwork.currentInstance().getDemandPoints()) {
+            for (Position p : SensorNetwork.currentInstance().getDemandPoints().getPoints()) {
                 Color backupColor = g.getColor();
                 g.setColor(Color.DARK_GRAY);
                 pt.drawLine(g, p, p);

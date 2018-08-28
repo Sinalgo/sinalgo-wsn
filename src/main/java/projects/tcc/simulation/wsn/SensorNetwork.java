@@ -6,6 +6,7 @@ import projects.tcc.simulation.algorithms.graph.Graph;
 import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.io.SimulationConfigurationLoader;
 import projects.tcc.simulation.io.SimulationOutput;
+import projects.tcc.simulation.wsn.data.DemandPoints;
 import projects.tcc.simulation.wsn.data.IndexedPosition;
 import projects.tcc.simulation.wsn.data.Sensor;
 import projects.tcc.simulation.wsn.data.Sink;
@@ -26,6 +27,7 @@ public class SensorNetwork {
     private List<Sink> sinks;
     private double currentCoveragePercent;
     private double area;
+    private DemandPoints demandPoints;
 
     private double coverageFactor;
 
@@ -51,31 +53,18 @@ public class SensorNetwork {
         this.availableSensors = new ArrayList<>();
         this.activeSensors = new ArrayList<>();
         this.sinks = new ArrayList<>();
-        this.computeDemandPoints(configuration.getDimX(), configuration.getDimY());
-        this.numCoveredPoints = 0;
+        this.demandPoints = new DemandPoints(configuration.getDimX(), configuration.getDimY());
         this.currentCoveragePercent = 0;
         this.area = configuration.getDimX() * configuration.getDimY();
         this.coverageFactor = configuration.getCoverageFactor();
     }
 
     public int getNumPontosDemanda() {
-        return this.demandPoints.length;
+        return this.getDemandPoints().getNumPoints();
     }
 
     public int[] getAvailableSensorsArray() {
         return this.availableSensors.stream().mapToInt(Sensor::getSensorId).toArray();
-    }
-
-    private void computeDemandPoints(int width, int length) {
-        IndexedPosition.resetCounter();
-        this.setDemandPoints(new IndexedPosition[width * length]);
-        for (int i = 0; i < width; i++) {
-            for (int j = 0; j < length; j++) {
-                IndexedPosition pos = new IndexedPosition(i + 0.5, j + 0.5, 0);
-                this.getDemandPoints()[pos.getID()] = pos;
-            }
-        }
-        this.setCoverageMatrix(new int[this.getNumPontosDemanda()]);
     }
 
     public void addSensors(Sensor sensor) {
@@ -92,19 +81,8 @@ public class SensorNetwork {
     private void setUp() {
         if (!this.isInitialized()) {
             this.setInitialized(true);
-            this.addCoveredPoints();
+            this.getDemandPoints().computeSensorsCoveredPoints(this.getSensors());
             this.criaListVizinhosRC();
-        }
-    }
-
-    private void addCoveredPoints() {
-        for (Sensor sens : this.sensors) {
-            for (IndexedPosition pontoDemanda : this.getDemandPoints()) {
-                double vDistancia = sens.getPosition().distanceTo(pontoDemanda);
-                if (vDistancia <= sens.getSensRadius()) {
-                    sens.getCoveredPoints().add(pontoDemanda);
-                }
-            }
         }
     }
 
@@ -176,31 +154,25 @@ public class SensorNetwork {
 
     public double computeCoverage() {
         this.retirarCoberturaDesconexos();
-        this.currentCoveragePercent = (double) this.numCoveredPoints / (double) this.getNumPontosDemanda();
+        this.currentCoveragePercent =
+                (double) this.getDemandPoints().getNumCoveredPoints() / (double) this.getNumPontosDemanda();
         return this.currentCoveragePercent;
     }
 
     private void retirarCoberturaDesconexos() {
         for (Sensor s : this.activeSensors) {
             if (!s.isConnected()) {
-                for (IndexedPosition pontoCoberto : s.getCoveredPoints()) {
-                    long coverage = --this.getCoverageMatrix()[pontoCoberto.getID()];
-                    if (coverage == 0) {
-                        this.numCoveredPoints--;
-                    }
-                }
+                this.getDemandPoints().removeCoverage(s);
             }
         }
     }
 
     private void computeInitialCoverage() {
-        this.coverageMatrix = new int[this.getNumPontosDemanda()];
-        this.numCoveredPoints = 0;
+        this.getDemandPoints().resetCoverage();
         for (Sensor sens : this.activeSensors) {
             this.computeDisconnectedCoverage(sens);
         }
         this.currentCoveragePercent = this.computeCoverage();
-
     }
 
     public int getActiveSensorCount() {
@@ -259,17 +231,9 @@ public class SensorNetwork {
 
     private void computeDisconnectedCoverage(Sensor sensor) {
         if (sensor.isActive()) {
-            for (IndexedPosition point : sensor.getCoveredPoints()) {
-                if (this.getCoverageMatrix()[point.getID()]++ == 0) {
-                    this.numCoveredPoints++;
-                }
-            }
+            this.getDemandPoints().addCoverage(sensor);
         } else {
-            for (IndexedPosition point : sensor.getCoveredPoints()) {
-                if (--this.getCoverageMatrix()[point.getID()] == 0) {
-                    this.numCoveredPoints--;
-                }
-            }
+            this.getDemandPoints().removeCoverage(sensor);
         }
     }
 
@@ -342,7 +306,7 @@ public class SensorNetwork {
             }
         }
         List<Sensor> disconnectedSensors = new ArrayList<>();
-        double fatorPontoDemanda = this.numCoveredPoints;
+        double fatorPontoDemanda = this.getDemandPoints().getNumCoveredPoints();
         while (Double.compare(fatorPontoDemanda / this.getNumPontosDemanda(), this.coverageFactor) < 0) {
             Sensor chosen = this.chooseReplacement(disconnectedSensors);
             if (chosen != null) {
@@ -367,7 +331,7 @@ public class SensorNetwork {
                         this.updateExclusivelyCoveredPoints(chosen.getParent());
                     }
                 }
-                fatorPontoDemanda = this.numCoveredPoints;
+                fatorPontoDemanda = this.getDemandPoints().getNumCoveredPoints();
             } else {
                 //nao ha sensores para ativar
                 SimulationOutput.println("Nao ha mais sensores para ativar e suprir a cobertura");
@@ -408,7 +372,7 @@ public class SensorNetwork {
         sens.getExclusivelyCoveredPoints().clear();
         int discoveredPoints = 0;
         for (IndexedPosition point : sens.getCoveredPoints()) {
-            if (this.getCoverageMatrix()[point.getID()] == 0) {
+            if (this.getDemandPoints().getCoverage(point) == 0) {
                 discoveredPoints++;
                 sens.getExclusivelyCoveredPoints().add(point);
             }

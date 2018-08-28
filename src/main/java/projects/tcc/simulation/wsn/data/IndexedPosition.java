@@ -10,15 +10,11 @@ import sinalgo.nodes.Position;
 @ToString(of = "ID", callSuper = true)
 public class IndexedPosition extends Position {
 
-    private static int nextID = 0;
+    private final int ID;
 
-    private final int ID = nextID++;
-
-    public IndexedPosition(double x, double y, double z) {
+    public IndexedPosition(int ID, double x, double y, double z) {
         super(x, y, z);
+        this.ID = ID;
     }
 
-    public static void resetCounter() {
-        nextID = 0;
-    }
 }
