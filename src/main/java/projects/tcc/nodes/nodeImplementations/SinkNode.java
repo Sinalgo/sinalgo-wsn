@@ -52,8 +52,8 @@ public class SinkNode extends SensorNode {
         }
         if (size > 0) {
             System.out.println("END logging received messages for round\n");
-            this.runSimulation();
         }
+        this.runSimulation();
     }
 
     private void runSimulation() {

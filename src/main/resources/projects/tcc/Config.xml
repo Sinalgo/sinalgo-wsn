@@ -229,7 +229,7 @@
 
     </Framework>
     <Custom>
-        <InputFile value="50050"/>
+        <InputFile value="3650"/>
 
         <CoverageFactor value="95"/>
 
