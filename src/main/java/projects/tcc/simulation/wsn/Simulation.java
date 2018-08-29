@@ -27,8 +27,6 @@ public class Simulation {
     private List<Integer> activeSensorCount;
     private List<Integer> currentStage;
 
-    private List<Sensor> periodFailedSensors;
-
     private static Simulation currentInstance;
 
     public static Simulation currentInstance() {
@@ -57,8 +55,6 @@ public class Simulation {
 
         this.minBatteryThreshold = 10;
 
-        this.periodFailedSensors = new ArrayList<>();
-
         this.activeSensorsDelta = 0;
         this.previousResidualEnergy = 0.0;
         this.consumedEnergyThreshold = 0.05;
@@ -68,7 +64,6 @@ public class Simulation {
 
     public boolean simulatePeriod(int currentStage, SimulationOutput output) throws Exception {
         output.generateSimulatorOutput(currentStage);
-        this.periodFailedSensors.clear();
 
         SensorNetwork network = SensorNetwork.currentInstance();
 

@@ -41,19 +41,20 @@ public class Graph {
     public void buildConnectionGraph() {
         double penalty = 2500;
         for (Sensor vertA : this.sensorSinkList) {
-            vertA.getNeighborhood().forEach((vertB, neighborData) -> {
-                if ((vertA instanceof Sink || vertA.isAvailable())
-                        && vertB.isAvailable()) {
-                    double weight = neighborData.getCurrent();
-                    if ((vertA.isActive() && !vertB.isActive()) ||
-                            (!vertA.isActive() && vertB.isActive())) {
-                        weight = weight * penalty;
-                    } else if (!vertA.isActive() && !vertB.isActive()) {
-                        weight = weight * penalty * penalty;
+            if ((vertA instanceof Sink || vertA.isAvailable())) {
+                vertA.getNeighborhood().forEach((vertB, neighborData) -> {
+                    if (vertB instanceof Sink || vertB.isAvailable()) {
+                        double weight = neighborData.getCurrent();
+                        if ((vertA.isActive() && !vertB.isActive()) ||
+                                (!vertA.isActive() && vertB.isActive())) {
+                            weight = weight * penalty;
+                        } else if (!vertA.isActive() && !vertB.isActive()) {
+                            weight = weight * penalty * penalty;
+                        }
+                        vertA.getAdjacencies().add(new GraphEdge(vertB, weight));
                     }
-                    vertA.getAdjacencies().add(new GraphEdge(vertB, weight));
-                }
-            });
+                });
+            }
         }
     }
 }

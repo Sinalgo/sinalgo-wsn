@@ -271,7 +271,7 @@ public class SensorNetwork {
         }
         Graph graph = new Graph(this.getSensorsAndSinks());
         graph.buildConnectionGraph();
-        graph.computeMinimalPathsTo(this.sinks.get(0));
+        graph.computeMinimalPathsTo(this.getSinks().get(0));
         this.activateNeededParents();
         this.generateChildrenLists();
         for (Sensor s : this.getSensors()) {
