@@ -19,4 +19,5 @@ public class SimulationConnectivityModel extends ConnectivityModelHelper {
                 ((s1.isConnected() && s2.isConnected())
                         || (s1.isConnected() && s2 instanceof Sink));
     }
+
 }

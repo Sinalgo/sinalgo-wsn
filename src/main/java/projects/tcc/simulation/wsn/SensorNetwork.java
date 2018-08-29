@@ -93,7 +93,7 @@ public class SensorNetwork {
                     double vDistancia = sensor1.getPosition().distanceTo(sensor2.getPosition());
                     double vRaio = sensor1.getCommRadius();
                     if (Double.compare(vDistancia, vRaio) <= 0) {
-                        sensor1.getNeighborhood().put(sensor2, Sensor.buildNeighborData(vDistancia));
+                        sensor1.addNeighbor(sensor2, vDistancia);
                     }
                 }
             }
@@ -380,7 +380,7 @@ public class SensorNetwork {
         return discoveredPoints;
     }
 
-    public void buildInitialNetwork(boolean[] activeSensors) {
+    public boolean[] buildInitialNetwork(boolean[] activeSensors) {
         this.setUp();
         this.activateSensors(activeSensors);
 
@@ -393,6 +393,12 @@ public class SensorNetwork {
         if (this.currentCoveragePercent < this.coverageFactor) {
             this.supplyCoverage();
         }
+
+        boolean[] finalActiveSensors = new boolean[this.getSensors().size()];
+        for (Sensor s : this.getActiveSensors()) {
+            finalActiveSensors[s.getSensorId()] = true;
+        }
+        return finalActiveSensors;
     }
 
 }

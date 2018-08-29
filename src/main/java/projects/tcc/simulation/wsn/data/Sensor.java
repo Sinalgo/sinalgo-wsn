@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import projects.tcc.nodes.nodeImplementations.SensorNode;
 import projects.tcc.simulation.algorithms.graph.GraphEdge;
 import projects.tcc.simulation.io.SimulationOutput;
 import sinalgo.nodes.Position;
@@ -24,6 +25,17 @@ public class Sensor {
     public static class NeighborData {
         private final double distance;
         private final double current;
+
+        @Getter
+        private int missedMessageCounter = 0;
+
+        public void increaseMessageCounter() {
+            this.missedMessageCounter++;
+        }
+
+        public void resetMissedMessageCounter() {
+            this.missedMessageCounter = 0;
+        }
     }
 
     private static double DISTANCES_ARRAY[] = {
@@ -97,9 +109,13 @@ public class Sensor {
         return CURRENT_ARRAY[i];
     }
 
-    public static NeighborData buildNeighborData(double distance) {
-        return new NeighborData(distance, getCurrentPerDistance(distance));
+    public void addNeighbor(Sensor neighbor, double distance) {
+        this.getNeighborhood().put(neighbor,
+                new NeighborData(distance, getCurrentPerDistance(distance)));
     }
+
+    @Setter(AccessLevel.PROTECTED)
+    private SensorNode node;
 
     private final int sensorId;
     private final Position position;
@@ -165,6 +181,14 @@ public class Sensor {
 
         this.setCoveredPoints(new ArrayList<>());
         this.setExclusivelyCoveredPoints(new ArrayList<>());
+    }
+
+    public Sensor(int sensorId, double x, double y, double sensRadius, double commRadius,
+                  double batteryEnergy, double activationPower, double receivePower,
+                  double maintenancePower, double commRatio, SensorNode node) {
+        this(sensorId, x, y, sensRadius, commRadius, batteryEnergy,
+                activationPower, receivePower, maintenancePower, commRatio);
+        this.setNode(node);
     }
 
     public void resetConnections() {

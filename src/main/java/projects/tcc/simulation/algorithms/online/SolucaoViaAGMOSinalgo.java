@@ -68,7 +68,7 @@ public class SolucaoViaAGMOSinalgo {
                 vetSensAtivStr.add(i ? "1" : "0");
             }
             SimulationOutput.println(String.join(" ", vetSensAtivStr) + "\n");
-            this.sensorNetwork.buildInitialNetwork(vetSensAtiv);
+            vetSensAtiv = this.sensorNetwork.buildInitialNetwork(vetSensAtiv);
         }
         Simulation redeSim = Simulation.currentInstance();
         if (this.sensorNetwork.getCurrentCoveragePercent() >= this.sensorNetwork.getCoverageFactor()) {
@@ -78,7 +78,7 @@ public class SolucaoViaAGMOSinalgo {
                 //gerando a POP de Cromossomos inicial para o AG
                 vetSensAtiv = AG_Estatico_MO_arq.resolveAG_Estatico_MO(this.sensorNetwork,
                         this.numeroGeracoes, this.tamanhoPopulacao, this.txCruzamento);
-                this.sensorNetwork.buildInitialNetwork(vetSensAtiv);
+                vetSensAtiv = this.sensorNetwork.buildInitialNetwork(vetSensAtiv);
                 SimulationOutput.println("===== EVENTO e REESTRUTUROU TEMPO = " + currentPeriod);
                 if (isStopSimulationOnFailure()) {
                     stopSimulationMethod.run();
