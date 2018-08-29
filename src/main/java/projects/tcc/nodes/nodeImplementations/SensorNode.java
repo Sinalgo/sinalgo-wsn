@@ -36,7 +36,7 @@ public class SensorNode extends SimulationNode {
 
     @Getter(AccessLevel.PROTECTED)
     @Setter(AccessLevel.PROTECTED)
-    private boolean[] activeSensors = new boolean[0];
+    private boolean[] activeSensors;
     private boolean[] sensorStatus;
 
     @Override
@@ -72,6 +72,9 @@ public class SensorNode extends SimulationNode {
     private void handleMessageReceiving(Inbox inbox) {
         this.handleActivationMessages(inbox);
         this.resetSensorStatus();
+        if (this.getActiveSensors() == null) {
+            return;
+        }
         while (inbox.hasNext()) {
             Message m = inbox.next();
             if (inbox.getSender() instanceof SensorNode && m instanceof SimulationMessage) {
@@ -101,12 +104,13 @@ public class SensorNode extends SimulationNode {
     }
 
     protected void resetSensorStatus() {
-        if (this.getActiveSensors() != null &&
-                (this.sensorStatus == null || this.sensorStatus.length != this.getActiveSensors().length)) {
-            this.sensorStatus = new boolean[this.getActiveSensors().length];
-        } else {
-            for (int i = 0; i < this.sensorStatus.length; i++) {
-                this.sensorStatus[i] = false;
+        if (this.getActiveSensors() != null) {
+            if (this.sensorStatus == null || this.sensorStatus.length != this.getActiveSensors().length) {
+                this.sensorStatus = new boolean[this.getActiveSensors().length];
+            } else {
+                for (int i = 0; i < this.sensorStatus.length; i++) {
+                    this.sensorStatus[i] = false;
+                }
             }
         }
     }

@@ -72,7 +72,7 @@ public class SinkNode extends SensorNode {
     protected void handleMessageSending(Supplier<SimulationMessage> m) {
         SimulationMessage message = m.get();
         if (message instanceof FailureMessage) {
-            // trigger faile detection reaction
+            // trigger failure detection reaction
         }
     }
 
