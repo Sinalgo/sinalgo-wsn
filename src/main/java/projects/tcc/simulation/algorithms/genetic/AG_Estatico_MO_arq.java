@@ -73,8 +73,8 @@ public class AG_Estatico_MO_arq {
 
     /*evaluates objective function for each chromossome*/
     private static void calculaFuncaoObjetivo(SensorNetwork rede, List<Cromossomo> pCromossomos) {
-        List<Sensor> popSensores = rede.getSensors();
-        double penAtiv = popSensores.get(0).getActivationPower() + popSensores.get(0).getMaintenancePower();
+        double penAtiv = SimulationConfigurationLoader.getConfiguration().getActivationPower() +
+                SimulationConfigurationLoader.getConfiguration().getMaintenancePower();
         int penNCob = 0;//100000 utilizado no mono-objetivo;
         for (Cromossomo indv : pCromossomos) {
             // avalia apenas quem precisa

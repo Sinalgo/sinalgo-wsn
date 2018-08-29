@@ -17,11 +17,10 @@ public class Graph {
 
     public void build() {
         for (Sensor vertA : this.sensorSinkList) {
-            vertA.getNeighborhood().forEach((vertB, neighborData) -> {
-                if (vertA instanceof Sink || vertA.isAvailable()) {
-                    vertA.getAdjacencies().add(new GraphEdge(vertB, neighborData.getCurrent()));
-                }
-            });
+            if (vertA instanceof Sink || vertA.isAvailable()) {
+                vertA.getNeighborhood().forEach((vertB, neighborData) ->
+                        vertA.getAdjacencies().add(new GraphEdge(vertB, neighborData.getCurrent())));
+            }
         }
     }
 
