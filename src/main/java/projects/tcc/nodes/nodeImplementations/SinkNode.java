@@ -3,7 +3,6 @@ package projects.tcc.nodes.nodeImplementations;
 import lombok.Getter;
 import projects.tcc.MessageCache;
 import projects.tcc.nodes.messages.ActivationMessage;
-import projects.tcc.nodes.messages.FailureMessage;
 import projects.tcc.nodes.messages.SimulationMessage;
 import projects.tcc.simulation.algorithms.online.SolucaoViaAGMOSinalgo;
 import projects.tcc.simulation.io.SimulationConfiguration;
@@ -14,9 +13,9 @@ import projects.tcc.simulation.wsn.data.Sink;
 import sinalgo.exception.SinalgoWrappedException;
 import sinalgo.gui.transformation.PositionTransformation;
 import sinalgo.nodes.messages.Inbox;
+import sinalgo.tools.Tools;
 
 import java.awt.*;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class SinkNode extends SensorNode {
@@ -25,6 +24,10 @@ public class SinkNode extends SensorNode {
     private Sink sensor;
 
     private int stage = 0;
+
+    private int[] heights;
+    private int[] timeSinceLastMessage;
+    private boolean[] acknowledgedSensors;
 
     @Override
     public void init() {
@@ -41,17 +44,87 @@ public class SinkNode extends SensorNode {
             System.out.println("\nSTART logging received messages for round");
         }
         super.handleMessages(inbox);
+        if (this.timeSinceLastMessage != null
+                && this.heights != null
+                && this.acknowledgedSensors != null) {
+            this.increaseTimeSinceLastMessage();
+            long closestFailedNode = this.checkFailures();
+            if (closestFailedNode >= 0) {
+                System.out.println("FAILED SENSOR: " + Tools.getNodeByID(closestFailedNode + 1));
+            }
+        }
         if (size > 0) {
             System.out.println("END logging received messages for round\n");
         }
         boolean[] activeSensors = this.runSimulation();
         if (activeSensors != null) {
-            ActivationMessage m = new ActivationMessage(activeSensors);
             for (Sensor s : SensorNetwork.currentInstance().getAvailableSensors()) {
-                this.sendDirect(m, s.getNode());
+                this.sendDirect(new ActivationMessage(activeSensors[s.getSensorId()]), s.getNode());
             }
-            this.handleMessageReceiving(m);
-            this.resetSensorStatus();
+            this.resetAcknowledgement(activeSensors.length);
+            this.setExpectedHeights();
+        }
+    }
+
+    private void resetAcknowledgement(int size) {
+        if (this.acknowledgedSensors == null || this.acknowledgedSensors.length != size) {
+            this.acknowledgedSensors = new boolean[size];
+        } else {
+            for (int i = 0; i < this.acknowledgedSensors.length; i++) {
+                this.acknowledgedSensors[i] = false;
+            }
+        }
+        if (this.heights == null || this.heights.length != size) {
+            this.heights = new int[size];
+        } else {
+            for (int i = 0; i < this.heights.length; i++) {
+                this.heights[i] = 0;
+            }
+        }
+        if (this.timeSinceLastMessage == null || this.timeSinceLastMessage.length != size) {
+            this.timeSinceLastMessage = new int[size];
+        } else {
+            for (int i = 0; i < this.timeSinceLastMessage.length; i++) {
+                this.timeSinceLastMessage[i] = 0;
+            }
+        }
+
+    }
+
+    private void increaseTimeSinceLastMessage() {
+        for (int i = 0; i < this.timeSinceLastMessage.length; i++) {
+            if (this.heights[i] > 0) {
+                this.timeSinceLastMessage[i]++;
+            }
+        }
+    }
+
+    private long checkFailures() {
+        int minFailedHeight = Integer.MAX_VALUE;
+        long closestFailedSensor = -1;
+        for (int i = 0; i < this.timeSinceLastMessage.length; i++) {
+            int height = this.heights[i];
+            if (height > 0) {
+                int maximumTime = 3 + (this.acknowledgedSensors[i] ? 0 : height);
+                if (this.timeSinceLastMessage[i] > maximumTime) {
+                    if (height < minFailedHeight) {
+                        minFailedHeight = height;
+                        closestFailedSensor = i;
+                    }
+                }
+            }
+        }
+        return closestFailedSensor;
+    }
+
+    private void setExpectedHeights() {
+        this.setExpectedHeights(this.getSensor(), 1);
+    }
+
+    private void setExpectedHeights(Sensor sensor, int currentHeight) {
+        for (Sensor child : sensor.getChildren()) {
+            this.heights[child.getSensorId()] = currentHeight;
+            this.setExpectedHeights(child, currentHeight + 1);
         }
     }
 
@@ -59,21 +132,16 @@ public class SinkNode extends SensorNode {
     protected void handleMessageReceiving(SimulationMessage m) {
         m.getNodes().push(this);
         String messageStr = m.getNodes().stream()
-                .map(SensorNode::toString)
+                .map(sn -> {
+                    if (!(sn.getSensor() instanceof Sink)) {
+                        this.acknowledgedSensors[sn.getSensor().getSensorId()] = true;
+                        this.timeSinceLastMessage[sn.getSensor().getSensorId()] = 0;
+                    }
+                    return sn.toString();
+                })
                 .collect(Collectors.joining(", "));
-        if (m instanceof FailureMessage) {
-            messageStr += ", FAILED: " + ((FailureMessage) m).getFailedNode();
-        }
         System.out.println(messageStr);
         MessageCache.push(m);
-    }
-
-    @Override
-    protected void handleMessageSending(Supplier<SimulationMessage> m) {
-        SimulationMessage message = m.get();
-        if (message instanceof FailureMessage) {
-            // trigger failure detection reaction
-        }
     }
 
     private boolean[] runSimulation() {

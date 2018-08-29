@@ -25,17 +25,6 @@ public class Sensor {
     public static class NeighborData {
         private final double distance;
         private final double current;
-
-        @Getter
-        private int missedMessageCounter = 0;
-
-        public void increaseMessageCounter() {
-            this.missedMessageCounter++;
-        }
-
-        public void resetMissedMessageCounter() {
-            this.missedMessageCounter = 0;
-        }
     }
 
     private static double DISTANCES_ARRAY[] = {

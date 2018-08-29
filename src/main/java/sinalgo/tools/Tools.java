@@ -386,7 +386,7 @@ public class Tools {
      * @param id The ID of the node to return.
      * @return The node with the given ID, null if there is no such node.
      */
-    public static Node getNodeByID(int id) {
+    public static Node getNodeByID(long id) {
         for (Node n : SinalgoRuntime.getNodes()) {
             if (n.getID() == id) {
                 return n;

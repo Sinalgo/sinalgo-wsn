@@ -8,7 +8,7 @@ import sinalgo.nodes.messages.Message;
 public class ActivationMessage extends Message {
 
     @Getter
-    private final boolean[] activeSensors;
+    private final boolean activeSensor;
 
     @Override
     public Message clone() {

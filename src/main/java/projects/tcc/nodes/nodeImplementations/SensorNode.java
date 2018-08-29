@@ -2,25 +2,20 @@ package projects.tcc.nodes.nodeImplementations;
 
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
 import projects.tcc.MessageCache;
 import projects.tcc.nodes.SimulationNode;
 import projects.tcc.nodes.messages.ActivationMessage;
-import projects.tcc.nodes.messages.FailureMessage;
 import projects.tcc.nodes.messages.SimulationMessage;
 import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.io.SimulationConfigurationLoader;
 import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.data.Sensor;
-import projects.tcc.simulation.wsn.data.Sensor.NeighborData;
-import projects.tcc.simulation.wsn.data.Sink;
 import sinalgo.gui.transformation.PositionTransformation;
 import sinalgo.nodes.edges.Edge;
 import sinalgo.nodes.messages.Inbox;
 import sinalgo.nodes.messages.Message;
 
 import java.awt.*;
-import java.util.Map.Entry;
 import java.util.function.Supplier;
 
 public class SensorNode extends SimulationNode {
@@ -33,11 +28,6 @@ public class SensorNode extends SimulationNode {
 
     @Getter
     private Sensor sensor;
-
-    @Getter(AccessLevel.PROTECTED)
-    @Setter(AccessLevel.PROTECTED)
-    private boolean[] activeSensors;
-    private boolean[] sensorStatus;
 
     @Override
     public void init() {
@@ -71,46 +61,11 @@ public class SensorNode extends SimulationNode {
 
     private void handleMessageReceiving(Inbox inbox) {
         this.handleActivationMessages(inbox);
-        this.resetSensorStatus();
-        if (this.getActiveSensors() == null) {
-            return;
-        }
         while (inbox.hasNext()) {
             Message m = inbox.next();
             if (inbox.getSender() instanceof SensorNode && m instanceof SimulationMessage) {
                 this.totalReceivedMessages++;
-                this.sensorStatus[((SensorNode) inbox.getSender()).getSensor().getSensorId()] = true;
                 this.handleMessageReceiving((SimulationMessage) m);
-            }
-        }
-        for (Entry<Sensor, NeighborData> entry : this.getSensor().getNeighborhood().entrySet()) {
-            Sensor s = entry.getKey();
-            NeighborData d = entry.getValue();
-            if (s instanceof Sink) {
-                continue;
-            }
-            if (this.getActiveSensors()[s.getSensorId()] && this.getSensor().equals(s.getParent())) {
-                if (this.sensorStatus[s.getSensorId()]) {
-                    d.resetMissedMessageCounter();
-                } else if (d.getMissedMessageCounter() <= 7) {
-                    d.increaseMessageCounter();
-                }
-                if (d.getMissedMessageCounter() > 3
-                        && d.getMissedMessageCounter() < 7) {
-                    this.handleMessageSending(() -> new FailureMessage(s.getNode()));
-                }
-            }
-        }
-    }
-
-    protected void resetSensorStatus() {
-        if (this.getActiveSensors() != null) {
-            if (this.sensorStatus == null || this.sensorStatus.length != this.getActiveSensors().length) {
-                this.sensorStatus = new boolean[this.getActiveSensors().length];
-            } else {
-                for (int i = 0; i < this.sensorStatus.length; i++) {
-                    this.sensorStatus[i] = false;
-                }
             }
         }
     }
@@ -130,11 +85,11 @@ public class SensorNode extends SimulationNode {
         this.handleMessageSending(() -> m);
     }
 
-    protected void handleMessageReceiving(ActivationMessage m) {
-        this.setActiveSensors(m.getActiveSensors());
+    private void handleMessageReceiving(ActivationMessage m) {
+        this.getSensor().setActive(m.isActiveSensor());
     }
 
-    protected void handleMessageSending(Supplier<SimulationMessage> m) {
+    private void handleMessageSending(Supplier<SimulationMessage> m) {
         for (Edge e : this.getOutgoingConnections()) {
             if (e.getEndNode() instanceof SensorNode) {
                 sendMessage(m.get(), e);
@@ -146,6 +101,17 @@ public class SensorNode extends SimulationNode {
         this.totalSentMessages++;
         m.getNodes().push(this);
         this.send(m, e.getEndNode());
+    }
+
+    @NodePopupMethod(menuText = "Deactivate")
+    public void deactivate() {
+        this.getSensor().setActive(false);
+    }
+
+    @NodePopupMethod(menuText = "Force failure")
+    public void fail() {
+        this.getSensor().setFailed(true);
+        this.getSensor().setActive(false);
     }
 
 }
