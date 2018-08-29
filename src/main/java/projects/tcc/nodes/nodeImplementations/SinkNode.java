@@ -34,7 +34,7 @@ public class SinkNode extends SensorNode {
         SimulationConfiguration config = SimulationConfigurationLoader.getConfiguration();
         this.sensor = new Sink((int) this.getID() - 1, this.getPosition().getXCoord(),
                 this.getPosition().getYCoord(), config.getCommRadius(), this);
-        SensorNetwork.currentInstance().addSinks(this.getSensor());
+        SensorNetwork.currentInstance().addSink(this.getSensor());
     }
 
     @Override
@@ -58,8 +58,10 @@ public class SinkNode extends SensorNode {
         }
         boolean[] activeSensors = this.runSimulation();
         if (activeSensors != null) {
-            for (Sensor s : SensorNetwork.currentInstance().getAvailableSensors()) {
-                this.sendDirect(new ActivationMessage(activeSensors[s.getSensorId()]), s.getNode());
+            for (Sensor s : SensorNetwork.currentInstance().getSensors()) {
+                if (s.isAvailable()) {
+                    this.sendDirect(new ActivationMessage(activeSensors[s.getSensorId()]), s.getNode());
+                }
             }
             this.resetAcknowledgement(activeSensors.length);
             this.setExpectedHeights();

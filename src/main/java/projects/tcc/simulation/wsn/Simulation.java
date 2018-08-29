@@ -75,12 +75,14 @@ public class Simulation {
         // ========= Verificacao e Calculo de Energia no Periodo de tempo =========
         this.networkResidualEnergy = 0;
         this.networkConsumedEnergy = 0;
-        for (Sensor sensor : network.getAvailableSensors()) {
-            this.networkResidualEnergy += sensor.getBatteryEnergy();
+        for (Sensor sensor : network.getSensors()) {
+            if (sensor.isAvailable()) {
+                this.networkResidualEnergy += sensor.getBatteryEnergy();
+            }
         }
 
         //Calculando a energia consumida
-        this.networkConsumedEnergy = network.calculaEnergiaConsPer();
+        this.networkConsumedEnergy = network.getTotalConsumedPowerInRound();
 
         //////////////////////// necessario para algumas aplicacoes //////////////////
         if (this.testNetworkRestructure(currentStage)) {
@@ -106,10 +108,7 @@ public class Simulation {
         network.computePeriodConsumedEnergy();
 
         //Verificando se algum sensor nao estara na proxima simulacao
-        boolean sensorsFailed = network.removeFailedSensors(this.periodFailedSensors, this.minBatteryThreshold);
-        network.setPeriodFailedSensors(this.periodFailedSensors);
-
-        return sensorsFailed;
+        return network.removeFailedSensors(this.minBatteryThreshold);
     }
 
     private boolean testNetworkRestructure(int currentStage) {
@@ -125,7 +124,7 @@ public class Simulation {
         if (currentStage > 0) {
             SensorNetwork network = SensorNetwork.currentInstance();
             this.activeSensorsDelta = Math.abs(this.activeSensorCount.get(this.activeSensorCount.size() - 1) - network.getActiveSensorCount());
-            if (Double.compare(this.activeSensorsDelta, this.consumedEnergyThreshold * network.getAvailableSensors().size()) > 0) {
+            if (Double.compare(this.activeSensorsDelta, this.consumedEnergyThreshold * network.getAvailableSensorCount()) > 0) {
                 this.activeSensorsDelta = 0;
                 this.restructureNetwork = true;
             }

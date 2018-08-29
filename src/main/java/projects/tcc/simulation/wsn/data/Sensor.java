@@ -205,7 +205,7 @@ public class Sensor {
         this.setBatteryEnergy(Math.max(this.getBatteryEnergy() - energySpent, 0));
     }
 
-    public double getPowerToTransmit(Sensor neighbor, int totalChildCount) {
+    public double getTransmitPower(Sensor neighbor, int totalChildCount) {
         double current = this.getNeighborhood().get(neighbor).getCurrent();
         return this.getCommRatio() * current * (totalChildCount + 1);
     }
@@ -215,6 +215,10 @@ public class Sensor {
             child.setConnected(false);
             child.disconnectChildren();
         }
+    }
+
+    public boolean isAvailable() {
+        return !this.isFailed();
     }
 
     public String toString() {

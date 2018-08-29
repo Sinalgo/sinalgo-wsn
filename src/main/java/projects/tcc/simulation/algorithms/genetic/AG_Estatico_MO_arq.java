@@ -16,7 +16,7 @@ public class AG_Estatico_MO_arq {
 
         network.computeCostToSink(); //atulizando o custo de caminho de cada sensor ao sink;
 
-        int sensorCount = network.getAvailableSensors().size();
+        int sensorCount = network.getAvailableSensorCount();
 
         Population popCromo = new Population(tamanhoPopulacao, sensorCount, network.getAvailableSensorsArray(), crossoverRate);
         double sensorRadius = SimulationConfigurationLoader.getConfiguration().getSensorRadius();
@@ -73,7 +73,7 @@ public class AG_Estatico_MO_arq {
 
     /*evaluates objective function for each chromossome*/
     private static void calculaFuncaoObjetivo(SensorNetwork rede, List<Cromossomo> pCromossomos) {
-        List<Sensor> popSensores = rede.getAvailableSensors();
+        List<Sensor> popSensores = rede.getSensors();
         double penAtiv = popSensores.get(0).getActivationPower() + popSensores.get(0).getMaintenancePower();
         int penNCob = 0;//100000 utilizado no mono-objetivo;
         for (Cromossomo indv : pCromossomos) {
@@ -247,7 +247,7 @@ public class AG_Estatico_MO_arq {
         double fator = 1.0 - rede.getCoverageFactor(); //% não cobertura
         for (Cromossomo candidato : conjSolPareto) {
             double pontosDescobertos =
-                    ((double) candidato.getNaoCobertura()) / ((double) rede.getNumPontosDemanda());
+                    ((double) candidato.getNaoCobertura()) / ((double) rede.getDemandPointsCount());
             if (pontosDescobertos == 0 || pontosDescobertos <= fator) {
                 escolhido = candidato;
                 break;

@@ -17,8 +17,11 @@ public class Graph {
 
     public void build() {
         for (Sensor vertA : this.sensorSinkList) {
-            vertA.getNeighborhood().forEach((vertB, neighborData) ->
-                    vertA.getAdjacencies().add(new GraphEdge(vertB, neighborData.getCurrent())));
+            vertA.getNeighborhood().forEach((vertB, neighborData) -> {
+                if (vertA instanceof Sink || vertA.isAvailable()) {
+                    vertA.getAdjacencies().add(new GraphEdge(vertB, neighborData.getCurrent()));
+                }
+            });
         }
     }
 
@@ -26,7 +29,9 @@ public class Graph {
         if (sens instanceof Sink) {
             Dijkstra.computePaths(sens);
             for (Sensor vert : this.sensorSinkList) {
-                vert.setCostToSink(vert.getMinDistance());
+                if (vert instanceof Sink || vert.isAvailable()) {
+                    vert.setCostToSink(vert.getMinDistance());
+                }
             }
         } else {
             log.severe("Tried to compute paths to non-sink sensor");
@@ -37,7 +42,8 @@ public class Graph {
         double penalty = 2500;
         for (Sensor vertA : this.sensorSinkList) {
             vertA.getNeighborhood().forEach((vertB, neighborData) -> {
-                if (!vertB.isFailed()) {
+                if ((vertA instanceof Sink || vertA.isAvailable())
+                        && vertB.isAvailable()) {
                     double weight = neighborData.getCurrent();
                     if ((vertA.isActive() && !vertB.isActive()) ||
                             (!vertA.isActive() && vertB.isActive())) {

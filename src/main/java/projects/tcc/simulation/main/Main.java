@@ -37,8 +37,8 @@ public class Main {
 
             // =================== Iniciando a Simulacao ==================
             SensorNetwork network = SensorNetwork.newInstance();
-            createSensors().forEach(network::addSensors);
-            createSinks().forEach(network::addSinks);
+            createSensors().forEach(network::addSensor);
+            createSinks().forEach(network::addSink);
 
             SimulationOutput.println("\n\n========= Teste Numero: " + i + " =========");
 
