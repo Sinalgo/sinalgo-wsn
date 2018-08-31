@@ -135,10 +135,8 @@ public class SinkNode extends SensorNode {
         m.getNodes().push(this);
         String messageStr = m.getNodes().stream()
                 .map(sn -> {
-                    if (!(sn.getSensor() instanceof Sink)) {
-                        this.acknowledgedSensors[sn.getSensor().getSensorId()] = true;
-                        this.timeSinceLastMessage[sn.getSensor().getSensorId()] = 0;
-                    }
+                    this.acknowledgedSensors[sn.getSensor().getSensorId()] = true;
+                    this.timeSinceLastMessage[sn.getSensor().getSensorId()] = 0;
                     return sn.toString();
                 })
                 .collect(Collectors.joining(", "));

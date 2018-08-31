@@ -265,7 +265,7 @@ public class SensorNetwork {
     private void createConnections() {
         //refazendo as conexoes
         for (Sensor s : this.getSensorsAndSinks()) {
-            if (s instanceof Sink || s.isAvailable()) {
+            if (s.isAvailable()) {
                 s.resetConnections();
             }
         }

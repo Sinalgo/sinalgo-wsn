@@ -139,6 +139,7 @@ public class Sensor {
         this.setCommRadius(commRadius);
 
         this.setActive(true);
+        this.setFailed(false);
 
         this.setChildren(new ArrayList<>());
         this.setNeighborhood(new LinkedHashMap<>());
