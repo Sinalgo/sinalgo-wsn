@@ -2,6 +2,7 @@ package projects.tcc.nodes;
 
 import projects.tcc.CustomGlobal;
 import projects.tcc.simulation.wsn.data.Sensor;
+import projects.tcc.simulation.wsn.data.Sink;
 import sinalgo.exception.WrongConfigurationException;
 import sinalgo.gui.transformation.PositionTransformation;
 import sinalgo.nodes.Node;
@@ -65,7 +66,7 @@ public abstract class SimulationNode extends Node {
         if (customGlobal.isDrawCommRadius() && this.getSensor().isActive()) {
             drawRadius(g, pt, this, Color.ORANGE, this.getSensor().getCommRadius());
         }
-        if (customGlobal.isDrawSensorRadius() && this.getSensor().isActive()) {
+        if (customGlobal.isDrawSensorRadius() && this.getSensor().isActive() && !(this.getSensor() instanceof Sink)) {
             drawRadius(g, pt, this, Color.MAGENTA, this.getSensor().getSensRadius());
         }
     }

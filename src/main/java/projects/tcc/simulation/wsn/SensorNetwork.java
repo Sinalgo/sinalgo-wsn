@@ -81,8 +81,8 @@ public class SensorNetwork {
     }
 
     private void buildNeighborhoods() {
-        for (Sensor sensor1 : this.getSensors()) {
-            for (Sensor sensor2 : this.getSensors()) {
+        for (Sensor sensor1 : this.getSensorsAndSinks()) {
+            for (Sensor sensor2 : this.getSensorsAndSinks()) {
                 if (!sensor1.equals(sensor2)) {
                     double distance = sensor1.getPosition().distanceTo(sensor2.getPosition());
                     double commRadius = Math.min(sensor1.getCommRadius(), sensor2.getCommRadius());
@@ -292,7 +292,8 @@ public class SensorNetwork {
         for (Sensor sens : this.getSensors()) {
             if (sens.isAvailable() && sens.isActive()) {
                 Sensor curr = sens;
-                while (curr.getParent() != null && !curr.getParent().isActive() && !(curr instanceof Sink)) {
+                while (curr.getParent() != null && !curr.getParent().isActive()
+                        && !(curr instanceof Sink) && !(curr.getParent() instanceof Sink)) {
                     curr.getParent().setActive(true);
                     this.computeDisconnectedCoverage(curr.getParent());
                     curr = curr.getParent();
