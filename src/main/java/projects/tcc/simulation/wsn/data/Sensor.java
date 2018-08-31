@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import projects.tcc.nodes.nodeImplementations.SensorNode;
-import projects.tcc.simulation.algorithms.graph.GraphEdge;
 import projects.tcc.simulation.io.SimulationOutput;
 import sinalgo.nodes.Position;
 
@@ -128,10 +127,6 @@ public class Sensor {
     private List<IndexedPosition> coveredPoints;
     private double costToSink;
 
-    private List<GraphEdge> adjacencies;
-    private double minDistance;
-    private Sensor previous;
-
     public Sensor(int sensorId, double x, double y, double commRadius, double commRatio) {
         this.sensorId = sensorId;
         this.position = new Position(x, y, 0);
@@ -142,9 +137,6 @@ public class Sensor {
 
         this.setChildren(new ArrayList<>());
         this.setNeighborhood(new LinkedHashMap<>());
-
-        this.setAdjacencies(new ArrayList<>());
-        this.setMinDistance(Double.POSITIVE_INFINITY);
 
         this.setCommRatio(commRatio);
     }
@@ -181,9 +173,7 @@ public class Sensor {
 
     public void resetConnections() {
         this.setParent(null);
-        this.setPrevious(null);
         this.setConnected(false);
-        this.setMinDistance(Double.POSITIVE_INFINITY);
         this.getChildren().clear();
     }
 

@@ -1,43 +1,44 @@
 package projects.tcc.simulation.algorithms.graph;
 
-import projects.tcc.simulation.io.SimulationOutput;
 import projects.tcc.simulation.wsn.data.Sensor;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
+import java.util.stream.Collectors;
 
 public class Dijkstra {
 
-    public static void computePaths(Sensor source) {
+    public static void computePaths(Graph.Data<Sensor> source) {
         source.setMinDistance(0);
-        PriorityQueue<Sensor> vertexQueue = new PriorityQueue<>(Comparator.comparingDouble(Sensor::getMinDistance));
+        PriorityQueue<Graph.Data<Sensor>> vertexQueue
+                = new PriorityQueue<>(Comparator.comparingDouble(Graph.Data::getMinDistance));
         vertexQueue.add(source);
 
         while (!vertexQueue.isEmpty()) {
-            Sensor u = vertexQueue.poll();
+            Graph.Data<Sensor> u = vertexQueue.poll();
 
             // Visit each edge exiting u
-            for (GraphEdge e : u.getAdjacencies()) {
-                Sensor v = e.getTarget();
+            for (Graph.Data.Edge<Sensor> e : u.getEdges()) {
+                Graph.Data<Sensor> v = e.getTarget();
                 double weight = e.getWeight();
                 double distanceThroughU = u.getMinDistance() + weight;
                 if (Double.compare(distanceThroughU, v.getMinDistance()) < 0) {
                     vertexQueue.remove(v);
                     v.setMinDistance(distanceThroughU);
                     v.setPrevious(u);
-                    v.setParent(u); //Adicionando o Pai do Sensor
                     vertexQueue.add(v);
                 }
             }
         }
     }
 
-    private static List<Sensor> getShortestPathTo(Sensor target) {
-        List<Sensor> path = new ArrayList<>();
-        for (Sensor vertex = target; vertex != null; vertex = vertex.getPrevious()) {
+    private static List<Graph.Data> getShortestPathTo(Graph.Data target) {
+        List<Graph.Data> path = new ArrayList<>();
+        for (Graph.Data vertex = target; vertex != null; vertex = vertex.getPrevious()) {
             path.add(vertex);
         }
         Collections.reverse(path);
@@ -52,34 +53,44 @@ public class Dijkstra {
         Sensor s3 = new Sensor(3, 5, 5, 15, 0.25);
         Sensor s4 = new Sensor(4, 5, 15, 15, 0.25);
 
+        Graph g = new Graph(Collections.emptyList());
 
-        s0.getAdjacencies().add(new GraphEdge(s1, 5));
-        s0.getAdjacencies().add(new GraphEdge(s2, 10));
-        s0.getAdjacencies().add(new GraphEdge(s3, 9));
-        s0.getAdjacencies().add(new GraphEdge(s3, 8));
+        Graph.Data<Sensor> d0 = new Graph.Data<>(s0);
+        Graph.Data<Sensor> d1 = new Graph.Data<>(s1);
+        Graph.Data<Sensor> d2 = new Graph.Data<>(s2);
+        Graph.Data<Sensor> d3 = new Graph.Data<>(s3);
+        Graph.Data<Sensor> d4 = new Graph.Data<>(s4);
 
-        s1.getAdjacencies().add(new GraphEdge(s0, 5));
-        s1.getAdjacencies().add(new GraphEdge(s2, 3));
-        s1.getAdjacencies().add(new GraphEdge(s4, 7));
+        Arrays.asList(d0, d1, d2, d3, d4).forEach(d -> g.getGraphData().put(d.getSource(), d));
 
-        s2.getAdjacencies().add(new GraphEdge(s0, 10));
-        s2.getAdjacencies().add(new GraphEdge(s1, 3));
+        d0.getEdges().add(new Graph.Data.Edge<>(d1, 5));
+        d0.getEdges().add(new Graph.Data.Edge<>(d2, 10));
+        d0.getEdges().add(new Graph.Data.Edge<>(d3, 9));
+        d0.getEdges().add(new Graph.Data.Edge<>(d3, 8));
 
-        s3.getAdjacencies().add(new GraphEdge(s0, 8));
-        s3.getAdjacencies().add(new GraphEdge(s4, 2));
+        d1.getEdges().add(new Graph.Data.Edge<>(d1, 5));
+        d1.getEdges().add(new Graph.Data.Edge<>(d2, 3));
+        d1.getEdges().add(new Graph.Data.Edge<>(d4, 7));
 
-        s4.getAdjacencies().add(new GraphEdge(s1, 7));
-        s4.getAdjacencies().add(new GraphEdge(s3, 2));
+        d2.getEdges().add(new Graph.Data.Edge<>(d0, 10));
+        d2.getEdges().add(new Graph.Data.Edge<>(d1, 3));
 
+        d3.getEdges().add(new Graph.Data.Edge<>(d0, 8));
+        d3.getEdges().add(new Graph.Data.Edge<>(d4, 2));
 
-        Sensor[] vertices = {s0, s1, s2, s3, s4};
-        computePaths(s0);
+        d4.getEdges().add(new Graph.Data.Edge<>(d1, 7));
+        d4.getEdges().add(new Graph.Data.Edge<>(d3, 2));
 
-        for (Sensor v : vertices) {
-            SimulationOutput.println("Distance to " + v + ": " + v.getMinDistance());
-            SimulationOutput.println("Sensor: " + v + " - tem o pai o Sensor: " + v.getParent());
-            List<Sensor> path = getShortestPathTo(v);
-            SimulationOutput.println("Path: " + path);
+        computePaths(d0);
+
+        for (Graph.Data v : g.getGraphData().values()) {
+            System.out.println("Distance to " + v.getSource() + ": " + v.getMinDistance());
+            System.out.println("Sensor: " + v.getSource() + " - tem o pai o Sensor: "
+                    + (v.getPrevious() == null ? null : v.getPrevious().getSource()));
+            List<Graph.Data> path = getShortestPathTo(v);
+            System.out.println("Path: " + path.stream()
+                    .map(Graph.Data<Sensor>::getSource)
+                    .collect(Collectors.toList()));
         }
     }
 }

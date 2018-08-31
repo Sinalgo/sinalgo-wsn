@@ -246,8 +246,9 @@ public class SensorNetwork {
     }
 
     public void computeCostToSink() {
-        Graph.computeAdjacencies(this.getSensorsAndSinks());
-        Graph.computeMinimalPathsTo(this.getSensorsAndSinks(), this.getSinks().get(0));
+        Graph g = new Graph(this.getSensorsAndSinks());
+        g.computeEdges(false);
+        g.computeMinimalPathsTo(this.getSinks().get(0));
     }
 
     public void activateSensors(boolean[] activeArray) {
@@ -266,8 +267,9 @@ public class SensorNetwork {
                 s.resetConnections();
             }
         }
-        Graph.computeAdjacenciesWithPenalties(this.getSensorsAndSinks());
-        Graph.computeMinimalPathsTo(this.getSensorsAndSinks(), this.getSinks().get(0));
+        Graph g = new Graph(this.getSensorsAndSinks());
+        g.computeEdges(true);
+        g.computeMinimalPathsTo(this.getSinks().get(0));
         this.activateNeededParents();
         this.generateChildrenLists();
         for (Sensor s : this.getSensors()) {
@@ -315,7 +317,7 @@ public class SensorNetwork {
         }
         boolean[] alreadyEvaluated = new boolean[this.getSensors().size()];
         double coveredPointsCount = this.getDemandPoints().getNumCoveredPoints();
-        while (Double.compare(coveredPointsCount / this.getDemandPointsCount(), this.coverageFactor) < 0) {
+        while (Double.compare(coveredPointsCount / this.getDemandPointsCount(), this.getCoverageFactor()) < 0) {
             Sensor chosen = this.chooseReplacement(alreadyEvaluated);
             if (chosen != null) {
                 this.activateSensor(chosen);
@@ -334,7 +336,7 @@ public class SensorNetwork {
                 coveredPointsCount = this.getDemandPoints().getNumCoveredPoints();
             } else {
                 //nao ha sensores para ativar
-                SimulationOutput.println("Nao ha mais sensores para ativar e suprir a cobertura");
+                SimulationOutput.println("There are no more sensors that could be activated to supply enough coverage");
                 coveredPointsCount = this.getDemandPointsCount();
             }
 
@@ -384,7 +386,7 @@ public class SensorNetwork {
         this.computeInitialCoverage();
 
         // ========= Verificacao se ha pontos descobertos =========
-        if (this.currentCoveragePercent < this.coverageFactor) {
+        if (this.getCurrentCoveragePercent() < this.getCoverageFactor()) {
             this.supplyCoverage();
         }
 
