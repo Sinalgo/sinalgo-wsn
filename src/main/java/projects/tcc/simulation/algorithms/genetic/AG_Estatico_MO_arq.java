@@ -20,7 +20,7 @@ public class AG_Estatico_MO_arq {
 
         Population popCromo = new Population(tamanhoPopulacao, sensorCount, network.getAvailableSensorsArray(), crossoverRate);
         double sensorRadius = SimulationConfigurationLoader.getConfiguration().getSensorRadius();
-        popCromo.startPop(network.getArea(), sensorRadius, network.getCoverageFactor());
+        popCromo.startPop(network.getDemandPointsCount(), sensorRadius, network.getCoverageFactor());
         calculaFuncaoObjetivo(network, popCromo.getPopCromossomo());
         calculaFuncaoObjetivo2(popCromo.getPopCromossomo());
         limpaPareto(popCromo.getPopCromossomo());

@@ -23,7 +23,6 @@ public class SensorNetwork {
     private List<Sensor> sensorsAndSinks;
     private List<Sink> sinks;
     private double currentCoveragePercent;
-    private double area;
     private DemandPoints demandPoints;
 
     private double coverageFactor;
@@ -50,7 +49,6 @@ public class SensorNetwork {
         this.sinks = new ArrayList<>();
         this.demandPoints = new DemandPoints(configuration.getDimX(), configuration.getDimY());
         this.currentCoveragePercent = 0;
-        this.area = configuration.getDimX() * configuration.getDimY();
         this.coverageFactor = configuration.getCoverageFactor();
     }
 
@@ -59,7 +57,7 @@ public class SensorNetwork {
     }
 
     public int[] getAvailableSensorsArray() {
-        return this.sensors.stream()
+        return this.getSensors().stream()
                 .filter(Sensor::isAvailable)
                 .mapToInt(Sensor::getSensorId)
                 .toArray();
@@ -183,13 +181,13 @@ public class SensorNetwork {
     }
 
     public int getAvailableSensorCount() {
-        int activeSensorsCount = 0;
+        int availableSensorsCount = 0;
         for (Sensor s : this.getSensors()) {
             if (s.isAvailable()) {
-                activeSensorsCount++;
+                availableSensorsCount++;
             }
         }
-        return activeSensorsCount;
+        return availableSensorsCount;
     }
 
     public void computePeriodConsumedEnergy() {
@@ -248,9 +246,8 @@ public class SensorNetwork {
     }
 
     public void computeCostToSink() {
-        Graph graph = new Graph(this.getSensorsAndSinks());
-        graph.build();
-        graph.computeMinimalPathsTo(this.getSinks().get(0));
+        Graph.computeAdjacencies(this.getSensorsAndSinks());
+        Graph.computeMinimalPathsTo(this.getSensorsAndSinks(), this.getSinks().get(0));
     }
 
     public void activateSensors(boolean[] activeArray) {
@@ -269,9 +266,8 @@ public class SensorNetwork {
                 s.resetConnections();
             }
         }
-        Graph graph = new Graph(this.getSensorsAndSinks());
-        graph.buildConnectionGraph();
-        graph.computeMinimalPathsTo(this.getSinks().get(0));
+        Graph.computeAdjacenciesWithPenalties(this.getSensorsAndSinks());
+        Graph.computeMinimalPathsTo(this.getSensorsAndSinks(), this.getSinks().get(0));
         this.activateNeededParents();
         this.generateChildrenLists();
         for (Sensor s : this.getSensors()) {

@@ -185,7 +185,6 @@ public class Sensor {
         this.setParent(null);
         this.setPrevious(null);
         this.setConnected(false);
-        this.getAdjacencies().clear();
         this.setMinDistance(Double.POSITIVE_INFINITY);
         this.getChildren().clear();
     }

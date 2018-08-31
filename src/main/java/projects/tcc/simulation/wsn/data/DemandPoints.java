@@ -37,8 +37,8 @@ public final class DemandPoints {
     public void computeSensorsCoveredPoints(List<Sensor> sensors) {
         for (Sensor sens : sensors) {
             for (IndexedPosition pontoDemanda : this.points) {
-                double vDistancia = sens.getPosition().distanceTo(pontoDemanda);
-                if (Double.compare(vDistancia, sens.getSensRadius()) <= 0) {
+                double distance = sens.getPosition().distanceTo(pontoDemanda);
+                if (Double.compare(distance, sens.getSensRadius()) <= 0) {
                     sens.getCoveredPoints().add(pontoDemanda);
                 }
             }
