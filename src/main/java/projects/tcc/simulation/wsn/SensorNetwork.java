@@ -313,50 +313,42 @@ public class SensorNetwork {
                 this.computeDisconnectedCoverage(s);
             }
         }
-        List<Sensor> disconnectedSensors = new ArrayList<>();
-        double fatorPontoDemanda = this.getDemandPoints().getNumCoveredPoints();
-        while (Double.compare(fatorPontoDemanda / this.getDemandPointsCount(), this.coverageFactor) < 0) {
-            Sensor chosen = this.chooseReplacement(disconnectedSensors);
+        boolean[] alreadyEvaluated = new boolean[this.getSensors().size()];
+        double coveredPointsCount = this.getDemandPoints().getNumCoveredPoints();
+        while (Double.compare(coveredPointsCount / this.getDemandPointsCount(), this.coverageFactor) < 0) {
+            Sensor chosen = this.chooseReplacement(alreadyEvaluated);
             if (chosen != null) {
                 this.activateSensor(chosen);
                 this.createConnections();
-
-                if (chosen.getParent() == null) {
+                if (chosen.getParent() == null || chosen.getParent().isFailed()) {
                     //Impossivel conectar o sensor na rede
-                    disconnectedSensors.add(chosen);
-                    this.deactivateSensor(chosen);
-                    continue;
-                }
-                //possivel problema que pode ocorrer.
-                else if (chosen.getParent().isFailed()) {
-                    //Impossivel conectar o sensor na rede
-                    disconnectedSensors.add(chosen);
+                    alreadyEvaluated[chosen.getSensorId()] = true;
                     this.deactivateSensor(chosen);
                     continue;
                 } else {
                     SimulationOutput.println("Sensor Escolhido = " + chosen);
                     if (!(chosen.getParent() instanceof Sink)) {
-                        this.updateExclusivelyCoveredPoints(chosen.getParent());
+                        this.computeDiscoveredPoints(chosen.getParent());
                     }
                 }
-                fatorPontoDemanda = this.getDemandPoints().getNumCoveredPoints();
+                coveredPointsCount = this.getDemandPoints().getNumCoveredPoints();
             } else {
                 //nao ha sensores para ativar
                 SimulationOutput.println("Nao ha mais sensores para ativar e suprir a cobertura");
-                fatorPontoDemanda = this.getDemandPointsCount();
+                coveredPointsCount = this.getDemandPointsCount();
             }
 
         }
         this.computeCoverage();
     }
 
-    private Sensor chooseReplacement(List<Sensor> listSensorDesconex) {
+    private Sensor chooseReplacement(boolean[] alreadyEvaluated) {
         Sensor chosen = null;
         int maxDiscoveredPoints = 0;
         for (Sensor sensor : this.getSensors()) {
-            if (sensor.isAvailable() && !listSensorDesconex.contains(sensor)) {
+            if (sensor.isAvailable() && !alreadyEvaluated[sensor.getSensorId()]) {
                 if (!sensor.isActive()) {
-                    int discoveredPoints = this.updateExclusivelyCoveredPoints(sensor);
+                    int discoveredPoints = this.computeDiscoveredPoints(sensor);
                     if (discoveredPoints > maxDiscoveredPoints) {
                         chosen = sensor;
                         maxDiscoveredPoints = discoveredPoints;
@@ -372,13 +364,11 @@ public class SensorNetwork {
         this.computeDisconnectedCoverage(chosenReplacement);
     }
 
-    private int updateExclusivelyCoveredPoints(Sensor sens) {
-        sens.getExclusivelyCoveredPoints().clear();
+    private int computeDiscoveredPoints(Sensor sens) {
         int discoveredPoints = 0;
         for (IndexedPosition point : sens.getCoveredPoints()) {
             if (this.getDemandPoints().getCoverage(point) == 0) {
                 discoveredPoints++;
-                sens.getExclusivelyCoveredPoints().add(point);
             }
         }
         return discoveredPoints;

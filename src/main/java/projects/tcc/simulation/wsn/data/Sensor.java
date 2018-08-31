@@ -126,7 +126,6 @@ public class Sensor {
 
     private Map<Sensor, NeighborData> neighborhood;
     private List<IndexedPosition> coveredPoints;
-    private List<IndexedPosition> exclusivelyCoveredPoints;
     private double costToSink;
 
     private List<GraphEdge> adjacencies;
@@ -170,7 +169,6 @@ public class Sensor {
         this.setConnected(false);
 
         this.setCoveredPoints(new ArrayList<>());
-        this.setExclusivelyCoveredPoints(new ArrayList<>());
     }
 
     public Sensor(int sensorId, double x, double y, double sensRadius, double commRadius,
