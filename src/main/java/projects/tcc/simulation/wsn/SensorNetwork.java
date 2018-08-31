@@ -215,6 +215,7 @@ public class SensorNetwork {
                 s.setConnected(false);
                 s.disconnectChildren();
                 s.getParent().getChildren().remove(s);
+                s.setParent(null);
                 this.deactivateSensor(s);
             }
         }
@@ -292,8 +293,7 @@ public class SensorNetwork {
         for (Sensor sens : this.getSensors()) {
             if (sens.isAvailable() && sens.isActive()) {
                 Sensor curr = sens;
-                while (curr.getParent() != null && !curr.getParent().isActive()
-                        && !(curr instanceof Sink) && !(curr.getParent() instanceof Sink)) {
+                while (curr.getParent() != null && !curr.getParent().isActive()) {
                     curr.getParent().setActive(true);
                     this.computeDisconnectedCoverage(curr.getParent());
                     curr = curr.getParent();
