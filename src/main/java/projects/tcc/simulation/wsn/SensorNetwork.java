@@ -10,7 +10,6 @@ import projects.tcc.simulation.wsn.data.DemandPoints;
 import projects.tcc.simulation.wsn.data.IndexedPosition;
 import projects.tcc.simulation.wsn.data.Sensor;
 import projects.tcc.simulation.wsn.data.Sink;
-import sinalgo.exception.SinalgoFatalException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -360,9 +359,6 @@ public class SensorNetwork {
         for (Sensor sensor : this.getSensors()) {
             if (sensor.isAvailable() && !listSensorDesconex.contains(sensor)) {
                 if (!sensor.isActive()) {
-                    if (sensor.isFailed()) {
-                        throw new SinalgoFatalException("Accessing failed sensor in the list of available sensors");
-                    }
                     int discoveredPoints = this.updateExclusivelyCoveredPoints(sensor);
                     if (discoveredPoints > maxDiscoveredPoints) {
                         chosen = sensor;
