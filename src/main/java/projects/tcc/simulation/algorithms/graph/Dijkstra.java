@@ -11,17 +11,9 @@ import java.util.PriorityQueue;
 
 public class Dijkstra {
 
-    private static class MinCostComparator implements Comparator<Sensor> {
-
-        @Override
-        public int compare(Sensor o1, Sensor o2) {
-            return Double.compare(o1.getMinDistance(), o2.getMinDistance());
-        }
-    }
-
     public static void computePaths(Sensor source) {
         source.setMinDistance(0);
-        PriorityQueue<Sensor> vertexQueue = new PriorityQueue<>(new MinCostComparator());
+        PriorityQueue<Sensor> vertexQueue = new PriorityQueue<>(Comparator.comparingDouble(Sensor::getMinDistance));
         vertexQueue.add(source);
 
         while (!vertexQueue.isEmpty()) {

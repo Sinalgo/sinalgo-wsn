@@ -9,40 +9,35 @@ import java.util.List;
 @Log
 public class Graph {
 
-    private List<Sensor> sensorSinkList;
-
-    public Graph(List<Sensor> sensorSinkList) {
-        this.sensorSinkList = sensorSinkList;
-    }
-
-    public void build() {
-        for (Sensor vertA : this.sensorSinkList) {
-            if (vertA instanceof Sink || vertA.isAvailable()) {
-                vertA.getNeighborhood().forEach((vertB, neighborData) ->
-                        vertA.getAdjacencies().add(new GraphEdge(vertB, neighborData.getCurrent())));
-            }
-        }
-    }
-
-    public void computeMinimalPathsTo(Sensor sens) {
-        if (sens instanceof Sink) {
-            Dijkstra.computePaths(sens);
-            for (Sensor vert : this.sensorSinkList) {
-                if (vert instanceof Sink || vert.isAvailable()) {
-                    vert.setCostToSink(vert.getMinDistance());
-                }
-            }
-        } else {
-            log.severe("Tried to compute paths to non-sink sensor");
-        }
-    }
-
-    public void buildConnectionGraph() {
-        double penalty = 2500;
-        for (Sensor vertA : this.sensorSinkList) {
-            if ((vertA instanceof Sink || vertA.isAvailable())) {
+    public static void computeAdjacencies(List<Sensor> sensorSinkList) {
+        for (Sensor vertA : sensorSinkList) {
+            if (vertA.isAvailable()) {
+                vertA.getAdjacencies().clear();
                 vertA.getNeighborhood().forEach((vertB, neighborData) -> {
-                    if (vertB instanceof Sink || vertB.isAvailable()) {
+                    if (vertB.isAvailable()) {
+                        vertA.getAdjacencies().add(new GraphEdge(vertB, neighborData.getCurrent()));
+                    }
+                });
+            }
+        }
+    }
+
+    public static void computeMinimalPathsTo(List<Sensor> sensorSinkList, Sink sink) {
+        Dijkstra.computePaths(sink);
+        for (Sensor vert : sensorSinkList) {
+            if (vert.isAvailable()) {
+                vert.setCostToSink(vert.getMinDistance());
+            }
+        }
+    }
+
+    public static void computeAdjacenciesWithPenalties(List<Sensor> sensorSinkList) {
+        double penalty = 2500;
+        for (Sensor vertA : sensorSinkList) {
+            if (vertA.isAvailable()) {
+                vertA.getAdjacencies().clear();
+                vertA.getNeighborhood().forEach((vertB, neighborData) -> {
+                    if (vertB.isAvailable()) {
                         double weight = neighborData.getCurrent();
                         if ((vertA.isActive() && !vertB.isActive()) ||
                                 (!vertA.isActive() && vertB.isActive())) {

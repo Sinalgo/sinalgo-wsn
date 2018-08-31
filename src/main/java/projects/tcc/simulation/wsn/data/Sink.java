@@ -13,4 +13,12 @@ public class Sink extends Sensor {
         this.setNode(node);
     }
 
+    @Override
+    public void setFailed(boolean failed) {
+    }
+
+    @Override
+    public void setActive(boolean active) {
+    }
+
 }
