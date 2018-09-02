@@ -54,7 +54,7 @@ public final class DemandPoints {
 
     public void removeCoverage(Sensor s) {
         for (IndexedPosition pontoCoberto : s.getCoveredPoints()) {
-            if (--this.coverageMatrix[pontoCoberto.getID()] == 0) {
+            if (--this.coverageMatrix[pontoCoberto.getIndex()] == 0) {
                 this.numCoveredPoints--;
             }
         }
@@ -62,14 +62,14 @@ public final class DemandPoints {
 
     public void addCoverage(Sensor s) {
         for (IndexedPosition point : s.getCoveredPoints()) {
-            if (this.coverageMatrix[point.getID()]++ == 0) {
+            if (this.coverageMatrix[point.getIndex()]++ == 0) {
                 this.numCoveredPoints++;
             }
         }
     }
 
     public int getCoverage(IndexedPosition position) {
-        return this.coverageMatrix[position.getID()];
+        return this.coverageMatrix[position.getIndex()];
     }
 
 }

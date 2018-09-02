@@ -10,6 +10,7 @@ import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.io.SimulationConfigurationLoader;
 import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.data.Sensor;
+import projects.tcc.simulation.wsn.data.SensorIndex;
 import sinalgo.gui.transformation.PositionTransformation;
 import sinalgo.nodes.edges.Edge;
 import sinalgo.nodes.messages.Inbox;
@@ -32,11 +33,12 @@ public class SensorNode extends SimulationNode {
     @Override
     public void init() {
         SimulationConfiguration config = SimulationConfigurationLoader.getConfiguration();
-        this.sensor = new Sensor((int) this.getID() - 1,
-                this.getPosition().getXCoord(), this.getPosition().getYCoord(),
+        int index = SensorIndex.getNextIndex(Sensor.class);
+        this.sensor = new Sensor(index, config.getSensorPositions().get(index).toPosition(),
                 config.getSensorRadius(), config.getCommRadius(), config.getBatteryEnergy(),
                 config.getActivationPower(), config.getReceivePower(),
                 config.getMaintenancePower(), config.getCommRatio(), this);
+        this.setPosition(this.getSensor().getPosition());
         SensorNetwork.currentInstance().addSensor(this.getSensor());
     }
 

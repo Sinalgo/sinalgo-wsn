@@ -16,7 +16,7 @@ import java.util.Map;
 
 @Setter
 @Getter
-@EqualsAndHashCode(of = "sensorId")
+@EqualsAndHashCode(of = {"index", "type"})
 public class Sensor {
 
     @Getter
@@ -105,7 +105,8 @@ public class Sensor {
     @Setter(AccessLevel.PROTECTED)
     private SensorNode node;
 
-    private final int sensorId;
+    private final int index;
+    private final Class<? extends Sensor> type;
     private final Position position;
     private double batteryEnergy;
     private double batteryCapacity;
@@ -127,9 +128,10 @@ public class Sensor {
     private List<IndexedPosition> coveredPoints;
     private double costToSink;
 
-    public Sensor(int sensorId, double x, double y, double commRadius, double commRatio) {
-        this.sensorId = sensorId;
-        this.position = new Position(x, y, 0);
+    public Sensor(int index, Position position, double commRadius, double commRatio) {
+        this.index = index;
+        this.type = this.getClass();
+        this.position = position;
         this.setCommRadius(commRadius);
 
         this.setActive(true);
@@ -141,10 +143,10 @@ public class Sensor {
         this.setCommRatio(commRatio);
     }
 
-    public Sensor(int sensorId, double x, double y, double sensRadius, double commRadius,
+    public Sensor(int index, Position position, double sensRadius, double commRadius,
                   double batteryEnergy, double activationPower, double receivePower,
-                  double maintenancePower, double commRatio) {
-        this(sensorId, x, y, commRadius, commRatio);
+                  double maintenancePower, double commRatio, SensorNode node) {
+        this(index, position, commRadius, commRatio);
 
         this.setActivationPower(activationPower);
         this.setReceivePower(receivePower);
@@ -161,13 +163,6 @@ public class Sensor {
         this.setConnected(false);
 
         this.setCoveredPoints(new ArrayList<>());
-    }
-
-    public Sensor(int sensorId, double x, double y, double sensRadius, double commRadius,
-                  double batteryEnergy, double activationPower, double receivePower,
-                  double maintenancePower, double commRatio, SensorNode node) {
-        this(sensorId, x, y, sensRadius, commRadius, batteryEnergy,
-                activationPower, receivePower, maintenancePower, commRatio);
         this.setNode(node);
     }
 
@@ -210,6 +205,6 @@ public class Sensor {
     }
 
     public String toString() {
-        return Integer.toString(this.getSensorId());
+        return Integer.toString(this.getIndex());
     }
 }

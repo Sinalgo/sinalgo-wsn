@@ -4,11 +4,12 @@ import lombok.Getter;
 import projects.tcc.MessageCache;
 import projects.tcc.nodes.messages.ActivationMessage;
 import projects.tcc.nodes.messages.SimulationMessage;
-import projects.tcc.simulation.algorithms.online.SolucaoViaAGMOSinalgo;
+import projects.tcc.simulation.algorithms.online.SolucaoViaAGMO;
 import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.io.SimulationConfigurationLoader;
 import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.data.Sensor;
+import projects.tcc.simulation.wsn.data.SensorIndex;
 import projects.tcc.simulation.wsn.data.Sink;
 import sinalgo.exception.SinalgoWrappedException;
 import sinalgo.gui.transformation.PositionTransformation;
@@ -32,8 +33,10 @@ public class SinkNode extends SensorNode {
     @Override
     public void init() {
         SimulationConfiguration config = SimulationConfigurationLoader.getConfiguration();
-        this.sensor = new Sink((int) this.getID() - 1, this.getPosition().getXCoord(),
-                this.getPosition().getYCoord(), config.getCommRadius(), this);
+        int index = SensorIndex.getNextIndex(Sink.class);
+        this.sensor = new Sink(index, config.getSinkPositions().get(index).toPosition(),
+                config.getCommRadius(), config.getSinkCommRadius(), this);
+        this.setPosition(this.getSensor().getPosition());
         SensorNetwork.currentInstance().addSink(this.getSensor());
     }
 
@@ -60,7 +63,7 @@ public class SinkNode extends SensorNode {
         if (activeSensors != null) {
             for (Sensor s : SensorNetwork.currentInstance().getSensors()) {
                 if (s.isAvailable()) {
-                    this.sendDirect(new ActivationMessage(activeSensors[s.getSensorId()]), s.getNode());
+                    this.sendDirect(new ActivationMessage(activeSensors[s.getIndex()]), s.getNode());
                 }
             }
             this.resetAcknowledgement(activeSensors.length);
@@ -125,7 +128,7 @@ public class SinkNode extends SensorNode {
 
     private void setExpectedHeights(Sensor sensor, int currentHeight) {
         for (Sensor child : sensor.getChildren()) {
-            this.heights[child.getSensorId()] = currentHeight;
+            this.heights[child.getIndex()] = currentHeight;
             this.setExpectedHeights(child, currentHeight + 1);
         }
     }
@@ -135,8 +138,8 @@ public class SinkNode extends SensorNode {
         m.getNodes().push(this);
         String messageStr = m.getNodes().stream()
                 .map(sn -> {
-                    this.acknowledgedSensors[sn.getSensor().getSensorId()] = true;
-                    this.timeSinceLastMessage[sn.getSensor().getSensorId()] = 0;
+                    this.acknowledgedSensors[sn.getSensor().getIndex()] = true;
+                    this.timeSinceLastMessage[sn.getSensor().getIndex()] = 0;
                     return sn.toString();
                 })
                 .collect(Collectors.joining(", "));
@@ -145,7 +148,7 @@ public class SinkNode extends SensorNode {
     }
 
     private boolean[] runSimulation() {
-        SolucaoViaAGMOSinalgo solucao = SolucaoViaAGMOSinalgo.currentInstance();
+        SolucaoViaAGMO solucao = SolucaoViaAGMO.currentInstance();
         try {
             return solucao.simularRede(stage++);
         } catch (Exception e) {

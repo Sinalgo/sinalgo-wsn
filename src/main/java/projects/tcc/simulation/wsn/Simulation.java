@@ -63,8 +63,6 @@ public class Simulation {
     }
 
     public boolean simulatePeriod(int currentStage, SimulationOutput output) throws Exception {
-        output.generateSimulatorOutput(currentStage);
-
         SensorNetwork network = SensorNetwork.currentInstance();
 
         // ========= Verificacao e Calculo de Energia no Periodo de tempo =========

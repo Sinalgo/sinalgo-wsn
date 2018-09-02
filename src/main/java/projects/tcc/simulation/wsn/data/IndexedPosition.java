@@ -6,15 +6,15 @@ import lombok.ToString;
 import sinalgo.nodes.Position;
 
 @Data
-@EqualsAndHashCode(of = "ID", callSuper = false)
-@ToString(of = "ID", callSuper = true)
+@EqualsAndHashCode(of = "index", callSuper = false)
+@ToString(of = "index", callSuper = true)
 public class IndexedPosition extends Position {
 
-    private final int ID;
+    private final int index;
 
-    public IndexedPosition(int ID, double x, double y, double z) {
+    public IndexedPosition(int index, double x, double y, double z) {
         super(x, y, z);
-        this.ID = ID;
+        this.index = index;
     }
 
 }

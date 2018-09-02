@@ -10,6 +10,7 @@ import projects.tcc.simulation.wsn.data.DemandPoints;
 import projects.tcc.simulation.wsn.data.IndexedPosition;
 import projects.tcc.simulation.wsn.data.Sensor;
 import projects.tcc.simulation.wsn.data.Sink;
+import sinalgo.configuration.Configuration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +47,7 @@ public class SensorNetwork {
         this.sensors = new ArrayList<>();
         this.sensorsAndSinks = new ArrayList<>();
         this.sinks = new ArrayList<>();
-        this.demandPoints = new DemandPoints(configuration.getDimX(), configuration.getDimY());
+        this.demandPoints = new DemandPoints(Configuration.getDimX(), Configuration.getDimY());
         this.currentCoveragePercent = 0;
         this.coverageFactor = configuration.getCoverageFactor();
     }
@@ -58,7 +59,7 @@ public class SensorNetwork {
     public int[] getAvailableSensorsArray() {
         return this.getSensors().stream()
                 .filter(Sensor::isAvailable)
-                .mapToInt(Sensor::getSensorId)
+                .mapToInt(Sensor::getIndex)
                 .toArray();
     }
 
@@ -231,7 +232,7 @@ public class SensorNetwork {
         int coveredPoints = 0;
         for (int cSensor : activeSensorIds) {
             for (IndexedPosition p : this.sensors.get(cSensor).getCoveredPoints()) {
-                coveredPoints += auxCoverage[p.getID()]++ == 0 ? 1 : 0;
+                coveredPoints += auxCoverage[p.getIndex()]++ == 0 ? 1 : 0;
             }
         }
         return this.getDemandPointsCount() - coveredPoints;
@@ -324,7 +325,7 @@ public class SensorNetwork {
                 this.createConnections();
                 if (chosen.getParent() == null || chosen.getParent().isFailed()) {
                     //Impossivel conectar o sensor na rede
-                    alreadyEvaluated[chosen.getSensorId()] = true;
+                    alreadyEvaluated[chosen.getIndex()] = true;
                     this.deactivateSensor(chosen);
                     continue;
                 } else {
@@ -348,7 +349,7 @@ public class SensorNetwork {
         Sensor chosen = null;
         int maxDiscoveredPoints = 0;
         for (Sensor sensor : this.getSensors()) {
-            if (sensor.isAvailable() && !alreadyEvaluated[sensor.getSensorId()]) {
+            if (sensor.isAvailable() && !alreadyEvaluated[sensor.getIndex()]) {
                 if (!sensor.isActive()) {
                     int discoveredPoints = this.computeDiscoveredPoints(sensor);
                     if (discoveredPoints > maxDiscoveredPoints) {
@@ -393,7 +394,7 @@ public class SensorNetwork {
         boolean[] finalActiveSensors = new boolean[this.getSensors().size()];
         for (Sensor s : this.getSensors()) {
             if (s.isAvailable() && s.isActive()) {
-                finalActiveSensors[s.getSensorId()] = true;
+                finalActiveSensors[s.getIndex()] = true;
             }
         }
         return finalActiveSensors;

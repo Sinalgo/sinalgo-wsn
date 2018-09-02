@@ -150,7 +150,7 @@
         <defaultConnectivityModel value="tcc:SimulationConnectivityModel"/>
 
         <!--Default distribution model used when none is specified -->
-        <defaultDistributionModel value="tcc:SimulationFilesPositionModel"/>
+        <defaultDistributionModel value="tcc:DummyPositionModel"/>
 
         <!--Default interference model used when none is specified -->
         <defaultInterferenceModel value="NoInterference"/>
@@ -229,9 +229,24 @@
 
     </Framework>
     <Custom>
-        <InputFile value="50050"/>
 
-        <CoverageFactor value="95"/>
+        <SensorRadius value="15"/>
+
+        <CommRadius value="25"/>
+
+        <SinkCommRadius value="25"/>
+
+        <BatteryEnergy value="1000"/>
+
+        <ActivationPower value="5"/>
+
+        <ReceivePower value="2"/>
+
+        <MaintenancePower value="13"/>
+
+        <CommRatio value="0.25"/>
+
+        <CoverageFactor value="0.95"/>
 
         <PopulationSize value="300"/>
 
