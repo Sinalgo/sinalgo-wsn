@@ -8,12 +8,16 @@ import java.util.List;
 
 public final class DemandPoints {
 
+    private int nextIndex = 0;
+
     @Getter
     private final List<DemandPoint> points;
 
     @Getter
-    private int numCoveredPoints;
-    private int nextIndex = 0;
+    private int coveredNumPoints;
+
+    @Getter
+    private double coveragePercent;
 
     private static DemandPoints currentInstance;
 
@@ -35,21 +39,21 @@ public final class DemandPoints {
         this.computeDemandPoints(dimX, dimY);
     }
 
-    public int getNumPoints() {
+    public int getTotalNumPoints() {
         return this.points.size();
     }
 
     private void computeDemandPoints(int dimX, int dimY) {
         for (int i = 0; i < dimX; i++) {
             for (int j = 0; j < dimY; j++) {
-                this.points.add(new DemandPoint(nextIndex++, i + 0.5, j + 0.5, 0));
+                this.getPoints().add(new DemandPoint(nextIndex++, i + 0.5, j + 0.5, 0));
             }
         }
     }
 
     public void computeSensorsCoveredPoints(List<Sensor> sensors) {
         for (Sensor sens : sensors) {
-            for (DemandPoint p : this.points) {
+            for (DemandPoint p : this.getPoints()) {
                 double distance = sens.getPosition().distanceTo(p);
                 if (Double.compare(distance, sens.getSensRadius()) <= 0) {
                     sens.getCoveredPoints().add(p);
@@ -58,22 +62,28 @@ public final class DemandPoints {
         }
     }
 
-    public void removeCoverage(Sensor s) {
+    void removeCoverage(Sensor s) {
         for (DemandPoint p : s.getCoveredPoints()) {
             if (p.getCoverage() == 1) {
-                this.numCoveredPoints--;
+                this.coveredNumPoints--;
             }
             p.removeCoverage();
         }
+        computeCoveragePercent();
     }
 
-    public void addCoverage(Sensor s) {
+    void addCoverage(Sensor s) {
         for (DemandPoint p : s.getCoveredPoints()) {
             if (p.getCoverage() == 0) {
-                this.numCoveredPoints++;
+                this.coveredNumPoints++;
             }
             p.addCoverage();
         }
+        this.computeCoveragePercent();
+    }
+
+    private void computeCoveragePercent() {
+        this.coveragePercent = (double) this.getCoveredNumPoints() / (double) this.getTotalNumPoints();
     }
 
 }

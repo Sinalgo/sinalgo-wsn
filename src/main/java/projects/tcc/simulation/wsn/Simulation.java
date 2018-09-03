@@ -3,6 +3,7 @@ package projects.tcc.simulation.wsn;
 import lombok.Getter;
 import projects.tcc.simulation.io.SimulationConfigurationLoader;
 import projects.tcc.simulation.io.SimulationOutput;
+import projects.tcc.simulation.wsn.data.DemandPoints;
 import projects.tcc.simulation.wsn.data.Sensor;
 
 import java.util.ArrayList;
@@ -34,10 +35,6 @@ public class Simulation {
     public static Simulation newInstance() {
         currentInstance = new Simulation();
         return currentInstance;
-    }
-
-    public double getCurrentCoveragePercentage() {
-        return SensorNetwork.currentInstance().getCurrentCoveragePercent();
     }
 
     private Simulation() {
@@ -75,8 +72,7 @@ public class Simulation {
         //Incluindo Energia consumida por Ativacao.
         this.networkConsumedEnergy += network.computePeriodActivationEnergy();
         //-----------------------------------------
-        network.computeCoverage();
-        this.currentCoveragePercent = network.getCurrentCoveragePercent();
+        this.currentCoveragePercent = DemandPoints.currentInstance().getCoveragePercent();
 
         this.activeSensorCount.add(network.getActiveSensorCount());
         this.currentStage.add(currentStage);

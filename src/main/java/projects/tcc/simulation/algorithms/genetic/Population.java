@@ -4,6 +4,7 @@ import projects.tcc.simulation.io.SimulationOutput;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 import static projects.tcc.simulation.algorithms.genetic.FitnessType.TYPE_1;
@@ -202,7 +203,7 @@ public class Population {
     }
 
     public void calcularFO_MO_3() {
-        this.popCromossomo.sort(new ComparatorPareto());
+        this.popCromossomo.sort(Comparator.comparingInt(Cromossomo::getIdPareto));
         ////////////////////////////////////////////////
         int numDeParetos = this.popCromossomo.get(this.popCromossomo.size() - 1).getIdPareto();
         for (Cromossomo aPopCromossomo : this.popCromossomo) {

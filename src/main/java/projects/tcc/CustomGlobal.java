@@ -41,7 +41,7 @@ import lombok.Getter;
 import lombok.Setter;
 import projects.tcc.simulation.algorithms.online.SolucaoViaAGMO;
 import projects.tcc.simulation.io.SimulationOutput;
-import projects.tcc.simulation.wsn.SensorNetwork;
+import projects.tcc.simulation.wsn.data.DemandPoints;
 import sinalgo.exception.SinalgoFatalException;
 import sinalgo.gui.transformation.PositionTransformation;
 import sinalgo.nodes.Position;
@@ -111,7 +111,7 @@ public class CustomGlobal extends AbstractCustomGlobal {
     @Override
     public void customPaint(Graphics g, PositionTransformation pt) {
         if (this.drawPoints) {
-            for (Position p : SensorNetwork.currentInstance().getDemandPoints().getPoints()) {
+            for (Position p : DemandPoints.currentInstance().getPoints()) {
                 Color backupColor = g.getColor();
                 g.setColor(Color.DARK_GRAY);
                 pt.drawLine(g, p, p);

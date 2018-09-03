@@ -2,6 +2,7 @@ package projects.tcc.simulation.algorithms.genetic;
 
 import projects.tcc.simulation.io.SimulationConfigurationLoader;
 import projects.tcc.simulation.wsn.SensorNetwork;
+import projects.tcc.simulation.wsn.data.DemandPoints;
 import projects.tcc.simulation.wsn.data.Sensor;
 
 import java.util.ArrayList;
@@ -20,7 +21,7 @@ public class AG_Estatico_MO_arq {
 
         Population popCromo = new Population(tamanhoPopulacao, sensorCount, network.getAvailableSensorsArray(), crossoverRate);
         double sensorRadius = SimulationConfigurationLoader.getConfiguration().getSensorRadius();
-        popCromo.startPop(network.getDemandPointsCount(), sensorRadius, network.getCoverageFactor());
+        popCromo.startPop(DemandPoints.currentInstance().getTotalNumPoints(), sensorRadius, network.getCoverageFactor());
         calculaFuncaoObjetivo(network, popCromo.getPopCromossomo());
         calculaFuncaoObjetivo2(popCromo.getPopCromossomo());
         limpaPareto(popCromo.getPopCromossomo());
@@ -246,9 +247,9 @@ public class AG_Estatico_MO_arq {
         Cromossomo escolhido = conjSolPareto.get(conjSolPareto.size() - 1);
         double fator = 1.0 - rede.getCoverageFactor(); //% não cobertura
         for (Cromossomo candidato : conjSolPareto) {
-            double pontosDescobertos =
-                    ((double) candidato.getNaoCobertura()) / ((double) rede.getDemandPointsCount());
-            if (pontosDescobertos == 0 || pontosDescobertos <= fator) {
+            double nonCoveredPoints =
+                    ((double) candidato.getNaoCobertura()) / ((double) DemandPoints.currentInstance().getTotalNumPoints());
+            if (nonCoveredPoints == 0 || nonCoveredPoints <= fator) {
                 escolhido = candidato;
                 break;
             }

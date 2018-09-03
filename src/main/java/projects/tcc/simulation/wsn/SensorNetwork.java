@@ -21,8 +21,6 @@ public class SensorNetwork {
     private List<Sensor> sensors;
     private List<Sensor> sensorsAndSinks;
     private List<Sink> sinks;
-    private double currentCoveragePercent;
-    private DemandPoints demandPoints;
 
     private double coverageFactor;
 
@@ -46,13 +44,7 @@ public class SensorNetwork {
         this.sensors = new ArrayList<>();
         this.sensorsAndSinks = new ArrayList<>();
         this.sinks = new ArrayList<>();
-        this.demandPoints = DemandPoints.newInstance();
-        this.currentCoveragePercent = 0;
         this.coverageFactor = configuration.getCoverageFactor();
-    }
-
-    public int getDemandPointsCount() {
-        return this.getDemandPoints().getNumPoints();
     }
 
     public int[] getAvailableSensorsArray() {
@@ -75,7 +67,7 @@ public class SensorNetwork {
     private void setUp() {
         if (!this.isInitialized()) {
             this.setInitialized(true);
-            this.getDemandPoints().computeSensorsCoveredPoints(this.getSensors());
+            DemandPoints.currentInstance().computeSensorsCoveredPoints(this.getSensors());
             this.buildNeighborhoods();
         }
     }
@@ -139,11 +131,6 @@ public class SensorNetwork {
         return conexo;
     }
 
-    public void computeCoverage() {
-        this.setCurrentCoveragePercent(
-                (double) this.getDemandPoints().getNumCoveredPoints() / (double) this.getDemandPointsCount());
-    }
-
     public int getActiveSensorCount() {
         int activeSensorsCount = 0;
         for (Sensor s : this.getSensors()) {
@@ -187,22 +174,19 @@ public class SensorNetwork {
                 s.fail();
             }
         }
-        if (fail) {
-            this.computeCoverage();
-        }
         return fail;
     }
 
     //funcao utilizada pelo AG
     public int computeNonCoverage(List<Integer> activeSensorIds) {
-        int[] auxCoverage = new int[this.getDemandPointsCount()];
+        int[] auxCoverage = new int[DemandPoints.currentInstance().getTotalNumPoints()];
         int coveredPoints = 0;
         for (int cSensor : activeSensorIds) {
             for (DemandPoint p : this.sensors.get(cSensor).getCoveredPoints()) {
                 coveredPoints += auxCoverage[p.getIndex()]++ == 0 ? 1 : 0;
             }
         }
-        return this.getDemandPointsCount() - coveredPoints;
+        return DemandPoints.currentInstance().getTotalNumPoints() - coveredPoints;
     }
 
     public void computeCostToSink() {
@@ -274,8 +258,9 @@ public class SensorNetwork {
     private void supplyCoverage() {
         // Utilizado na versão OnlineHíbrido
         boolean[] alreadyEvaluated = new boolean[this.getSensors().size()];
-        double coveredPointsCount = this.getDemandPoints().getNumCoveredPoints();
-        while (Double.compare(coveredPointsCount / this.getDemandPointsCount(), this.getCoverageFactor()) < 0) {
+        DemandPoints demandPoints = DemandPoints.currentInstance();
+        double coveredPointsCount = demandPoints.getCoveredNumPoints();
+        while (Double.compare(coveredPointsCount / demandPoints.getTotalNumPoints(), this.getCoverageFactor()) < 0) {
             Sensor chosen = this.chooseReplacement(alreadyEvaluated);
             if (chosen != null) {
                 chosen.activate();
@@ -288,15 +273,13 @@ public class SensorNetwork {
                 } else {
                     SimulationOutput.println("Sensor Escolhido = " + chosen);
                 }
-                coveredPointsCount = this.getDemandPoints().getNumCoveredPoints();
+                coveredPointsCount = demandPoints.getCoveredNumPoints();
             } else {
                 //nao ha sensores para ativar
                 SimulationOutput.println("There are no more sensors that could be activated to supply enough coverage");
-                coveredPointsCount = this.getDemandPointsCount();
+                coveredPointsCount = demandPoints.getTotalNumPoints();
             }
-
         }
-        this.computeCoverage();
     }
 
     private Sensor chooseReplacement(boolean[] alreadyEvaluated) {
@@ -332,10 +315,10 @@ public class SensorNetwork {
 
         // criando a conectividade inicial das redes e atualizando a cobertura.
         this.createConnections();
-        this.computeCoverage();
 
+        DemandPoints demandPoints = DemandPoints.currentInstance();
         // ========= Verificacao se ha pontos descobertos =========
-        if (this.getCurrentCoveragePercent() < this.getCoverageFactor()) {
+        if (demandPoints.getCoveragePercent() < this.getCoverageFactor()) {
             this.supplyCoverage();
         }
 

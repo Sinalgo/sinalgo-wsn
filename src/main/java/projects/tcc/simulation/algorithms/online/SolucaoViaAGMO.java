@@ -8,6 +8,7 @@ import projects.tcc.simulation.io.SimulationConfigurationLoader;
 import projects.tcc.simulation.io.SimulationOutput;
 import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.Simulation;
+import projects.tcc.simulation.wsn.data.DemandPoints;
 import sinalgo.tools.Tools;
 
 import java.util.ArrayList;
@@ -67,7 +68,7 @@ public class SolucaoViaAGMO {
             vetSensAtiv = this.sensorNetwork.buildInitialNetwork(vetSensAtiv);
         }
         Simulation simulation = Simulation.currentInstance();
-        if (this.sensorNetwork.getCurrentCoveragePercent() >= this.sensorNetwork.getCoverageFactor()) {
+        if (DemandPoints.currentInstance().getCoveragePercent() >= this.sensorNetwork.getCoverageFactor()) {
             boolean restructure = simulation.simulatePeriod(currentPeriod);
             if (restructure) {
                 //gerando a POP de Cromossomos inicial para o AG
