@@ -6,8 +6,8 @@ import projects.tcc.simulation.algorithms.graph.Graph;
 import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.io.SimulationConfigurationLoader;
 import projects.tcc.simulation.io.SimulationOutput;
+import projects.tcc.simulation.wsn.data.DemandPoint;
 import projects.tcc.simulation.wsn.data.DemandPoints;
-import projects.tcc.simulation.wsn.data.IndexedPosition;
 import projects.tcc.simulation.wsn.data.Sensor;
 import projects.tcc.simulation.wsn.data.Sink;
 import sinalgo.configuration.Configuration;
@@ -231,7 +231,7 @@ public class SensorNetwork {
         int[] auxCoverage = new int[this.getDemandPointsCount()];
         int coveredPoints = 0;
         for (int cSensor : activeSensorIds) {
-            for (IndexedPosition p : this.sensors.get(cSensor).getCoveredPoints()) {
+            for (DemandPoint p : this.sensors.get(cSensor).getCoveredPoints()) {
                 coveredPoints += auxCoverage[p.getIndex()]++ == 0 ? 1 : 0;
             }
         }
@@ -369,8 +369,8 @@ public class SensorNetwork {
 
     private int computeDiscoveredPoints(Sensor sens) {
         int discoveredPoints = 0;
-        for (IndexedPosition point : sens.getCoveredPoints()) {
-            if (this.getDemandPoints().getCoverage(point) == 0) {
+        for (DemandPoint p : sens.getCoveredPoints()) {
+            if (p.getCoverage() == 0) {
                 discoveredPoints++;
             }
         }
