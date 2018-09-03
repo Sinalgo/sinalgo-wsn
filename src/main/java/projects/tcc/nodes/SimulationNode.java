@@ -47,8 +47,12 @@ public abstract class SimulationNode extends Node {
 
     @Override
     public String toString() {
-        return "[" + super.toString() + ": Tx=" +
-                this.getTotalSentMessages() + ", Rx=" + this.getTotalReceivedMessages() + "]";
+        return "[" + super.toString() + ": " + String.format(
+                "Tx=%d, Rx=%d, Pwr=%.2f, State=%s",
+                this.getTotalSentMessages(),
+                this.getTotalReceivedMessages(),
+                this.getSensor().getBatteryEnergy(),
+                this.getSensor().isAvailable() ? "OK" : "FAILED") + "]";
     }
 
     @Override

@@ -7,9 +7,6 @@ import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.io.SimulationConfigurationLoader;
 import projects.tcc.simulation.io.SimulationOutput;
 import projects.tcc.simulation.wsn.SensorNetwork;
-import projects.tcc.simulation.wsn.Simulation;
-import projects.tcc.simulation.wsn.data.DemandPoints;
-import sinalgo.tools.Tools;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,12 +22,6 @@ public class SolucaoViaAGMO {
     @Getter
     @Setter
     private boolean stopSimulationOnFailure;
-
-    @Setter
-    private static Runnable stopSimulationMethod = Tools::stopSimulation;
-
-    @Setter
-    private static Runnable onStopSimulationMessageMethod = () -> Tools.minorError("Não foi mais possível se manter acima do mínimo de cobertura");
 
     private static SolucaoViaAGMO currentInstance;
 
@@ -53,39 +44,17 @@ public class SolucaoViaAGMO {
         this.txCruzamento = config.getCrossoverRate();
     }
 
-    public boolean[] simularRede(int currentPeriod, boolean restructure) throws Exception {
+    public boolean[] simularRede() throws Exception {
         //gerando a POP de Cromossomos inicial para o AG
-        boolean[] vetSensAtiv = null;
-        if (currentPeriod == 0) {
-            vetSensAtiv = AG_Estatico_MO_arq.resolveAG_Estatico_MO(this.sensorNetwork, this.numeroGeracoes,
-                    this.tamanhoPopulacao, this.txCruzamento);
-            /////////////////////////// REDE INICIAL ///////////////////////////////
-            List<String> vetSensAtivStr = new ArrayList<>(vetSensAtiv.length);
-            for (boolean i : vetSensAtiv) {
-                vetSensAtivStr.add(i ? "1" : "0");
-            }
-            SimulationOutput.println(String.join(" ", vetSensAtivStr) + "\n");
-            vetSensAtiv = this.sensorNetwork.buildInitialNetwork(vetSensAtiv);
+        boolean[] vetSensAtiv = AG_Estatico_MO_arq.resolveAG_Estatico_MO(this.sensorNetwork, this.numeroGeracoes,
+                this.tamanhoPopulacao, this.txCruzamento);
+        /////////////////////////// REDE INICIAL ///////////////////////////////
+        List<String> vetSensAtivStr = new ArrayList<>(vetSensAtiv.length);
+        for (boolean i : vetSensAtiv) {
+            vetSensAtivStr.add(i ? "1" : "0");
         }
-        Simulation simulation = Simulation.currentInstance();
-        if (DemandPoints.currentInstance().getCoveragePercent() >= this.sensorNetwork.getCoverageFactor()) {
-            restructure |= Simulation.currentInstance().simulatePeriod(currentPeriod);
-            if (restructure) {
-                //gerando a POP de Cromossomos inicial para o AG
-                vetSensAtiv = AG_Estatico_MO_arq.resolveAG_Estatico_MO(this.sensorNetwork, this.numeroGeracoes,
-                        this.tamanhoPopulacao, this.txCruzamento);
-                vetSensAtiv = this.sensorNetwork.buildInitialNetwork(vetSensAtiv);
-                SimulationOutput.println("===== EVENTO e REESTRUTUROU TEMPO = " + currentPeriod);
-                if (isStopSimulationOnFailure()) {
-                    stopSimulationMethod.run();
-                }
-            }
-        } else {
-            stopSimulationMethod.run();
-            onStopSimulationMessageMethod.run();
-        }
-        SimulationOutput.println("==> Reestruturação foi requisitada " + simulation.getRestructureCount());
-        return vetSensAtiv;
+        SimulationOutput.println(String.join(" ", vetSensAtivStr) + "\n");
+        return this.sensorNetwork.buildInitialNetwork(vetSensAtiv);
     }
 
 }

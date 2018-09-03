@@ -1,13 +1,17 @@
 package projects.tcc.nodes.nodeImplementations;
 
 import lombok.Getter;
+import lombok.Setter;
 import projects.tcc.MessageCache;
 import projects.tcc.nodes.messages.ActivationMessage;
 import projects.tcc.nodes.messages.SimulationMessage;
 import projects.tcc.simulation.algorithms.online.SolucaoViaAGMO;
 import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.io.SimulationConfigurationLoader;
+import projects.tcc.simulation.io.SimulationOutput;
 import projects.tcc.simulation.wsn.SensorNetwork;
+import projects.tcc.simulation.wsn.Simulation;
+import projects.tcc.simulation.wsn.data.DemandPoints;
 import projects.tcc.simulation.wsn.data.Sensor;
 import projects.tcc.simulation.wsn.data.SensorIndex;
 import projects.tcc.simulation.wsn.data.Sink;
@@ -30,6 +34,12 @@ public class SinkNode extends SensorNode {
     private int[] timeSinceLastMessage;
     private boolean[] acknowledgedSensors;
 
+    @Setter
+    private static Runnable stopSimulationMethod = Tools::stopSimulation;
+
+    @Setter
+    private static Runnable onStopSimulationMessageMethod = () -> Tools.minorError("Não foi mais possível se manter acima do mínimo de cobertura");
+
     @Override
     public void init() {
         SimulationConfiguration config = SimulationConfigurationLoader.getConfiguration();
@@ -46,30 +56,35 @@ public class SinkNode extends SensorNode {
             System.out.println("\nSTART logging received messages for round");
         }
         super.handleMessages(inbox);
-        boolean restructure = false;
+        boolean fail = false;
         if (this.timeSinceLastMessage != null
                 && this.heights != null
                 && this.acknowledgedSensors != null) {
             this.increaseTimeSinceLastMessage();
             long closestFailedNode = this.checkFailures();
             if (closestFailedNode >= 0) {
-                restructure = true;
+                fail = true;
                 System.out.println("FAILED SENSOR: " + Tools.getNodeByID(closestFailedNode + 1));
             }
         }
         if (size > 0) {
             System.out.println("END logging received messages for round\n");
         }
-        boolean[] activeSensors = this.runSimulation(restructure);
-        if (activeSensors != null) {
+        boolean restructure = this.stage == 0 || Simulation.currentInstance().simulatePeriod(stage);
+        if (fail || restructure) {
+            boolean[] activeSensors = this.runSimulation();
+            if (this.stage == 0) {
+                Simulation.currentInstance().simulatePeriod(stage);
+            }
             for (Sensor s : SensorNetwork.currentInstance().getSensors()) {
                 if (s.isAvailable()) {
                     this.sendDirect(new ActivationMessage(activeSensors[s.getIndex()]), s.getNode());
                 }
             }
             this.resetAcknowledgement(activeSensors.length);
-            this.setExpectedHeights();
+            this.computeExpectedHeights();
         }
+        stage++;
     }
 
     private void resetAcknowledgement(int size) {
@@ -123,14 +138,14 @@ public class SinkNode extends SensorNode {
         return closestFailedSensor;
     }
 
-    private void setExpectedHeights() {
-        this.setExpectedHeights(this.getSensor(), 1);
+    private void computeExpectedHeights() {
+        this.computeExpectedHeights(this.getSensor(), 1);
     }
 
-    private void setExpectedHeights(Sensor sensor, int currentHeight) {
+    private void computeExpectedHeights(Sensor sensor, int currentHeight) {
         for (Sensor child : sensor.getChildren()) {
             this.heights[child.getIndex()] = currentHeight;
-            this.setExpectedHeights(child, currentHeight + 1);
+            this.computeExpectedHeights(child, currentHeight + 1);
         }
     }
 
@@ -148,10 +163,19 @@ public class SinkNode extends SensorNode {
         MessageCache.push(m);
     }
 
-    private boolean[] runSimulation(boolean restructure) {
-        SolucaoViaAGMO solucao = SolucaoViaAGMO.currentInstance();
+    private boolean[] runSimulation() {
+        SimulationOutput.println("===== EVENTO e REESTRUTUROU TEMPO = " + this.stage);
         try {
-            return solucao.simularRede(stage++, restructure);
+            boolean[] activeSensors = SolucaoViaAGMO.currentInstance().simularRede();
+            if (Double.compare(DemandPoints.currentInstance().getCoveragePercent(), SensorNetwork.currentInstance().getCoverageFactor()) >= 0) {
+                if (SolucaoViaAGMO.currentInstance().isStopSimulationOnFailure()) {
+                    Tools.stopSimulation();
+                }
+            } else {
+                Tools.stopSimulation();
+                Tools.minorError("Não foi mais possível se manter acima do mínimo de cobertura");
+            }
+            return activeSensors;
         } catch (Exception e) {
             throw new SinalgoWrappedException(e);
         }
