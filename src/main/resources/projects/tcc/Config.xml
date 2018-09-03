@@ -150,7 +150,7 @@
         <defaultConnectivityModel value="tcc:SimulationConnectivityModel"/>
 
         <!--Default distribution model used when none is specified -->
-        <defaultDistributionModel value="tcc:DummyPositionModel"/>
+        <defaultDistributionModel value="tcc:ListBasedPositionModel"/>
 
         <!--Default interference model used when none is specified -->
         <defaultInterferenceModel value="NoInterference"/>

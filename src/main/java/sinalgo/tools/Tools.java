@@ -489,7 +489,7 @@ public class Tools {
             } catch (WrongConfigurationException e) {
                 throw new SinalgoWrappedException(e);
             }
-            node.setPosition(nodeDistribution.getNextPosition());
+            node.setPosition(nodeDistribution.getNextPosition(node.getClass()));
 
             // set the models
             setModels(models, modelParams, modelNames, numSpecifiedModels, node);

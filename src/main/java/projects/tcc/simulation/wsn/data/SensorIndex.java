@@ -16,4 +16,8 @@ public class SensorIndex {
         return SENSOR_TYPE_INDEXES.computeIfAbsent(clazz, k -> new AtomicInteger()).getAndIncrement();
     }
 
+    public static int getIndexFor(Class<? extends Sensor> clazz) {
+        return SENSOR_TYPE_INDEXES.computeIfAbsent(clazz, k -> new AtomicInteger()).get();
+    }
+
 }

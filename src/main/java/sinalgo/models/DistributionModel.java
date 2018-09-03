@@ -38,6 +38,7 @@ package sinalgo.models;
 
 import lombok.Getter;
 import lombok.Setter;
+import sinalgo.nodes.Node;
 import sinalgo.nodes.Position;
 
 /**
@@ -83,6 +84,22 @@ public abstract class DistributionModel extends Model {
      * @return The next position where a node is placed.
      */
     public abstract Position getNextPosition();
+
+
+    /**
+     * Returns the nexty position where a node is placed.
+     * <p>
+     * This sends information on the Node's class so it can be used to generate
+     * different positions for different nodes.
+     * <p>
+     * Overriding this is optional
+     *
+     * @param nodeClass The node's class
+     * @return The next position where a node is placed.
+     */
+    public Position getNextPosition(Class<? extends Node> nodeClass) {
+        return this.getNextPosition();
+    }
 
     @Override
     public final ModelType getType() {

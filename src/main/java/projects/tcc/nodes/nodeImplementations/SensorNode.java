@@ -34,11 +34,10 @@ public class SensorNode extends SimulationNode {
     public void init() {
         SimulationConfiguration config = SimulationConfigurationLoader.getConfiguration();
         int index = SensorIndex.getNextIndex(Sensor.class);
-        this.sensor = new Sensor(index, config.getSensorPositions().get(index).toPosition(),
+        this.sensor = new Sensor(index, this.getPosition(),
                 config.getSensorRadius(), config.getCommRadius(), config.getBatteryEnergy(),
                 config.getActivationPower(), config.getReceivePower(),
                 config.getMaintenancePower(), config.getCommRatio(), this);
-        this.setPosition(this.getSensor().getPosition());
         SensorNetwork.currentInstance().addSensor(this.getSensor());
     }
 

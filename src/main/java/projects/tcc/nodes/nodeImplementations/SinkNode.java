@@ -34,9 +34,8 @@ public class SinkNode extends SensorNode {
     public void init() {
         SimulationConfiguration config = SimulationConfigurationLoader.getConfiguration();
         int index = SensorIndex.getNextIndex(Sink.class);
-        this.sensor = new Sink(index, config.getSinkPositions().get(index).toPosition(),
+        this.sensor = new Sink(index, this.getPosition(),
                 config.getCommRadius(), config.getSinkCommRadius(), this);
-        this.setPosition(this.getSensor().getPosition());
         SensorNetwork.currentInstance().addSink(this.getSensor());
     }
 

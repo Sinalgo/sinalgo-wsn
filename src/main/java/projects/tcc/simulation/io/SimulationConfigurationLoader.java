@@ -28,7 +28,7 @@ public class SimulationConfigurationLoader {
     }
 
     private static void load() {
-        String resourcePath = "projects/tcc/input/json/positions.json";
+        String resourcePath = "projects/tcc/positions.json";
         log.info("Loading configuration from " + resourcePath);
         try (LineNumberReader reader = new LineNumberReader(new InputStreamReader(Thread.currentThread()
                 .getContextClassLoader()

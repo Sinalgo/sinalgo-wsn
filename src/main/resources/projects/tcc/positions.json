@@ -1,11 +1,4 @@
 {
-  "sensorRadius": 15.0,
-  "commRadius": 25.0,
-  "batteryEnergy": 1000.0,
-  "activationPower": 5.0,
-  "receivePower": 2.0,
-  "maintenancePower": 13.0,
-  "commRatio": 0.25,
   "sinkPositions": [
     {
       "x": 0.0,

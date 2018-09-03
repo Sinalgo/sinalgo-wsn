@@ -66,6 +66,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.Vector;
+import java.util.function.Function;
 
 import static sinalgo.configuration.Configuration.ImplementationChoiceInConfigFile.ImplementationType.MODELS_CONNECTIVITY;
 import static sinalgo.configuration.Configuration.ImplementationChoiceInConfigFile.ImplementationType.MODELS_DISTRIBUTION;
@@ -336,7 +337,7 @@ public class GenerateNodesDialog extends JDialog implements ActionListener, Prog
                 }
             } else { // only for a single node
                 this.readSelection();
-                Node n = this.generateNode(this.getSingleNodePosition());
+                Node n = this.generateNode(node -> this.getSingleNodePosition());
                 n.finishInitializationWithDefaultModels(true);
                 // redraw
                 Tools.getGraphPanel().forceDrawInNextPaint();
@@ -372,9 +373,9 @@ public class GenerateNodesDialog extends JDialog implements ActionListener, Prog
         this.setConnectivityDefString(this.getConnectivityParam().getText());
     }
 
-    private Node generateNode(Position pos) {
+    private Node generateNode(Function<Node, Position> pos) {
         Node node = Node.createNodeByClassname(this.getNodeTypeSel());
-        node.setPosition(pos);
+        node.setPosition(pos.apply(node));
 
         InterferenceModel im = Model.getInterferenceModelInstance(this.getInterferenceSel());
         im.setParamString(this.getInterferenceDefString());
@@ -401,7 +402,7 @@ public class GenerateNodesDialog extends JDialog implements ActionListener, Prog
      * @return the node.
      */
     public Node generateDefaultNode(Position pos) {
-        Node n = this.generateNode(pos);
+        Node n = this.generateNode(node -> pos);
         n.finishInitializationWithDefaultModels(true);
         return n;
     }
@@ -420,7 +421,7 @@ public class GenerateNodesDialog extends JDialog implements ActionListener, Prog
             for (int i = 0; i < this.getNumberOfNodes(); i++) {
                 this.getPf().setPercentage(100.0d * ((double) i / (double) this.getNumberOfNodes()));
 
-                Node node = this.generateNode(distribution.getNextPosition());
+                Node node = this.generateNode(n -> distribution.getNextPosition(n.getClass()));
 
                 if (this.isCanceled()) {
                     for (Node n : addedNodes) {

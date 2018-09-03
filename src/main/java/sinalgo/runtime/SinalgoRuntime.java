@@ -565,7 +565,7 @@ public abstract class SinalgoRuntime {
             } catch (WrongConfigurationException e) {
                 throw new SinalgoWrappedException(e);
             }
-            node.setPosition(this.nodeDistribution.getNextPosition());
+            node.setPosition(this.nodeDistribution.getNextPosition(node.getClass()));
 
             // set the models
             Tools.setModels(this.models, this.modelParams, this.modelNames, this.numSpecifiedModels, node);
