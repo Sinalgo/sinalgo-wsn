@@ -22,7 +22,6 @@ public class SimulationConfigurationLoader {
     public static SimulationConfiguration getConfiguration() {
         if (configuration == null) {
             load();
-
         }
         return configuration;
     }

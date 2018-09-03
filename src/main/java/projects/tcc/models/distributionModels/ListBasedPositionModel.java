@@ -32,9 +32,9 @@ public class ListBasedPositionModel extends Random {
 
     private static int getIndexFor(Class<? extends Node> nodeClass) {
         if (nodeClass.equals(SensorNode.class)) {
-            return SensorIndex.getIndexFor(Sensor.class);
+            return SensorIndex.currentInstance().getIndexFor(Sensor.class);
         } else if (nodeClass.equals(SinkNode.class)) {
-            return SensorIndex.getIndexFor(Sink.class);
+            return SensorIndex.currentInstance().getIndexFor(Sink.class);
         } else {
             return 0;
         }

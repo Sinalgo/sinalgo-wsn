@@ -6,17 +6,28 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class SensorIndex {
 
-    private static final Map<Class<? extends Sensor>, AtomicInteger> SENSOR_TYPE_INDEXES = new HashMap<>();
 
-    public static void reset() {
-        SENSOR_TYPE_INDEXES.clear();
+    private static SensorIndex currentInstance;
+
+    public static SensorIndex currentInstance() {
+        if (currentInstance == null) {
+            return newInstance();
+        }
+        return currentInstance;
     }
 
-    public static int getNextIndex(Class<? extends Sensor> clazz) {
+    public static SensorIndex newInstance() {
+        currentInstance = new SensorIndex();
+        return currentInstance;
+    }
+
+    private final Map<Class<? extends Sensor>, AtomicInteger> SENSOR_TYPE_INDEXES = new HashMap<>();
+
+    public int getNextIndex(Class<? extends Sensor> clazz) {
         return SENSOR_TYPE_INDEXES.computeIfAbsent(clazz, k -> new AtomicInteger()).getAndIncrement();
     }
 
-    public static int getIndexFor(Class<? extends Sensor> clazz) {
+    public int getIndexFor(Class<? extends Sensor> clazz) {
         return SENSOR_TYPE_INDEXES.computeIfAbsent(clazz, k -> new AtomicInteger()).get();
     }
 
