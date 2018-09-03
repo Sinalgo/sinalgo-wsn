@@ -86,33 +86,6 @@ public class SensorNetwork {
         }
     }
 
-    public double getTotalConsumedPowerInRound() {
-        double totalEnergySpent = 0;
-        for (Sensor s : this.getSensors()) {
-            if (s.isAvailable() && s.isActive()) {
-                int childrenCount = s.queryDescendants();
-                double receivePower = s.getReceivePower() * childrenCount;
-                double transmitPower = s.getTransmitPower(s.getParent(), childrenCount);
-                double maintenancePower = s.getMaintenancePower();
-                double energySpent = receivePower + transmitPower + maintenancePower;
-
-                totalEnergySpent += energySpent;
-            }
-        }
-        return totalEnergySpent;
-    }
-
-    public double computePeriodActivationEnergy() {
-        double totalActivationEnergy = 0;
-        for (Sensor s : this.getSensors()) {
-            if (s.isAvailable() && s.isUseActivationPower() && s.isActive()) {
-                totalActivationEnergy += s.getActivationPower();
-                s.setUseActivationPower(false);
-            }
-        }
-        return totalActivationEnergy;
-    }
-
     private boolean checkConnectivity(Sensor s) {
         if (s.isConnected()) {
             return true;
@@ -149,32 +122,6 @@ public class SensorNetwork {
             }
         }
         return availableSensorsCount;
-    }
-
-    public void computePeriodConsumedEnergy() {
-        for (Sensor s : this.getSensors()) {
-            if (s.isAvailable() && s.isActive()) {
-                int childrenCount = s.queryDescendants();
-                double receivePower = s.getReceivePower() * childrenCount;
-                double transmitPower = s.getTransmitPower(s.getParent(), childrenCount);
-                double maintenancePower = s.getMaintenancePower();
-
-                s.drawEnergySpent(receivePower + transmitPower + maintenancePower);
-            }
-        }
-    }
-
-    public boolean removeFailedSensors() {
-        boolean fail = false;
-        double threshold = SimulationConfigurationLoader.getConfiguration().getMinBatteryThreshold();
-        for (Sensor s : this.getSensors()) {
-            if (s.isAvailable() && s.isActive() &&
-                    Double.compare(s.getBatteryEnergy(), threshold * s.getBatteryCapacity()) <= 0) {
-                fail = true;
-                s.fail();
-            }
-        }
-        return fail;
     }
 
     //funcao utilizada pelo AG

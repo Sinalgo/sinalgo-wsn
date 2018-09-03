@@ -14,8 +14,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-@Setter
-@Getter
+@Setter(AccessLevel.PRIVATE)
+@Getter(AccessLevel.PRIVATE)
 @EqualsAndHashCode(of = {"index", "type"})
 public class Sensor {
 
@@ -102,34 +102,74 @@ public class Sensor {
                 new NeighborData(distance, getCurrentPerDistance(distance)));
     }
 
+    @Getter
     @Setter(AccessLevel.PROTECTED)
     private SensorNode node;
 
+    @Getter
     private final int index;
+
+    @Getter
     private final Class<? extends Sensor> type;
+
+    @Getter
     private final Position position;
+
+    @Getter
     private double batteryEnergy;
+
+    @Getter
     private double batteryCapacity;
+
+    @Getter
     private List<Sensor> children;
+
+    @Getter
+    @Setter
     private Sensor parent;
+
+    @Getter
     private double sensRadius;
+
+    @Getter
     private double commRadius;
 
-    @Setter(AccessLevel.PRIVATE)
+    @Getter
     private boolean active;
-    private boolean useActivationPower;
+
+    @Getter
+    @Setter
     private boolean connected;
 
-    @Setter(AccessLevel.PRIVATE)
+    @Getter
     private boolean failed;
 
+    @Getter
+    private boolean useActivationPower;
+
+    @Getter
     private double activationPower;
+
+    @Getter
     private double receivePower;
+
+    @Getter
     private double maintenancePower;
+
+    @Getter
     private double commRatio; //Taxa de comunicação durante a transmissão em uma u.t.
 
+    @Getter
+    private double minBatteryThreshold;
+
+    @Getter
     private Map<Sensor, NeighborData> neighborhood;
+
+    @Getter
     private List<DemandPoint> coveredPoints;
+
+    @Getter
+    @Setter
     private double costToSink;
 
     public Sensor(int index, Position position, double commRadius, double commRatio) {
@@ -149,7 +189,8 @@ public class Sensor {
 
     public Sensor(int index, Position position, double sensRadius, double commRadius,
                   double batteryEnergy, double activationPower, double receivePower,
-                  double maintenancePower, double commRatio, SensorNode node) {
+                  double maintenancePower, double commRatio, double minBatteryThreshold,
+                  SensorNode node) {
         this(index, position, commRadius, commRatio);
 
         this.setActivationPower(activationPower);
@@ -159,6 +200,7 @@ public class Sensor {
         this.setBatteryEnergy(batteryEnergy);
         this.setBatteryCapacity(batteryEnergy);
         this.setSensRadius(sensRadius);
+        this.setMinBatteryThreshold(minBatteryThreshold);
 
         this.setParent(null);
 
@@ -188,16 +230,16 @@ public class Sensor {
         return totalChildCount;
     }
 
-    public void drawEnergySpent(double energySpent) {
+    private void drawEnergySpent(double energySpent) {
         this.setBatteryEnergy(Math.max(this.getBatteryEnergy() - energySpent, 0));
     }
 
-    public double getTransmitPower(Sensor neighbor, int totalChildCount) {
+    public double getTransmitPower(Sensor neighbor) {
         double current = this.getNeighborhood().get(neighbor).getCurrent();
-        return this.getCommRatio() * current * (totalChildCount + 1);
+        return this.getCommRatio() * current;
     }
 
-    public void disconnectChildren() {
+    private void disconnectChildren() {
         for (Sensor child : this.getChildren()) {
             child.setConnected(false);
             child.disconnectChildren();
@@ -225,14 +267,45 @@ public class Sensor {
     public void activate() {
         if (this.isAvailable() && !this.isActive()) {
             this.setActive(true);
+            this.setUseActivationPower(true);
             DemandPoints.currentInstance().addCoverage(this);
         }
     }
 
     public void deactivate() {
         if (this.isAvailable() && this.isActive()) {
+            this.setUseActivationPower(false);
             this.setActive(false);
             DemandPoints.currentInstance().removeCoverage(this);
         }
     }
+
+    public void drawActivationEnergy() {
+        if (this.isUseActivationPower()) {
+            this.drawEnergySpent(this.getActivationPower());
+            this.setUseActivationPower(false);
+        }
+    }
+
+    public void drawMaintenanceEnergy() {
+        if (this.isActive()) {
+            this.drawEnergySpent(this.getMaintenancePower());
+        }
+    }
+
+    public void drawReceiveEnergy() {
+        this.drawEnergySpent(this.getReceivePower());
+    }
+
+    public void drawTransmitEnergy(Sensor neighbor) {
+        this.drawEnergySpent(this.getTransmitPower(neighbor));
+    }
+
+    public void updateState() {
+        if (this.isAvailable() && this.isActive() &&
+                Double.compare(this.getBatteryEnergy(), this.getMinBatteryThreshold() * this.getBatteryCapacity()) <= 0) {
+            this.fail();
+        }
+    }
+
 }

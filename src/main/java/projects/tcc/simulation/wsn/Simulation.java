@@ -46,7 +46,7 @@ public class Simulation {
         this.restructureCount = 0;
     }
 
-    public boolean simulatePeriod(int currentStage) throws Exception {
+    public boolean simulatePeriod(int currentStage) {
         SensorNetwork network = SensorNetwork.currentInstance();
         SimulationOutput output = SimulationOutput.currentInstance();
 
@@ -60,7 +60,7 @@ public class Simulation {
         }
 
         //Calculando a energia consumida
-        this.networkConsumedEnergy = network.getTotalConsumedPowerInRound();
+        this.networkConsumedEnergy = this.estimateRoundConsumedEnergy();
 
         //////////////////////// necessario para algumas aplicacoes //////////////////
         boolean restructure = this.testNetworkRestructure(currentStage);
@@ -70,7 +70,7 @@ public class Simulation {
         ///////////////////////////////////////////////////////////////////////////////
 
         //Incluindo Energia consumida por Ativacao.
-        this.networkConsumedEnergy += network.computePeriodActivationEnergy();
+        this.networkConsumedEnergy += this.estimateRoundConsumedActivationEnergy();
         //-----------------------------------------
         this.currentCoveragePercent = DemandPoints.currentInstance().getCoveragePercent();
 
@@ -80,13 +80,7 @@ public class Simulation {
         //gerar impressao na tela
         output.generateConsoleOutput(currentStage);
 
-        network.computePeriodConsumedEnergy();
-
-        //Verificando se algum sensor nao estara na proxima simulacao
-        boolean failed = network.removeFailedSensors();
-
-        // Delegate this last part here so we guarantee both tests are ran.
-        return failed || restructure;
+        return restructure;
     }
 
     private boolean testNetworkRestructure(int currentStage) {
@@ -109,6 +103,32 @@ public class Simulation {
             }
         }
         return restructureNetwork;
+    }
+
+    private double estimateRoundConsumedEnergy() {
+        SensorNetwork network = SensorNetwork.currentInstance();
+        double totalEnergySpent = 0;
+        for (Sensor s : network.getSensors()) {
+            if (s.isAvailable() && s.isActive()) {
+                int childrenCount = s.queryDescendants();
+                double receivePower = s.getReceivePower() * childrenCount;
+                double transmitPower = s.getTransmitPower(s.getParent()) * (childrenCount + 1);
+                double maintenancePower = s.getMaintenancePower();
+                totalEnergySpent += receivePower + transmitPower + maintenancePower;
+            }
+        }
+        return totalEnergySpent;
+    }
+
+    private double estimateRoundConsumedActivationEnergy() {
+        SensorNetwork network = SensorNetwork.currentInstance();
+        double totalActivationEnergy = 0;
+        for (Sensor s : network.getSensors()) {
+            if (s.isAvailable() && s.isUseActivationPower() && s.isActive()) {
+                totalActivationEnergy += s.getActivationPower();
+            }
+        }
+        return totalActivationEnergy;
     }
 
 }

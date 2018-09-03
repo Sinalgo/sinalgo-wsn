@@ -37,7 +37,8 @@ public class SensorNode extends SimulationNode {
         this.sensor = new Sensor(index, this.getPosition(),
                 config.getSensorRadius(), config.getCommRadius(), config.getBatteryEnergy(),
                 config.getActivationPower(), config.getReceivePower(),
-                config.getMaintenancePower(), config.getCommRatio(), this);
+                config.getMaintenancePower(), config.getCommRatio(),
+                config.getMinBatteryThreshold(), this);
         SensorNetwork.currentInstance().addSensor(this.getSensor());
     }
 
@@ -83,10 +84,12 @@ public class SensorNode extends SimulationNode {
     }
 
     protected void handleMessageReceiving(SimulationMessage m) {
+        this.getSensor().drawReceiveEnergy();
         this.handleMessageSending(() -> m);
     }
 
     private void handleMessageReceiving(ActivationMessage m) {
+        this.getSensor().drawReceiveEnergy();
         if (m.isActiveSensor()) {
             this.getSensor().activate();
         }
@@ -95,6 +98,7 @@ public class SensorNode extends SimulationNode {
     private void handleMessageSending(Supplier<SimulationMessage> m) {
         for (Edge e : this.getOutgoingConnections()) {
             if (e.getEndNode() instanceof SensorNode) {
+                this.getSensor().drawTransmitEnergy(((SensorNode) e.getEndNode()).getSensor());
                 sendMessage(m.get(), e);
             }
         }

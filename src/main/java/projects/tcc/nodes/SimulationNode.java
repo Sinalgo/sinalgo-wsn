@@ -6,7 +6,6 @@ import projects.tcc.simulation.wsn.data.Sink;
 import sinalgo.exception.WrongConfigurationException;
 import sinalgo.gui.transformation.PositionTransformation;
 import sinalgo.nodes.Node;
-import sinalgo.nodes.messages.Inbox;
 import sinalgo.runtime.Global;
 
 import java.awt.*;
@@ -26,18 +25,15 @@ public abstract class SimulationNode extends Node {
     }
 
     @Override
-    public void handleMessages(Inbox inbox) {
-
-    }
-
-    @Override
     public void neighborhoodChange() {
         // Do not use, we don't have a mobility model.
     }
 
     @Override
     public void postStep() {
-
+        this.getSensor().drawActivationEnergy();
+        this.getSensor().drawMaintenanceEnergy();
+        this.getSensor().updateState();
     }
 
     @Override

@@ -53,7 +53,7 @@ public class SolucaoViaAGMO {
         this.txCruzamento = config.getCrossoverRate();
     }
 
-    public boolean[] simularRede(int currentPeriod) throws Exception {
+    public boolean[] simularRede(int currentPeriod, boolean restructure) throws Exception {
         //gerando a POP de Cromossomos inicial para o AG
         boolean[] vetSensAtiv = null;
         if (currentPeriod == 0) {
@@ -69,7 +69,7 @@ public class SolucaoViaAGMO {
         }
         Simulation simulation = Simulation.currentInstance();
         if (DemandPoints.currentInstance().getCoveragePercent() >= this.sensorNetwork.getCoverageFactor()) {
-            boolean restructure = simulation.simulatePeriod(currentPeriod);
+            restructure |= Simulation.currentInstance().simulatePeriod(currentPeriod);
             if (restructure) {
                 //gerando a POP de Cromossomos inicial para o AG
                 vetSensAtiv = AG_Estatico_MO_arq.resolveAG_Estatico_MO(this.sensorNetwork, this.numeroGeracoes,

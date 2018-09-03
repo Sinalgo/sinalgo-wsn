@@ -46,19 +46,21 @@ public class SinkNode extends SensorNode {
             System.out.println("\nSTART logging received messages for round");
         }
         super.handleMessages(inbox);
+        boolean restructure = false;
         if (this.timeSinceLastMessage != null
                 && this.heights != null
                 && this.acknowledgedSensors != null) {
             this.increaseTimeSinceLastMessage();
             long closestFailedNode = this.checkFailures();
             if (closestFailedNode >= 0) {
+                restructure = true;
                 System.out.println("FAILED SENSOR: " + Tools.getNodeByID(closestFailedNode + 1));
             }
         }
         if (size > 0) {
             System.out.println("END logging received messages for round\n");
         }
-        boolean[] activeSensors = this.runSimulation();
+        boolean[] activeSensors = this.runSimulation(restructure);
         if (activeSensors != null) {
             for (Sensor s : SensorNetwork.currentInstance().getSensors()) {
                 if (s.isAvailable()) {
@@ -146,10 +148,10 @@ public class SinkNode extends SensorNode {
         MessageCache.push(m);
     }
 
-    private boolean[] runSimulation() {
+    private boolean[] runSimulation(boolean restructure) {
         SolucaoViaAGMO solucao = SolucaoViaAGMO.currentInstance();
         try {
-            return solucao.simularRede(stage++);
+            return solucao.simularRede(stage++, restructure);
         } catch (Exception e) {
             throw new SinalgoWrappedException(e);
         }
@@ -160,6 +162,10 @@ public class SinkNode extends SensorNode {
         this.setColor(Color.BLUE);
         this.setDefaultDrawingSizeInPixels(30);
         this.superDraw(g, pt, highlight);
+    }
+
+    @Override
+    public void postStep() {
     }
 
 }
