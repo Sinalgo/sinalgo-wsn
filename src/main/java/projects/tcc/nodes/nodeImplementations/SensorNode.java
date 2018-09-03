@@ -87,7 +87,9 @@ public class SensorNode extends SimulationNode {
     }
 
     private void handleMessageReceiving(ActivationMessage m) {
-        this.getSensor().setActive(m.isActiveSensor());
+        if (m.isActiveSensor()) {
+            this.getSensor().activate();
+        }
     }
 
     private void handleMessageSending(Supplier<SimulationMessage> m) {
@@ -106,13 +108,12 @@ public class SensorNode extends SimulationNode {
 
     @NodePopupMethod(menuText = "Deactivate")
     public void deactivate() {
-        this.getSensor().setActive(false);
+        this.getSensor().deactivate();
     }
 
     @NodePopupMethod(menuText = "Force failure")
     public void fail() {
-        this.getSensor().setFailed(true);
-        this.getSensor().setActive(false);
+        this.getSensor().fail();
     }
 
 }

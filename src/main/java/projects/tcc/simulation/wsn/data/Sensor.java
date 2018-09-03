@@ -114,9 +114,13 @@ public class Sensor {
     private Sensor parent;
     private double sensRadius;
     private double commRadius;
+
+    @Setter(AccessLevel.PRIVATE)
     private boolean active;
     private boolean useActivationPower;
     private boolean connected;
+
+    @Setter(AccessLevel.PRIVATE)
     private boolean failed;
 
     private double activationPower;
@@ -206,5 +210,29 @@ public class Sensor {
 
     public String toString() {
         return Integer.toString(this.getIndex());
+    }
+
+    public void fail() {
+        if (this.isAvailable()) {
+            this.deactivate();
+            this.disconnectChildren();
+            this.getParent().getChildren().remove(this);
+            this.resetConnections();
+            this.setFailed(true);
+        }
+    }
+
+    public void activate() {
+        if (this.isAvailable() && !this.isActive()) {
+            this.setActive(true);
+            DemandPoints.currentInstance().addCoverage(this);
+        }
+    }
+
+    public void deactivate() {
+        if (this.isAvailable() && this.isActive()) {
+            this.setActive(false);
+            DemandPoints.currentInstance().removeCoverage(this);
+        }
     }
 }

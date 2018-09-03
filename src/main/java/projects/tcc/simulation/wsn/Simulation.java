@@ -75,7 +75,8 @@ public class Simulation {
         //Incluindo Energia consumida por Ativacao.
         this.networkConsumedEnergy += network.computePeriodActivationEnergy();
         //-----------------------------------------
-        this.currentCoveragePercent = network.computeCoverage();
+        network.computeCoverage();
+        this.currentCoveragePercent = network.getCurrentCoveragePercent();
 
         this.activeSensorCount.add(network.getActiveSensorCount());
         this.currentStage.add(currentStage);

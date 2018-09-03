@@ -1,6 +1,7 @@
 package projects.tcc.simulation.wsn.data;
 
 import lombok.Getter;
+import sinalgo.configuration.Configuration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +15,21 @@ public final class DemandPoints {
     private int numCoveredPoints;
     private int nextIndex = 0;
 
-    public DemandPoints(int dimX, int dimY) {
+    private static DemandPoints currentInstance;
+
+    public static DemandPoints currentInstance() {
+        if (currentInstance == null) {
+            return newInstance();
+        }
+        return currentInstance;
+    }
+
+    public static DemandPoints newInstance() {
+        currentInstance = new DemandPoints(Configuration.getDimX(), Configuration.getDimY());
+        return currentInstance;
+    }
+
+    private DemandPoints(int dimX, int dimY) {
         int area = dimX * dimY;
         this.points = new ArrayList<>(area);
         this.computeDemandPoints(dimX, dimY);
@@ -43,19 +58,12 @@ public final class DemandPoints {
         }
     }
 
-    public void resetCoverage() {
-        for (DemandPoint p : this.points) {
-            p.setCoverage(0);
-        }
-        this.numCoveredPoints = 0;
-    }
-
     public void removeCoverage(Sensor s) {
         for (DemandPoint p : s.getCoveredPoints()) {
             if (p.getCoverage() == 1) {
                 this.numCoveredPoints--;
             }
-            p.setCoverage(p.getCoverage() - 1);
+            p.removeCoverage();
         }
     }
 
@@ -64,7 +72,7 @@ public final class DemandPoints {
             if (p.getCoverage() == 0) {
                 this.numCoveredPoints++;
             }
-            p.setCoverage(p.getCoverage() + 1);
+            p.addCoverage();
         }
     }
 
