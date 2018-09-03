@@ -28,18 +28,28 @@ public class SimulationOutput {
         printlnFunction.accept(str);
     }
 
+    private static SimulationOutput currentInstance;
+
+    public static SimulationOutput currentInstance() {
+        if (currentInstance == null) {
+            return newInstance();
+        }
+        return currentInstance;
+    }
+
+    public static SimulationOutput newInstance() {
+        currentInstance = new SimulationOutput(SensorNetwork.currentInstance(), Simulation.currentInstance());
+        return currentInstance;
+    }
+
     private SimulationOutput(SensorNetwork network, Simulation simulation) {
         this.network = network;
         this.simulation = simulation;
     }
 
-    public SimulationOutput() {
-        this(SensorNetwork.currentInstance(), Simulation.currentInstance());
-    }
-
-    public void generateConsoleOutput(int periodo) {
+    public void generateConsoleOutput(int round) {
         println("\n");
-        println(String.format("Round = %d", periodo));
+        println(String.format("Round = %d", round));
         println(String.format("Active Sensors: %d", this.network.getActiveSensorCount()));
         println(String.format("Res. Energy: %.3f", this.simulation.getNetworkResidualEnergy()));
         println(String.format("Cons. Energy: %.3f", this.simulation.getNetworkConsumedEnergy()));

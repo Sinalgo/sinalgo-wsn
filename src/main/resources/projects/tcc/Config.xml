@@ -254,6 +254,10 @@
 
         <CrossoverRate value="0.9"/>
 
+        <ConsumedEnergyThreshold value="0.05"/>
+
+        <MinBatteryThreshold value="0.1"/>
+
         <MessageTransmission ConstantTime="1"/>
 
         <Node defaultSize="10"/>

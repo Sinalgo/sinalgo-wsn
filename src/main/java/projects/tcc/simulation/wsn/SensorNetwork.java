@@ -203,13 +203,12 @@ public class SensorNetwork {
         }
     }
 
-    public boolean removeFailedSensors(double remainingBatteryPercentage) {
+    public boolean removeFailedSensors() {
         boolean fail = false;
+        double threshold = SimulationConfigurationLoader.getConfiguration().getMinBatteryThreshold();
         for (Sensor s : this.getSensors()) {
-            if (s.isAvailable() &&
-                    s.isActive() &&
-                    Double.compare(s.getBatteryEnergy(),
-                            (remainingBatteryPercentage / 100) * s.getBatteryCapacity()) <= 0) {
+            if (s.isAvailable() && s.isActive() &&
+                    Double.compare(s.getBatteryEnergy(), threshold * s.getBatteryCapacity()) <= 0) {
                 fail = true;
                 s.setFailed(true);
                 s.setActive(false);

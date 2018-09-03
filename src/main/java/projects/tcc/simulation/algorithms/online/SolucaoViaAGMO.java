@@ -21,9 +21,6 @@ public class SolucaoViaAGMO {
     private int tamanhoPopulacao;
     private double txCruzamento;
 
-    @Setter
-    private SimulationOutput simulationOutput;
-
     @Getter
     @Setter
     private boolean stopSimulationOnFailure;
@@ -53,7 +50,6 @@ public class SolucaoViaAGMO {
         this.numeroGeracoes = config.getNumberOfGenerations();
         this.tamanhoPopulacao = config.getPopulationSize();
         this.txCruzamento = config.getCrossoverRate();
-        this.simulationOutput = new SimulationOutput();
     }
 
     public boolean[] simularRede(int currentPeriod) throws Exception {
@@ -70,11 +66,10 @@ public class SolucaoViaAGMO {
             SimulationOutput.println(String.join(" ", vetSensAtivStr) + "\n");
             vetSensAtiv = this.sensorNetwork.buildInitialNetwork(vetSensAtiv);
         }
-        Simulation redeSim = Simulation.currentInstance();
+        Simulation simulation = Simulation.currentInstance();
         if (this.sensorNetwork.getCurrentCoveragePercent() >= this.sensorNetwork.getCoverageFactor()) {
-            boolean evento = redeSim.simulatePeriod(currentPeriod, this.simulationOutput);
-            boolean reestruturar = redeSim.isRestructureNetwork();
-            if (reestruturar || evento) {
+            boolean restructure = simulation.simulatePeriod(currentPeriod);
+            if (restructure) {
                 //gerando a POP de Cromossomos inicial para o AG
                 vetSensAtiv = AG_Estatico_MO_arq.resolveAG_Estatico_MO(this.sensorNetwork, this.numeroGeracoes,
                         this.tamanhoPopulacao, this.txCruzamento);
@@ -88,7 +83,7 @@ public class SolucaoViaAGMO {
             stopSimulationMethod.run();
             onStopSimulationMessageMethod.run();
         }
-        SimulationOutput.println("==> Reestruturação foi requisitada " + redeSim.getRestructureCount());
+        SimulationOutput.println("==> Reestruturação foi requisitada " + simulation.getRestructureCount());
         return vetSensAtiv;
     }
 

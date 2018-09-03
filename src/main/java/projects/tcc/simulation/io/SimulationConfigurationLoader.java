@@ -48,6 +48,8 @@ public class SimulationConfigurationLoader {
             config.setPopulationSize(Configuration.getIntegerParameter("PopulationSize"));
             config.setNumberOfGenerations(Configuration.getIntegerParameter("NumberOfGenerations"));
             config.setCrossoverRate(Configuration.getDoubleParameter("CrossoverRate"));
+            config.setConsumedEnergyThreshold(Configuration.getDoubleParameter("ConsumedEnergyThreshold"));
+            config.setMinBatteryThreshold(Configuration.getDoubleParameter("MinBatteryThreshold"));
             setConfiguration(config);
         } catch (Exception e) {
             log.severe("Error while loading " + resourcePath);
