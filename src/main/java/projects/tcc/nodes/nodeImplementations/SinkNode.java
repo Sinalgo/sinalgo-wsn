@@ -2,6 +2,7 @@ package projects.tcc.nodes.nodeImplementations;
 
 import lombok.Getter;
 import projects.tcc.MessageCache;
+import projects.tcc.nodes.SimulationNode;
 import projects.tcc.nodes.messages.ActivationMessage;
 import projects.tcc.nodes.messages.SimulationMessage;
 import projects.tcc.simulation.algorithms.MultiObjectiveGeneticAlgorithm;
@@ -14,11 +15,13 @@ import projects.tcc.simulation.wsn.data.DemandPoints;
 import projects.tcc.simulation.wsn.data.Sensor;
 import projects.tcc.simulation.wsn.data.SensorIndex;
 import projects.tcc.simulation.wsn.data.Sink;
+import sinalgo.configuration.Configuration;
 import sinalgo.gui.transformation.PositionTransformation;
 import sinalgo.nodes.messages.Inbox;
 import sinalgo.tools.Tools;
 
 import java.awt.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class SinkNode extends SensorNode {
@@ -86,6 +89,10 @@ public class SinkNode extends SensorNode {
         }
     }
 
+    @Override
+    protected void sendMessage(Supplier<SimulationMessage> m, SimulationNode n) {
+    }
+
     private void resetAcknowledgement(int size) {
         if (this.acknowledgedSensors == null || this.acknowledgedSensors.length != size) {
             this.acknowledgedSensors = new boolean[size];
@@ -125,7 +132,8 @@ public class SinkNode extends SensorNode {
         for (int i = 0; i < this.timeSinceLastMessage.length; i++) {
             int height = this.heights[i];
             if (height > 0) {
-                int maximumTime = 3 + (this.acknowledgedSensors[i] ? 0 : height);
+                int maximumTime = (Configuration.isInterference() ? 2 : 1)
+                        + (this.acknowledgedSensors[i] ? 0 : height);
                 if (this.timeSinceLastMessage[i] > maximumTime) {
                     if (height < minFailedHeight) {
                         minFailedHeight = height;
@@ -194,8 +202,4 @@ public class SinkNode extends SensorNode {
         return false;
     }
 
-    @Override
-    public boolean isConnected() {
-        return true;
-    }
 }

@@ -20,11 +20,6 @@ public abstract class SimulationNode extends Node {
     }
 
     @Override
-    public void preStep() {
-
-    }
-
-    @Override
     public void neighborhoodChange() {
         // Do not use, we don't have a mobility model.
     }
@@ -52,13 +47,6 @@ public abstract class SimulationNode extends Node {
     public abstract boolean isActive();
 
     public abstract boolean isFailed();
-
-    /**
-     * This is artificial, for now. Should replace this with something better.
-     *
-     * @return true if it is connected, false otherwise
-     */
-    public abstract boolean isConnected();
 
     @Override
     public String toString() {

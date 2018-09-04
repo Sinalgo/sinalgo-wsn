@@ -17,7 +17,6 @@ public class SimulationConnectivityModel extends ConnectivityModelHelper {
         SimulationNode s2 = (SimulationNode) to;
         return s1.isActive() && s2.isActive()
                 && !s1.isFailed() && !s2.isFailed()
-                && s1.isConnected() && s2.isConnected()
                 && Objects.equals(s1.getParent(), s2);
     }
 

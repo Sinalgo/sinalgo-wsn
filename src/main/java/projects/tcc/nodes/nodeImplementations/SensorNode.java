@@ -2,6 +2,7 @@ package projects.tcc.nodes.nodeImplementations;
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Setter;
 import projects.tcc.MessageCache;
 import projects.tcc.nodes.SimulationNode;
 import projects.tcc.nodes.messages.ActivationMessage;
@@ -23,10 +24,16 @@ import java.util.function.Supplier;
 public class SensorNode extends SimulationNode {
 
     @Getter(AccessLevel.PROTECTED)
+    @Setter(AccessLevel.NONE)
     private long totalReceivedMessages;
 
     @Getter(AccessLevel.PROTECTED)
+    @Setter(AccessLevel.NONE)
     private long totalSentMessages;
+
+    @Getter(AccessLevel.PRIVATE)
+    @Setter(AccessLevel.NONE)
+    private boolean receivedActivationMessage;
 
     private Sensor sensor;
     private boolean active;
@@ -50,11 +57,6 @@ public class SensorNode extends SimulationNode {
     }
 
     @Override
-    public boolean isConnected() {
-        return this.getSensor().isConnected();
-    }
-
-    @Override
     public void draw(Graphics g, PositionTransformation pt, boolean highlight) {
         this.setColor(this.isFailed() ? Color.RED :
                 this.isActive() ?
@@ -71,8 +73,8 @@ public class SensorNode extends SimulationNode {
     @Override
     public void handleMessages(Inbox inbox) {
         if (this.getSensor().isAvailable()) {
-            this.handleMessageSending(MessageCache::pop);
             this.handleMessageReceiving(inbox);
+            this.handleMessageSending(MessageCache::pop);
         }
     }
 
@@ -82,6 +84,7 @@ public class SensorNode extends SimulationNode {
             Message m = inbox.next();
             if (m instanceof SimulationMessage) {
                 this.totalReceivedMessages++;
+                this.getSensor().drawReceiveEnergy();
                 this.handleMessageReceiving((SimulationMessage) m);
             }
         }
@@ -91,6 +94,8 @@ public class SensorNode extends SimulationNode {
         while (inbox.hasNext()) {
             Message m = inbox.next();
             if (m instanceof ActivationMessage) {
+                this.totalReceivedMessages++;
+                this.getSensor().drawReceiveEnergy();
                 this.handleMessageReceiving((ActivationMessage) m);
                 break;
             }
@@ -99,29 +104,34 @@ public class SensorNode extends SimulationNode {
     }
 
     protected void handleMessageReceiving(SimulationMessage m) {
-        this.getSensor().drawReceiveEnergy();
         this.handleMessageSending(() -> m);
     }
 
     private void handleMessageReceiving(ActivationMessage m) {
-        this.getSensor().drawReceiveEnergy();
+        this.receivedActivationMessage = true;
         this.active = m.isActive();
         this.parent = m.getParent();
     }
 
     private void handleMessageSending(Supplier<SimulationMessage> m) {
+        if (this.isActive()
+                && !this.isReceivedActivationMessage()
+                && this.getOutgoingConnections().size() == 0) {
+            this.sendMessage(m, this.getParent());
+        }
         for (Edge e : this.getOutgoingConnections()) {
             if (e.getEndNode() instanceof SimulationNode) {
-                this.getSensor().drawTransmitEnergy(((SimulationNode) e.getEndNode()).getSensor());
-                sendMessage(m.get(), e);
+                this.sendMessage(m, (SimulationNode) e.getEndNode());
             }
         }
     }
 
-    private void sendMessage(SimulationMessage m, Edge e) {
+    protected void sendMessage(Supplier<SimulationMessage> m, SimulationNode n) {
         this.totalSentMessages++;
-        m.getNodes().push(this);
-        this.send(m, e.getEndNode());
+        this.getSensor().drawTransmitEnergy(n.getSensor());
+        SimulationMessage message = m.get();
+        message.getNodes().push(this);
+        this.send(message, n);
     }
 
     @NodePopupMethod(menuText = "Deactivate")
@@ -135,8 +145,14 @@ public class SensorNode extends SimulationNode {
         this.getSensor().fail();
     }
 
+    @Override
     public boolean isActive() {
         return this.active && !this.isFailed();
+    }
+
+    @Override
+    public void preStep() {
+        this.receivedActivationMessage = false;
     }
 
 }
