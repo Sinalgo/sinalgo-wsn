@@ -4,7 +4,7 @@ import lombok.Getter;
 import projects.tcc.MessageCache;
 import projects.tcc.nodes.messages.ActivationMessage;
 import projects.tcc.nodes.messages.SimulationMessage;
-import projects.tcc.simulation.algorithms.online.SolucaoViaAGMO;
+import projects.tcc.simulation.algorithms.MultiObjectiveGeneticAlgorithm;
 import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.io.SimulationConfigurationLoader;
 import projects.tcc.simulation.io.SimulationOutput;
@@ -55,7 +55,7 @@ public class SinkNode extends SensorNode {
             if (closestFailedNode >= 0) {
                 fail = true;
                 System.out.println("FAILED SENSOR: " + Tools.getNodeByID(closestFailedNode + 1));
-                if (SolucaoViaAGMO.currentInstance().isStopSimulationOnFailure()) {
+                if (MultiObjectiveGeneticAlgorithm.currentInstance().isStopSimulationOnFailure()) {
                     Tools.stopSimulation();
                 }
             }
@@ -164,7 +164,7 @@ public class SinkNode extends SensorNode {
 
     private boolean[] computeActiveSensors() {
         SimulationOutput.println("===== Running Genetic Algorithm at round: " + (int) Tools.getGlobalTime());
-        boolean[] activeSensors = SolucaoViaAGMO.currentInstance().simularRede();
+        boolean[] activeSensors = MultiObjectiveGeneticAlgorithm.currentInstance().computeActiveSensors();
         if (Double.compare(DemandPoints.currentInstance().getCoveragePercent(), SensorNetwork.currentInstance().getCoverageFactor()) < 0) {
             Tools.stopSimulation();
             Tools.minorError("The coverage could not be kept above the desired factor anymore. Stopping simulation.");

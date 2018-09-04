@@ -39,7 +39,7 @@ package projects.tcc;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import projects.tcc.simulation.algorithms.online.SolucaoViaAGMO;
+import projects.tcc.simulation.algorithms.MultiObjectiveGeneticAlgorithm;
 import projects.tcc.simulation.io.SimulationOutput;
 import projects.tcc.simulation.wsn.data.DemandPoints;
 import sinalgo.exception.SinalgoFatalException;
@@ -105,7 +105,7 @@ public class CustomGlobal extends AbstractCustomGlobal {
 
     @GlobalMethod(menuText = "Toggle stop simulation on Sensor failure", subMenu = "Simulation")
     public void togglePauseOnSensorFailure() {
-        SolucaoViaAGMO.currentInstance().setStopSimulationOnFailure(!SolucaoViaAGMO.currentInstance().isStopSimulationOnFailure());
+        MultiObjectiveGeneticAlgorithm.currentInstance().setStopSimulationOnFailure(!MultiObjectiveGeneticAlgorithm.currentInstance().isStopSimulationOnFailure());
     }
 
     @Override
@@ -152,7 +152,7 @@ public class CustomGlobal extends AbstractCustomGlobal {
             case "toggleAll":
                 return getEnableDisableString(drawAll) + "All";
             case "togglePauseOnSensorFailure":
-                return (SolucaoViaAGMO.currentInstance().isStopSimulationOnFailure()
+                return (MultiObjectiveGeneticAlgorithm.currentInstance().isStopSimulationOnFailure()
                         ? "Disable" : "Enable") + " stop simulation on Sensor failure";
         }
         return defaultText;

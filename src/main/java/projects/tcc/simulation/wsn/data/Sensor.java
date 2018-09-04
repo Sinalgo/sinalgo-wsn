@@ -248,7 +248,9 @@ public class Sensor {
         if (this.isAvailable()) {
             this.deactivate();
             this.disconnectChildren();
-            this.getParent().getChildren().remove(this);
+            if (this.getParent() != null) {
+                this.getParent().getChildren().remove(this);
+            }
             this.resetConnections();
             this.setFailed(true);
         }

@@ -11,9 +11,9 @@ import java.util.List;
 import static projects.tcc.simulation.algorithms.genetic.FitnessType.TYPE_1;
 import static projects.tcc.simulation.algorithms.genetic.FitnessType.TYPE_2;
 
-public class AG_Estatico_MO_arq {
+public class StaticMultiObjectiveGeneticAlgorithm {
 
-    public static boolean[] resolveAG_Estatico_MO(SensorNetwork network, int numberOfGenerations, int tamanhoPopulacao, double crossoverRate) {
+    public static boolean[] runMultiObjectiveGeneticAlgorithm(SensorNetwork network, int numberOfGenerations, int tamanhoPopulacao, double crossoverRate) {
 
         network.computeCostToSink(); //atulizando o custo de caminho de cada sensor ao sink;
 

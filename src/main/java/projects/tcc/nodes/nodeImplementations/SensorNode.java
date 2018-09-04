@@ -135,4 +135,8 @@ public class SensorNode extends SimulationNode {
         this.getSensor().fail();
     }
 
+    public boolean isActive() {
+        return this.active && !this.isFailed();
+    }
+
 }
