@@ -133,6 +133,10 @@ public class CustomGlobal extends AbstractCustomGlobal {
     }
 
     @Override
+    public void preRound() {
+    }
+
+    @Override
     public void postRound() {
     }
 

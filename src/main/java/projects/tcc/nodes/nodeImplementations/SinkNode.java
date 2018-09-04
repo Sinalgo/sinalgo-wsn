@@ -1,7 +1,6 @@
 package projects.tcc.nodes.nodeImplementations;
 
 import lombok.Getter;
-import lombok.Setter;
 import projects.tcc.MessageCache;
 import projects.tcc.nodes.messages.ActivationMessage;
 import projects.tcc.nodes.messages.SimulationMessage;
@@ -15,7 +14,6 @@ import projects.tcc.simulation.wsn.data.DemandPoints;
 import projects.tcc.simulation.wsn.data.Sensor;
 import projects.tcc.simulation.wsn.data.SensorIndex;
 import projects.tcc.simulation.wsn.data.Sink;
-import sinalgo.exception.SinalgoWrappedException;
 import sinalgo.gui.transformation.PositionTransformation;
 import sinalgo.nodes.messages.Inbox;
 import sinalgo.tools.Tools;
@@ -28,17 +26,9 @@ public class SinkNode extends SensorNode {
     @Getter
     private Sink sensor;
 
-    private int stage = 0;
-
     private int[] heights;
     private int[] timeSinceLastMessage;
     private boolean[] acknowledgedSensors;
-
-    @Setter
-    private static Runnable stopSimulationMethod = Tools::stopSimulation;
-
-    @Setter
-    private static Runnable onStopSimulationMessageMethod = () -> Tools.minorError("Não foi mais possível se manter acima do mínimo de cobertura");
 
     @Override
     public void init() {
@@ -65,17 +55,26 @@ public class SinkNode extends SensorNode {
             if (closestFailedNode >= 0) {
                 fail = true;
                 System.out.println("FAILED SENSOR: " + Tools.getNodeByID(closestFailedNode + 1));
+                if (SolucaoViaAGMO.currentInstance().isStopSimulationOnFailure()) {
+                    Tools.stopSimulation();
+                }
             }
         }
         if (size > 0) {
             System.out.println("END logging received messages for round\n");
         }
-        boolean restructure = this.stage == 0 || Simulation.currentInstance().simulatePeriod(stage);
-        if (fail || restructure) {
-            boolean[] activeSensors = this.runSimulation();
-            if (this.stage == 0) {
-                Simulation.currentInstance().simulatePeriod(stage);
-            }
+        int stage = (int) Tools.getGlobalTime();
+        boolean[] activeSensors = null;
+        if (stage == 1) {
+            activeSensors = this.computeActiveSensors();
+        }
+        // Isto só funciona aqui porque o Sink é o último nó a ser colocado.
+        // Alterar para o preRound/postRound do CustomGlobal!
+        Simulation.currentInstance().simulatePeriod(stage);
+        if (fail || Simulation.currentInstance().restructureTest(stage)) {
+            activeSensors = this.computeActiveSensors();
+        }
+        if (activeSensors != null) {
             for (Sensor s : SensorNetwork.currentInstance().getSensors()) {
                 if (s.isAvailable()) {
                     this.sendDirect(new ActivationMessage(activeSensors[s.getIndex()]), s.getNode());
@@ -84,7 +83,6 @@ public class SinkNode extends SensorNode {
             this.resetAcknowledgement(activeSensors.length);
             this.computeExpectedHeights();
         }
-        stage++;
     }
 
     private void resetAcknowledgement(int size) {
@@ -163,22 +161,15 @@ public class SinkNode extends SensorNode {
         MessageCache.push(m);
     }
 
-    private boolean[] runSimulation() {
-        SimulationOutput.println("===== EVENTO e REESTRUTUROU TEMPO = " + this.stage);
-        try {
-            boolean[] activeSensors = SolucaoViaAGMO.currentInstance().simularRede();
-            if (Double.compare(DemandPoints.currentInstance().getCoveragePercent(), SensorNetwork.currentInstance().getCoverageFactor()) >= 0) {
-                if (SolucaoViaAGMO.currentInstance().isStopSimulationOnFailure()) {
-                    Tools.stopSimulation();
-                }
-            } else {
-                Tools.stopSimulation();
-                Tools.minorError("Não foi mais possível se manter acima do mínimo de cobertura");
-            }
-            return activeSensors;
-        } catch (Exception e) {
-            throw new SinalgoWrappedException(e);
+    private boolean[] computeActiveSensors() {
+        SimulationOutput.println("===== Running Genetic Algorithm at round: " + (int) Tools.getGlobalTime());
+        boolean[] activeSensors = SolucaoViaAGMO.currentInstance().simularRede();
+        if (Double.compare(DemandPoints.currentInstance().getCoveragePercent(), SensorNetwork.currentInstance().getCoverageFactor()) < 0) {
+            Tools.stopSimulation();
+            Tools.minorError("The coverage could not be kept above the desired factor anymore. Stopping simulation.");
+            return null;
         }
+        return activeSensors;
     }
 
     @Override

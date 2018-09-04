@@ -5,11 +5,7 @@ import lombok.Setter;
 import projects.tcc.simulation.algorithms.genetic.AG_Estatico_MO_arq;
 import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.io.SimulationConfigurationLoader;
-import projects.tcc.simulation.io.SimulationOutput;
 import projects.tcc.simulation.wsn.SensorNetwork;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class SolucaoViaAGMO {
 
@@ -44,16 +40,10 @@ public class SolucaoViaAGMO {
         this.txCruzamento = config.getCrossoverRate();
     }
 
-    public boolean[] simularRede() throws Exception {
+    public boolean[] simularRede() {
         //gerando a POP de Cromossomos inicial para o AG
         boolean[] vetSensAtiv = AG_Estatico_MO_arq.resolveAG_Estatico_MO(this.sensorNetwork, this.numeroGeracoes,
                 this.tamanhoPopulacao, this.txCruzamento);
-        /////////////////////////// REDE INICIAL ///////////////////////////////
-        List<String> vetSensAtivStr = new ArrayList<>(vetSensAtiv.length);
-        for (boolean i : vetSensAtiv) {
-            vetSensAtivStr.add(i ? "1" : "0");
-        }
-        SimulationOutput.println(String.join(" ", vetSensAtivStr) + "\n");
         return this.sensorNetwork.buildInitialNetwork(vetSensAtiv);
     }
 

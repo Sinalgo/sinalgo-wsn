@@ -86,7 +86,7 @@ public class Sensor {
     //Vetor de Corrente x Distância
     private static double getCurrentPerDistance(double distancia) {
         int i = 0;
-        while (DISTANCES_ARRAY[i] <= distancia) {
+        while (Double.compare(DISTANCES_ARRAY[i], distancia) <= 0) {
             i++;
             if (i == DISTANCES_ARRAY.length) {
                 SimulationOutput.println("\n\nERROR: Distância ao Pai não informada corretamente");
@@ -144,22 +144,11 @@ public class Sensor {
     @Getter
     private boolean failed;
 
-    @Getter
     private boolean useActivationPower;
-
-    @Getter
     private double activationPower;
-
-    @Getter
     private double receivePower;
-
-    @Getter
     private double maintenancePower;
-
-    @Getter
     private double commRatio; //Taxa de comunicação durante a transmissão em uma u.t.
-
-    @Getter
     private double minBatteryThreshold;
 
     @Getter
@@ -222,7 +211,7 @@ public class Sensor {
         this.getChildren().add(child);
     }
 
-    public int queryDescendants() {
+    private int queryDescendants() {
         int totalChildCount = this.getChildren().size();
         for (Sensor child : this.getChildren()) {
             totalChildCount += child.queryDescendants();
@@ -234,7 +223,7 @@ public class Sensor {
         this.setBatteryEnergy(Math.max(this.getBatteryEnergy() - energySpent, 0));
     }
 
-    public double getTransmitPower(Sensor neighbor) {
+    private double getTransmitPower(Sensor neighbor) {
         double current = this.getNeighborhood().get(neighbor).getCurrent();
         return this.getCommRatio() * current;
     }
@@ -306,6 +295,17 @@ public class Sensor {
                 Double.compare(this.getBatteryEnergy(), this.getMinBatteryThreshold() * this.getBatteryCapacity()) <= 0) {
             this.fail();
         }
+    }
+
+    public double getEnergyConsumptionEstimate() {
+        if (this.isAvailable() && this.isActive()) {
+            int childrenCount = this.queryDescendants();
+            double receivePower = this.getReceivePower() * childrenCount;
+            double transmitPower = this.getTransmitPower(this.getParent()) * (childrenCount + 1);
+            double maintenancePower = this.getMaintenancePower();
+            return receivePower + transmitPower + maintenancePower;
+        }
+        return 0;
     }
 
 }

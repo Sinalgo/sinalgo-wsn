@@ -8,20 +8,23 @@ import projects.tcc.simulation.wsn.data.Sensor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 @Getter
 public class Simulation {
 
+    private List<Double> residualEnergy;
+    private List<Double> consumedEnergy;
+    private List<Double> coverage;
     private double currentCoveragePercent;       // porcentagem de cobertura atual
     private double networkResidualEnergy;       // Energia Total Residual da rede.
-    private double networkConsumedEnergy;      // Energia Total Consumida da rede.
+    private double networkConsumedEnergy;       // Energia Total Consumida da rede.
 
     private int activeSensorsDelta;
     private double previousResidualEnergy;
     private int restructureCount;
 
     private List<Integer> activeSensorCount;
-    private List<Integer> currentStage;
 
     private static Simulation currentInstance;
 
@@ -39,47 +42,35 @@ public class Simulation {
 
     private Simulation() {
         this.activeSensorCount = new ArrayList<>();
-        this.currentStage = new ArrayList<>();
-
-        this.activeSensorsDelta = 0;
-        this.previousResidualEnergy = 0.0;
-        this.restructureCount = 0;
+        this.residualEnergy = new ArrayList<>();
+        this.consumedEnergy = new ArrayList<>();
+        this.coverage = new ArrayList<>();
     }
 
-    public boolean simulatePeriod(int currentStage) {
+    public void simulatePeriod(int currentStage) {
         SensorNetwork network = SensorNetwork.currentInstance();
         SimulationOutput output = SimulationOutput.currentInstance();
 
         // ========= Verificacao e Calculo de Energia no Periodo de tempo =========
-        this.networkResidualEnergy = 0;
-        this.networkConsumedEnergy = 0;
-        for (Sensor sensor : network.getSensors()) {
-            if (sensor.isAvailable()) {
-                this.networkResidualEnergy += sensor.getBatteryEnergy();
-            }
-        }
+        this.previousResidualEnergy = currentStage == 1 ? this.getTotalBatteryCapacity() : this.networkResidualEnergy;
+        this.networkResidualEnergy = this.getTotalResidualEnergy();
+        this.networkConsumedEnergy = this.previousResidualEnergy - this.networkResidualEnergy;
+        this.currentCoveragePercent = DemandPoints.currentInstance().getCoveragePercent();
 
-        //Calculando a energia consumida
-        this.networkConsumedEnergy = this.estimateRoundConsumedEnergy();
+        this.residualEnergy.add(this.networkResidualEnergy);
+        this.consumedEnergy.add(this.networkConsumedEnergy);
+        this.coverage.add(this.currentCoveragePercent);
+        this.activeSensorCount.add(network.getActiveSensorCount());
 
-        //////////////////////// necessario para algumas aplicacoes //////////////////
+        //gerar impressao na tela
+        output.generateConsoleOutput(currentStage);
+    }
+
+    public boolean restructureTest(int currentStage) {
         boolean restructure = this.testNetworkRestructure(currentStage);
         if (restructure) {
             this.restructureCount++;
         }
-        ///////////////////////////////////////////////////////////////////////////////
-
-        //Incluindo Energia consumida por Ativacao.
-        this.networkConsumedEnergy += this.estimateRoundConsumedActivationEnergy();
-        //-----------------------------------------
-        this.currentCoveragePercent = DemandPoints.currentInstance().getCoveragePercent();
-
-        this.activeSensorCount.add(network.getActiveSensorCount());
-        this.currentStage.add(currentStage);
-
-        //gerar impressao na tela
-        output.generateConsoleOutput(currentStage);
-
         return restructure;
     }
 
@@ -87,14 +78,12 @@ public class Simulation {
         double consumedEnergyThreshold = SimulationConfigurationLoader.getConfiguration().getConsumedEnergyThreshold();
         boolean restructureNetwork = false;
         //testando se ira reestruturar - nao considerar EA ///////////////////////////
-        if (this.networkConsumedEnergy - this.previousResidualEnergy > consumedEnergyThreshold * this.previousResidualEnergy) {
-            this.previousResidualEnergy = this.networkConsumedEnergy;
-            if (currentStage > 1) {
-                this.activeSensorsDelta = 0;
-                restructureNetwork = true;
-            }
+        if (currentStage > 2
+                && this.estimateRoundConsumedEnergy() - this.previousResidualEnergy > consumedEnergyThreshold * this.previousResidualEnergy) {
+            this.activeSensorsDelta = 0;
+            restructureNetwork = true;
         }
-        if (currentStage > 0) {
+        if (currentStage > 1) {
             SensorNetwork network = SensorNetwork.currentInstance();
             this.activeSensorsDelta = Math.abs(this.activeSensorCount.get(this.activeSensorCount.size() - 1) - network.getActiveSensorCount());
             if (Double.compare(this.activeSensorsDelta, consumedEnergyThreshold * network.getAvailableSensorCount()) > 0) {
@@ -106,29 +95,26 @@ public class Simulation {
     }
 
     private double estimateRoundConsumedEnergy() {
-        SensorNetwork network = SensorNetwork.currentInstance();
-        double totalEnergySpent = 0;
-        for (Sensor s : network.getSensors()) {
-            if (s.isAvailable() && s.isActive()) {
-                int childrenCount = s.queryDescendants();
-                double receivePower = s.getReceivePower() * childrenCount;
-                double transmitPower = s.getTransmitPower(s.getParent()) * (childrenCount + 1);
-                double maintenancePower = s.getMaintenancePower();
-                totalEnergySpent += receivePower + transmitPower + maintenancePower;
-            }
-        }
-        return totalEnergySpent;
+        return this.getTotalEnergy(Sensor::getEnergyConsumptionEstimate);
     }
 
-    private double estimateRoundConsumedActivationEnergy() {
+    private double getTotalResidualEnergy() {
+        return this.getTotalEnergy(Sensor::getBatteryEnergy);
+    }
+
+    private double getTotalBatteryCapacity() {
+        return this.getTotalEnergy(Sensor::getBatteryCapacity);
+    }
+
+    private double getTotalEnergy(Function<Sensor, Double> energyFunction) {
         SensorNetwork network = SensorNetwork.currentInstance();
-        double totalActivationEnergy = 0;
+        double totalEnergy = 0;
         for (Sensor s : network.getSensors()) {
-            if (s.isAvailable() && s.isUseActivationPower() && s.isActive()) {
-                totalActivationEnergy += s.getActivationPower();
+            if (s.isAvailable()) {
+                totalEnergy += energyFunction.apply(s);
             }
         }
-        return totalActivationEnergy;
+        return totalEnergy;
     }
 
 }
