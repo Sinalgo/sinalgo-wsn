@@ -19,6 +19,7 @@ import sinalgo.nodes.messages.Message;
 import java.awt.*;
 import java.util.function.Supplier;
 
+@Getter
 public class SensorNode extends SimulationNode {
 
     @Getter(AccessLevel.PROTECTED)
@@ -27,8 +28,9 @@ public class SensorNode extends SimulationNode {
     @Getter(AccessLevel.PROTECTED)
     private long totalSentMessages;
 
-    @Getter
     private Sensor sensor;
+    private boolean active;
+    private SimulationNode parent;
 
     @Override
     public void init() {
@@ -43,9 +45,22 @@ public class SensorNode extends SimulationNode {
     }
 
     @Override
+    public boolean isFailed() {
+        return this.getSensor().isFailed();
+    }
+
+    @Override
+    public boolean isConnected() {
+        return this.getSensor().isConnected();
+    }
+
+    @Override
     public void draw(Graphics g, PositionTransformation pt, boolean highlight) {
-        this.setColor(this.getSensor().isFailed() ? Color.RED : this.getSensor().isActive() ? Color.GREEN : Color.BLACK);
-        this.setDefaultDrawingSizeInPixels(this.getSensor().isFailed() ? 10 : this.getSensor().isActive() ? 20 : 10);
+        this.setColor(this.isFailed() ? Color.RED :
+                this.isActive() ?
+                        this.getSensor().isActive() ? Color.GREEN : Color.YELLOW :
+                        this.getSensor().isActive() ? Color.ORANGE : Color.BLACK);
+        this.setDefaultDrawingSizeInPixels(this.isFailed() ? 10 : this.isActive() || this.getSensor().isActive() ? 20 : 10);
         this.superDraw(g, pt, highlight);
     }
 
@@ -55,7 +70,7 @@ public class SensorNode extends SimulationNode {
 
     @Override
     public void handleMessages(Inbox inbox) {
-        if (this.getSensor().isActive()) {
+        if (this.getSensor().isAvailable()) {
             this.handleMessageSending(MessageCache::pop);
             this.handleMessageReceiving(inbox);
         }
@@ -65,7 +80,7 @@ public class SensorNode extends SimulationNode {
         this.handleActivationMessages(inbox);
         while (inbox.hasNext()) {
             Message m = inbox.next();
-            if (inbox.getSender() instanceof SensorNode && m instanceof SimulationMessage) {
+            if (m instanceof SimulationMessage) {
                 this.totalReceivedMessages++;
                 this.handleMessageReceiving((SimulationMessage) m);
             }
@@ -90,15 +105,14 @@ public class SensorNode extends SimulationNode {
 
     private void handleMessageReceiving(ActivationMessage m) {
         this.getSensor().drawReceiveEnergy();
-        if (m.isActiveSensor()) {
-            this.getSensor().activate();
-        }
+        this.active = m.isActive();
+        this.parent = m.getParent();
     }
 
     private void handleMessageSending(Supplier<SimulationMessage> m) {
         for (Edge e : this.getOutgoingConnections()) {
-            if (e.getEndNode() instanceof SensorNode) {
-                this.getSensor().drawTransmitEnergy(((SensorNode) e.getEndNode()).getSensor());
+            if (e.getEndNode() instanceof SimulationNode) {
+                this.getSensor().drawTransmitEnergy(((SimulationNode) e.getEndNode()).getSensor());
                 sendMessage(m.get(), e);
             }
         }
@@ -112,6 +126,7 @@ public class SensorNode extends SimulationNode {
 
     @NodePopupMethod(menuText = "Deactivate")
     public void deactivate() {
+        this.active = false;
         this.getSensor().deactivate();
     }
 

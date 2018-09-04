@@ -1,23 +1,24 @@
 package projects.tcc.models.connectivityModels;
 
-import projects.tcc.nodes.nodeImplementations.SensorNode;
-import projects.tcc.simulation.wsn.data.Sensor;
-import projects.tcc.simulation.wsn.data.Sink;
+import projects.tcc.nodes.SimulationNode;
 import sinalgo.models.ConnectivityModelHelper;
 import sinalgo.nodes.Node;
+
+import java.util.Objects;
 
 public class SimulationConnectivityModel extends ConnectivityModelHelper {
 
     @Override
     protected boolean isConnected(Node from, Node to) {
-        if (!(from instanceof SensorNode && to instanceof SensorNode)) {
+        if (!(from instanceof SimulationNode && to instanceof SimulationNode)) {
             return false;
         }
-        Sensor s1 = ((SensorNode) from).getSensor();
-        Sensor s2 = ((SensorNode) to).getSensor();
-        return s2.equals(s1.getParent()) &&
-                ((s1.isConnected() && s2.isConnected())
-                        || (s1.isConnected() && s2 instanceof Sink));
+        SimulationNode s1 = (SimulationNode) from;
+        SimulationNode s2 = (SimulationNode) to;
+        return s1.isActive() && s2.isActive()
+                && !s1.isFailed() && !s2.isFailed()
+                && s1.isConnected() && s2.isConnected()
+                && Objects.equals(s1.getParent(), s2);
     }
 
 }

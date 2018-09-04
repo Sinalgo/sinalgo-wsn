@@ -77,7 +77,8 @@ public class SinkNode extends SensorNode {
         if (activeSensors != null) {
             for (Sensor s : SensorNetwork.currentInstance().getSensors()) {
                 if (s.isAvailable()) {
-                    this.sendDirect(new ActivationMessage(activeSensors[s.getIndex()]), s.getNode());
+                    boolean active = activeSensors[s.getIndex()];
+                    this.sendDirect(new ActivationMessage(active, active ? s.getParentNode() : null), s.getNode());
                 }
             }
             this.resetAcknowledgement(activeSensors.length);
@@ -183,4 +184,18 @@ public class SinkNode extends SensorNode {
     public void postStep() {
     }
 
+    @Override
+    public boolean isActive() {
+        return true;
+    }
+
+    @Override
+    public boolean isFailed() {
+        return false;
+    }
+
+    @Override
+    public boolean isConnected() {
+        return true;
+    }
 }

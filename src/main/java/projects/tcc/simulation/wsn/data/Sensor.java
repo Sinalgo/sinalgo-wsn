@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import projects.tcc.nodes.SimulationNode;
 import projects.tcc.nodes.nodeImplementations.SensorNode;
 import projects.tcc.simulation.io.SimulationOutput;
 import sinalgo.nodes.Position;
@@ -104,7 +105,7 @@ public class Sensor {
 
     @Getter
     @Setter(AccessLevel.PROTECTED)
-    private SensorNode node;
+    private SimulationNode node;
 
     @Getter
     private final int index;
@@ -277,9 +278,7 @@ public class Sensor {
     }
 
     public void drawMaintenanceEnergy() {
-        if (this.isActive()) {
-            this.drawEnergySpent(this.getMaintenancePower());
-        }
+        this.drawEnergySpent(this.getMaintenancePower());
     }
 
     public void drawReceiveEnergy() {
@@ -306,6 +305,10 @@ public class Sensor {
             return receivePower + transmitPower + maintenancePower;
         }
         return 0;
+    }
+
+    public SimulationNode getParentNode() {
+        return this.getParent() != null ? this.getParent().getNode() : null;
     }
 
 }

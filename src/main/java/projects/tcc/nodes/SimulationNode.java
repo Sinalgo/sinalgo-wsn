@@ -12,7 +12,7 @@ import java.awt.*;
 
 public abstract class SimulationNode extends Node {
 
-    protected abstract Sensor getSensor();
+    public abstract Sensor getSensor();
 
     @Override
     protected String nodeTypeName() {
@@ -32,7 +32,9 @@ public abstract class SimulationNode extends Node {
     @Override
     public void postStep() {
         this.getSensor().drawActivationEnergy();
-        this.getSensor().drawMaintenanceEnergy();
+        if (this.isActive()) {
+            this.getSensor().drawMaintenanceEnergy();
+        }
         this.getSensor().updateState();
     }
 
@@ -44,6 +46,19 @@ public abstract class SimulationNode extends Node {
     protected abstract long getTotalReceivedMessages();
 
     protected abstract long getTotalSentMessages();
+
+    public abstract SimulationNode getParent();
+
+    public abstract boolean isActive();
+
+    public abstract boolean isFailed();
+
+    /**
+     * This is artificial, for now. Should replace this with something better.
+     *
+     * @return true if it is connected, false otherwise
+     */
+    public abstract boolean isConnected();
 
     @Override
     public String toString() {
