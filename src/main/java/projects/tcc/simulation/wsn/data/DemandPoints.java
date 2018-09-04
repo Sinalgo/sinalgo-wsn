@@ -69,7 +69,7 @@ public final class DemandPoints {
             }
             p.removeCoverage();
         }
-        computeCoveragePercent();
+        this.computeCoveragePercent();
     }
 
     void addCoverage(Sensor s) {

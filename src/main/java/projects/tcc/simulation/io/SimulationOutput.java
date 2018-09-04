@@ -55,7 +55,6 @@ public class SimulationOutput {
         println(String.format("Res. Energy: %.3f", this.simulation.getNetworkResidualEnergy()));
         println(String.format("Cons. Energy: %.3f", this.simulation.getNetworkConsumedEnergy()));
         println(String.format("Coverage: %.5f", DemandPoints.currentInstance().getCoveragePercent()));
-        println("Restructuring count: " + simulation.getRestructureCount());
     }
 
 }

@@ -1,8 +1,8 @@
 package projects.tcc.simulation.wsn;
 
 import lombok.Getter;
-import projects.tcc.simulation.io.SimulationConfigurationLoader;
 import projects.tcc.simulation.io.SimulationOutput;
+import projects.tcc.simulation.wsn.data.DemandPoint;
 import projects.tcc.simulation.wsn.data.DemandPoints;
 import projects.tcc.simulation.wsn.data.Sensor;
 
@@ -19,10 +19,7 @@ public class Simulation {
     private double currentCoveragePercent;       // porcentagem de cobertura atual
     private double networkResidualEnergy;       // Energia Total Residual da rede.
     private double networkConsumedEnergy;       // Energia Total Consumida da rede.
-
-    private int activeSensorsDelta;
     private double previousResidualEnergy;
-    private int restructureCount;
 
     private List<Integer> activeSensorCount;
 
@@ -55,7 +52,7 @@ public class Simulation {
         this.previousResidualEnergy = currentStage == 1 ? this.getTotalBatteryCapacity() : this.networkResidualEnergy;
         this.networkResidualEnergy = this.getTotalResidualEnergy();
         this.networkConsumedEnergy = this.previousResidualEnergy - this.networkResidualEnergy;
-        this.currentCoveragePercent = DemandPoints.currentInstance().getCoveragePercent();
+        this.currentCoveragePercent = this.getRealConnectedCoverage();
 
         this.residualEnergy.add(this.networkResidualEnergy);
         this.consumedEnergy.add(this.networkConsumedEnergy);
@@ -66,36 +63,24 @@ public class Simulation {
         output.generateConsoleOutput(currentStage);
     }
 
-    public boolean restructureTest(int currentStage) {
-        boolean restructure = this.testNetworkRestructure(currentStage);
-        if (restructure) {
-            this.restructureCount++;
-        }
-        return restructure;
-    }
-
-    private boolean testNetworkRestructure(int currentStage) {
-        double consumedEnergyThreshold = SimulationConfigurationLoader.getConfiguration().getConsumedEnergyThreshold();
-        boolean restructureNetwork = false;
-        //testando se ira reestruturar - nao considerar EA ///////////////////////////
-        if (currentStage > 2
-                && this.estimateRoundConsumedEnergy() - this.previousResidualEnergy > consumedEnergyThreshold * this.previousResidualEnergy) {
-            this.activeSensorsDelta = 0;
-            restructureNetwork = true;
-        }
-        if (currentStage > 1) {
-            SensorNetwork network = SensorNetwork.currentInstance();
-            this.activeSensorsDelta = Math.abs(this.activeSensorCount.get(this.activeSensorCount.size() - 1) - network.getActiveSensorCount());
-            if (Double.compare(this.activeSensorsDelta, consumedEnergyThreshold * network.getAvailableSensorCount()) > 0) {
-                this.activeSensorsDelta = 0;
-                restructureNetwork = true;
+    private double getRealConnectedCoverage() {
+        SensorNetwork network = SensorNetwork.currentInstance();
+        DemandPoints demandPoints = DemandPoints.currentInstance();
+        boolean[] connectedCoveredPoints = new boolean[demandPoints.getTotalNumPoints()];
+        for (Sensor s : network.getSensors()) {
+            if (s.isAvailable() && s.isActive() && s.isConnected()) {
+                for (DemandPoint d : s.getCoveredPoints()) {
+                    connectedCoveredPoints[d.getIndex()] = true;
+                }
             }
         }
-        return restructureNetwork;
-    }
-
-    private double estimateRoundConsumedEnergy() {
-        return this.getTotalEnergy(Sensor::getEnergyConsumptionEstimate);
+        int numCoveredPoints = 0;
+        for (boolean b : connectedCoveredPoints) {
+            if (b) {
+                numCoveredPoints += 1;
+            }
+        }
+        return ((double) numCoveredPoints) / ((double) demandPoints.getTotalNumPoints());
     }
 
     private double getTotalResidualEnergy() {

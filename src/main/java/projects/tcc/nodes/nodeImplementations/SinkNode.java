@@ -74,7 +74,7 @@ public class SinkNode extends SensorNode {
         // Isto só funciona aqui porque o Sink é o último nó a ser colocado.
         // Alterar para o preRound/postRound do CustomGlobal!
         Simulation.currentInstance().simulatePeriod(stage);
-        if (fail || Simulation.currentInstance().restructureTest(stage)) {
+        if (fail) {
             activeSensors = this.computeActiveSensors();
         }
         if (activeSensors != null) {
