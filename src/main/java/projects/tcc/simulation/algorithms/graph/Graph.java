@@ -32,6 +32,10 @@ public class Graph {
         private final List<Edge<T>> edges = new ArrayList<>();
         private double minDistance = Double.POSITIVE_INFINITY;
         private Node<T> previous;
+
+        public T getPreviousSource() {
+            return this.getPrevious() == null ? null : this.getPrevious().getSource();
+        }
     }
 
     private interface ThreeOperandFunction<T, U, W, R> {
@@ -96,8 +100,28 @@ public class Graph {
         Dijkstra.computePaths(this.getSensorNodeMap().get(sink));
         this.getSensorNodeMap().forEach((s, node) -> {
             s.setCostToSink(node.getMinDistance());
-            s.setParent(node.getPrevious() == null ? null : node.getPrevious().getSource());
+            s.setParent(node.getPreviousSource());
         });
+    }
+
+    public TreeNode<Sensor> getTreeRepresentation(Sink sink) {
+        Dijkstra.computePaths(this.getSensorNodeMap().get(sink));
+        Map<Sensor, TreeNode<Sensor>> treeNodes = new HashMap<>(this.getSensorNodeMap().size());
+        this.getSensorNodeMap().keySet().forEach(s -> treeNodes.put(s, new TreeNode<>(s)));
+        this.getSensorNodeMap().values().forEach(n -> {
+            TreeNode<Sensor> parent = treeNodes.get(n.getPreviousSource());
+            TreeNode<Sensor> current = treeNodes.get(n.getSource());
+            current.setParent(parent);
+            if (parent != null) {
+                parent.getChildren().add(current);
+            }
+        });
+        for (TreeNode<Sensor> t : treeNodes.values()) {
+            if (t.getParent() == null) {
+                return t;
+            }
+        }
+        return null;
     }
 
 }

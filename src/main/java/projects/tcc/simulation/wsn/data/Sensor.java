@@ -145,7 +145,6 @@ public class Sensor {
     @Getter
     private boolean failed;
 
-    private boolean useActivationPower;
     private double activationPower;
     private double receivePower;
     private double maintenancePower;
@@ -259,24 +258,19 @@ public class Sensor {
     public void activate() {
         if (this.isAvailable() && !this.isActive()) {
             this.setActive(true);
-            this.setUseActivationPower(true);
             DemandPoints.currentInstance().addCoverage(this);
         }
     }
 
     public void deactivate() {
         if (this.isAvailable() && this.isActive()) {
-            this.setUseActivationPower(false);
             this.setActive(false);
             DemandPoints.currentInstance().removeCoverage(this);
         }
     }
 
     public void drawActivationEnergy() {
-        if (this.isUseActivationPower()) {
-            this.drawEnergySpent(this.getActivationPower());
-            this.setUseActivationPower(false);
-        }
+        this.drawEnergySpent(this.getActivationPower());
     }
 
     public void drawMaintenanceEnergy() {
@@ -307,10 +301,6 @@ public class Sensor {
             return receivePower + transmitPower + maintenancePower;
         }
         return 0;
-    }
-
-    public SimulationNode getParentNode() {
-        return this.getParent() != null ? this.getParent().getNode() : null;
     }
 
 }

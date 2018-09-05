@@ -7,17 +7,17 @@ import sinalgo.nodes.messages.Message;
 
 import java.util.List;
 
-@RequiredArgsConstructor
 @Getter
-public class ActivationMessage extends Message {
+@RequiredArgsConstructor
+public class ForwardedMessage extends Message {
 
-    private final boolean active;
-    private final SimulationNode parent;
-    private final List<SimulationNode> children;
+    private final SimulationNode destination;
+    private final int waitTime;
+    private final ActivationMessage message;
+    private final List<ForwardedMessage> forwardedMessages;
 
     @Override
     public Message clone() {
         return this;
     }
-
 }

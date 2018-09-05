@@ -16,6 +16,7 @@ public class Simulation {
     private List<Double> residualEnergy;
     private List<Double> consumedEnergy;
     private List<Double> coverage;
+    private List<Integer> periods;
     private double currentCoveragePercent;       // porcentagem de cobertura atual
     private double networkResidualEnergy;       // Energia Total Residual da rede.
     private double networkConsumedEnergy;       // Energia Total Consumida da rede.
@@ -42,6 +43,7 @@ public class Simulation {
         this.residualEnergy = new ArrayList<>();
         this.consumedEnergy = new ArrayList<>();
         this.coverage = new ArrayList<>();
+        this.periods = new ArrayList<>();
     }
 
     public void simulatePeriod(int currentStage) {
@@ -58,6 +60,7 @@ public class Simulation {
         this.consumedEnergy.add(this.networkConsumedEnergy);
         this.coverage.add(this.currentCoveragePercent);
         this.activeSensorCount.add(network.getActiveSensorCount());
+        this.periods.add(currentStage);
 
         //gerar impressao na tela
         output.generateConsoleOutput(currentStage);

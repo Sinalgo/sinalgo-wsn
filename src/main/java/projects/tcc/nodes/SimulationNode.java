@@ -9,6 +9,7 @@ import sinalgo.nodes.Node;
 import sinalgo.runtime.Global;
 
 import java.awt.*;
+import java.util.List;
 
 public abstract class SimulationNode extends Node {
 
@@ -25,12 +26,20 @@ public abstract class SimulationNode extends Node {
     }
 
     @Override
+    public void preStep() {
+    }
+
+    @Override
     public void postStep() {
-        this.getSensor().drawActivationEnergy();
-        if (this.isActive()) {
+        if (this.isUseActivationPower()) {
+            this.getSensor().drawActivationEnergy();
+            this.setUseActivationPower(false);
+        }
+        if (this.isActive() && !this.isSleep()) {
             this.getSensor().drawMaintenanceEnergy();
         }
         this.getSensor().updateState();
+        this.setWaitTime(Math.max(0, this.getWaitTime() - 1));
     }
 
     @Override
@@ -44,9 +53,23 @@ public abstract class SimulationNode extends Node {
 
     public abstract SimulationNode getParent();
 
+    public abstract List<SimulationNode> getChildren();
+
     public abstract boolean isActive();
 
     public abstract boolean isFailed();
+
+    protected abstract void setWaitTime(int waitTime);
+
+    protected abstract int getWaitTime();
+
+    protected abstract boolean isUseActivationPower();
+
+    protected abstract void setUseActivationPower(boolean userActivationPower);
+
+    protected boolean isSleep() {
+        return this.getWaitTime() > 0;
+    }
 
     @Override
     public String toString() {

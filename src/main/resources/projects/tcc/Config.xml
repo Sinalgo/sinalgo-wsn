@@ -227,6 +227,9 @@
             one should be more useful to be imported in reports. -->
         <epsDrawBackgroundWhite value="true"/>
 
+        <!-- Only makes sense without instantaneous failure detection -->
+        <generateNAckMessages value="false"/>
+
     </Framework>
     <Custom>
 

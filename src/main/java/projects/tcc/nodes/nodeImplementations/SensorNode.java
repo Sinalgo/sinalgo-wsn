@@ -6,6 +6,8 @@ import lombok.Setter;
 import projects.tcc.MessageCache;
 import projects.tcc.nodes.SimulationNode;
 import projects.tcc.nodes.messages.ActivationMessage;
+import projects.tcc.nodes.messages.FailureMessage;
+import projects.tcc.nodes.messages.ForwardedMessage;
 import projects.tcc.nodes.messages.SimulationMessage;
 import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.io.SimulationConfigurationLoader;
@@ -13,11 +15,12 @@ import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.data.Sensor;
 import projects.tcc.simulation.wsn.data.SensorIndex;
 import sinalgo.gui.transformation.PositionTransformation;
-import sinalgo.nodes.edges.Edge;
 import sinalgo.nodes.messages.Inbox;
 import sinalgo.nodes.messages.Message;
+import sinalgo.nodes.messages.NackBox;
 
 import java.awt.*;
+import java.util.List;
 import java.util.function.Supplier;
 
 @Getter
@@ -31,13 +34,18 @@ public class SensorNode extends SimulationNode {
     @Setter(AccessLevel.NONE)
     private long totalSentMessages;
 
-    @Getter(AccessLevel.PRIVATE)
-    @Setter(AccessLevel.NONE)
-    private boolean receivedActivationMessage;
-
     private Sensor sensor;
     private boolean active;
     private SimulationNode parent;
+    private List<SimulationNode> children;
+
+    @Getter(AccessLevel.PROTECTED)
+    @Setter(AccessLevel.PROTECTED)
+    private boolean useActivationPower;
+
+    @Getter(AccessLevel.PROTECTED)
+    @Setter(AccessLevel.PROTECTED)
+    private int waitTime;
 
     @Override
     public void init() {
@@ -59,9 +67,10 @@ public class SensorNode extends SimulationNode {
     @Override
     public void draw(Graphics g, PositionTransformation pt, boolean highlight) {
         this.setColor(this.isFailed() ? Color.RED :
-                this.isActive() ?
-                        this.getSensor().isActive() ? Color.GREEN : Color.YELLOW :
-                        this.getSensor().isActive() ? Color.ORANGE : Color.BLACK);
+                this.isSleep() ? Color.GRAY :
+                        this.isActive() ?
+                                this.getSensor().isActive() ? Color.GREEN : Color.YELLOW :
+                                this.getSensor().isActive() ? Color.ORANGE : Color.BLACK);
         this.setDefaultDrawingSizeInPixels(this.isFailed() ? 10 : this.isActive() || this.getSensor().isActive() ? 20 : 10);
         this.superDraw(g, pt, highlight);
     }
@@ -71,67 +80,101 @@ public class SensorNode extends SimulationNode {
     }
 
     @Override
-    public void handleMessages(Inbox inbox) {
-        if (this.getSensor().isAvailable()) {
-            this.handleMessageReceiving(inbox);
-            this.handleMessageSending(MessageCache::pop);
-        }
-    }
-
-    private void handleMessageReceiving(Inbox inbox) {
-        this.handleActivationMessages(inbox);
-        while (inbox.hasNext()) {
-            Message m = inbox.next();
-            if (m instanceof SimulationMessage) {
-                this.totalReceivedMessages++;
-                this.getSensor().drawReceiveEnergy();
-                this.handleMessageReceiving((SimulationMessage) m);
+    public void handleNAckMessages(NackBox nackBox) {
+        if (nackBox.hasNext() && this.isActive()) {
+            for (SimulationNode n : this.getChildren()) {
+                this.sendMessage(new FailureMessage(), n);
             }
         }
     }
 
-    private void handleActivationMessages(Inbox inbox) {
-        while (inbox.hasNext()) {
-            Message m = inbox.next();
-            if (m instanceof ActivationMessage) {
-                this.totalReceivedMessages++;
-                this.getSensor().drawReceiveEnergy();
-                this.handleMessageReceiving((ActivationMessage) m);
+    @Override
+    public void handleMessages(Inbox inbox) {
+        if (this.isSleep()) {
+            return;
+        }
+        if (this.getSensor().isAvailable()) {
+            if (this.isActive()) {
+                this.sendMessage(MessageCache::pop, this.getParent());
+            }
+            this.handleMessageReceiving(inbox);
+        }
+    }
+
+    private void handleMessageReceiving(Inbox inbox) {
+        this.incrementTotalReceivedMessages(inbox);
+        this.drawReceiveEnergy(inbox);
+        this.handleReceiveSimulationMessages(inbox);
+        this.handleReceiveFailureMessages(inbox); // Check where exactly this should be processed.
+        this.handleForwardedMessages(inbox);
+    }
+
+    protected void incrementTotalReceivedMessages(Inbox inbox) {
+        this.totalReceivedMessages += inbox.size();
+    }
+
+    private void drawReceiveEnergy(Inbox inbox) {
+        for (int i = 0; i < inbox.size(); i++) {
+            this.getSensor().drawReceiveEnergy();
+        }
+    }
+
+    private void handleReceiveSimulationMessages(Inbox inbox) {
+        for (Message m : inbox) {
+            if (m instanceof SimulationMessage) {
+                this.sendMessage(() -> (SimulationMessage) m, this.getParent());
+            }
+        }
+        inbox.reset();
+    }
+
+    private void handleForwardedMessages(Inbox inbox) {
+        for (Message m : inbox) {
+            if (m instanceof ForwardedMessage) {
+                ForwardedMessage fm = (ForwardedMessage) m;
+                this.setWaitTime(fm.getWaitTime());
+                ActivationMessage am = fm.getMessage();
+                this.setUseActivationPower(!this.isActive() && am.isActive());
+                this.active = am.isActive();
+                this.parent = am.getParent();
+                this.children = am.getChildren();
+                for (ForwardedMessage c : fm.getForwardedMessages()) {
+                    this.getSensor().drawTransmitEnergy(c.getDestination().getSensor());
+                    this.sendDirect(c, c.getDestination());
+                }
                 break;
             }
         }
         inbox.reset();
     }
 
-    protected void handleMessageReceiving(SimulationMessage m) {
-        this.handleMessageSending(() -> m);
-    }
-
-    private void handleMessageReceiving(ActivationMessage m) {
-        this.receivedActivationMessage = true;
-        this.active = m.isActive();
-        this.parent = m.getParent();
-    }
-
-    private void handleMessageSending(Supplier<SimulationMessage> m) {
-        if (this.isActive()
-                && !this.isReceivedActivationMessage()
-                && this.getOutgoingConnections().size() == 0) {
-            this.sendMessage(m, this.getParent());
-        }
-        for (Edge e : this.getOutgoingConnections()) {
-            if (e.getEndNode() instanceof SimulationNode) {
-                this.sendMessage(m, (SimulationNode) e.getEndNode());
+    private void handleReceiveFailureMessages(Inbox inbox) {
+        for (Message m : inbox) {
+            if (m instanceof FailureMessage) {
+                for (SimulationNode n : this.getChildren()) {
+                    this.sendMessage(m, n);
+                }
+                this.active = false;
+                break;
             }
         }
+        inbox.reset();
     }
 
     protected void sendMessage(Supplier<SimulationMessage> m, SimulationNode n) {
-        this.totalSentMessages++;
-        this.getSensor().drawTransmitEnergy(n.getSensor());
-        SimulationMessage message = m.get();
-        message.getNodes().push(this);
-        this.send(message, n);
+        if (this.isActive()) {
+            SimulationMessage message = m.get();
+            message.getNodes().push(this);
+            this.sendMessage(message, n);
+        }
+    }
+
+    private void sendMessage(Message m, SimulationNode n) {
+        if (this.isActive()) {
+            this.totalSentMessages++;
+            this.getSensor().drawTransmitEnergy(n.getSensor());
+            this.send(m, n);
+        }
     }
 
     @NodePopupMethod(menuText = "Deactivate")
@@ -148,11 +191,6 @@ public class SensorNode extends SimulationNode {
     @Override
     public boolean isActive() {
         return this.active && !this.isFailed();
-    }
-
-    @Override
-    public void preStep() {
-        this.receivedActivationMessage = false;
     }
 
 }

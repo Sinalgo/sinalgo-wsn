@@ -4,8 +4,11 @@ import lombok.Getter;
 import projects.tcc.MessageCache;
 import projects.tcc.nodes.SimulationNode;
 import projects.tcc.nodes.messages.ActivationMessage;
+import projects.tcc.nodes.messages.ForwardedMessage;
 import projects.tcc.nodes.messages.SimulationMessage;
 import projects.tcc.simulation.algorithms.MultiObjectiveGeneticAlgorithm;
+import projects.tcc.simulation.algorithms.graph.Graph;
+import projects.tcc.simulation.algorithms.graph.TreeNode;
 import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.io.SimulationConfigurationLoader;
 import projects.tcc.simulation.io.SimulationOutput;
@@ -18,9 +21,12 @@ import projects.tcc.simulation.wsn.data.Sink;
 import sinalgo.configuration.Configuration;
 import sinalgo.gui.transformation.PositionTransformation;
 import sinalgo.nodes.messages.Inbox;
+import sinalgo.nodes.messages.Message;
 import sinalgo.tools.Tools;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -44,11 +50,15 @@ public class SinkNode extends SensorNode {
 
     @Override
     public void handleMessages(Inbox inbox) {
+        if (this.isSleep()) {
+            return;
+        }
         int size = inbox.size();
         if (size > 0) {
             System.out.println("\nSTART logging received messages for round");
         }
-        super.handleMessages(inbox);
+        this.incrementTotalReceivedMessages(inbox);
+        this.handleMessageReceiving(inbox);
         boolean fail = false;
         if (this.timeSinceLastMessage != null
                 && this.heights != null
@@ -78,15 +88,28 @@ public class SinkNode extends SensorNode {
             activeSensors = this.computeActiveSensors();
         }
         if (activeSensors != null) {
-            for (Sensor s : SensorNetwork.currentInstance().getSensors()) {
-                if (s.isAvailable()) {
-                    boolean active = activeSensors[s.getIndex()];
-                    this.sendDirect(new ActivationMessage(active, active ? s.getParentNode() : null), s.getNode());
-                }
+            TreeNode<Sensor> root = this.getSensorGraphAsTree();
+            this.setWaitTime(this.getMaxDepth(root));
+            List<ForwardedMessage> forwardedMessages =
+                    this.convertToForwardedMessageList(this.getWaitTime(), activeSensors, this.getSensorGraphAsTree());
+            for (ForwardedMessage m : forwardedMessages) {
+                this.sendDirect(m, m.getDestination());
             }
             this.resetAcknowledgement(activeSensors.length);
             this.computeExpectedHeights();
         }
+    }
+
+    private SimulationNode getParentNode(Sensor s) {
+        return s.getParent() == null ? null : s.getParent().getNode();
+    }
+
+    private List<SimulationNode> getChildrenNodes(Sensor s) {
+        List<SimulationNode> childrenNodes = new ArrayList<>(s.getChildren().size());
+        for (Sensor c : s.getChildren()) {
+            childrenNodes.add(c.getNode());
+        }
+        return childrenNodes;
     }
 
     @Override
@@ -115,7 +138,6 @@ public class SinkNode extends SensorNode {
                 this.timeSinceLastMessage[i] = 0;
             }
         }
-
     }
 
     private void increaseTimeSinceLastMessage() {
@@ -156,8 +178,15 @@ public class SinkNode extends SensorNode {
         }
     }
 
-    @Override
-    protected void handleMessageReceiving(SimulationMessage m) {
+    private void handleMessageReceiving(Inbox inbox) {
+        for (Message m : inbox) {
+            if (m instanceof SimulationMessage) {
+                this.handleMessageReceiving((SimulationMessage) m);
+            }
+        }
+    }
+
+    private void handleMessageReceiving(SimulationMessage m) {
         m.getNodes().push(this);
         String messageStr = m.getNodes().stream()
                 .map(sn -> {
@@ -190,6 +219,7 @@ public class SinkNode extends SensorNode {
 
     @Override
     public void postStep() {
+        this.setWaitTime(Math.max(0, this.getWaitTime() - 1));
     }
 
     @Override
@@ -200,6 +230,37 @@ public class SinkNode extends SensorNode {
     @Override
     public boolean isFailed() {
         return false;
+    }
+
+    private TreeNode<Sensor> getSensorGraphAsTree() {
+        Graph g = new Graph(SensorNetwork.currentInstance().getSensorsAndSinks());
+        g.computeEdges(false);
+        return g.getTreeRepresentation(this.getSensor());
+    }
+
+    private int getMaxDepth(TreeNode<Sensor> n) {
+        return this.getMaxDepth(1, n);
+    }
+
+    private int getMaxDepth(int depth, TreeNode<Sensor> n) {
+        int maxDepth = depth;
+        for (TreeNode<Sensor> c : n.getChildren()) {
+            maxDepth = Math.max(maxDepth, this.getMaxDepth(depth + 1, c));
+        }
+        return maxDepth;
+    }
+
+    private List<ForwardedMessage> convertToForwardedMessageList(int waitTime, boolean[] activeSensors, TreeNode<Sensor> n) {
+        List<ForwardedMessage> messages = new ArrayList<>(n.getChildren().size());
+        for (TreeNode<Sensor> c : n.getChildren()) {
+            Sensor s = c.getValue();
+            boolean active = activeSensors[s.getIndex()];
+            ActivationMessage m = new ActivationMessage(active,
+                    active ? this.getParentNode(s) : null,
+                    active ? this.getChildrenNodes(s) : null);
+            messages.add(new ForwardedMessage(s.getNode(), waitTime, m, this.convertToForwardedMessageList(waitTime - 1, activeSensors, c)));
+        }
+        return messages;
     }
 
 }
