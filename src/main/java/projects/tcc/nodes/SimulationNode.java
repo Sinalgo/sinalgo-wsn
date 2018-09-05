@@ -27,17 +27,13 @@ public abstract class SimulationNode extends Node {
 
     @Override
     public void preStep() {
+        if (this.isActive() && !this.isSleep()) {
+            this.getSensor().drawMaintenanceEnergy();
+        }
     }
 
     @Override
     public void postStep() {
-        if (this.isUseActivationPower()) {
-            this.getSensor().drawActivationEnergy();
-            this.setUseActivationPower(false);
-        }
-        if (this.isActive() && !this.isSleep()) {
-            this.getSensor().drawMaintenanceEnergy();
-        }
         this.getSensor().updateState();
         this.setWaitTime(Math.max(0, this.getWaitTime() - 1));
     }
@@ -62,10 +58,6 @@ public abstract class SimulationNode extends Node {
     protected abstract void setWaitTime(int waitTime);
 
     protected abstract int getWaitTime();
-
-    protected abstract boolean isUseActivationPower();
-
-    protected abstract void setUseActivationPower(boolean userActivationPower);
 
     protected boolean isSleep() {
         return this.getWaitTime() > 0;

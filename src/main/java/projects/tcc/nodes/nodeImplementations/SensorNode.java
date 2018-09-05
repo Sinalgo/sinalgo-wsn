@@ -41,10 +41,6 @@ public class SensorNode extends SimulationNode {
 
     @Getter(AccessLevel.PROTECTED)
     @Setter(AccessLevel.PROTECTED)
-    private boolean useActivationPower;
-
-    @Getter(AccessLevel.PROTECTED)
-    @Setter(AccessLevel.PROTECTED)
     private int waitTime;
 
     @Override
@@ -134,7 +130,9 @@ public class SensorNode extends SimulationNode {
                 ForwardedMessage fm = (ForwardedMessage) m;
                 this.setWaitTime(fm.getWaitTime());
                 ActivationMessage am = fm.getMessage();
-                this.setUseActivationPower(!this.isActive() && am.isActive());
+                if (!this.isActive() && am.isActive()) {
+                    this.getSensor().drawActivationEnergy();
+                }
                 this.active = am.isActive();
                 this.parent = am.getParent();
                 this.children = am.getChildren();
