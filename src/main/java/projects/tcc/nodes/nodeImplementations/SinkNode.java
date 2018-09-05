@@ -261,7 +261,8 @@ public class SinkNode extends SensorNode {
             ActivationMessage m = new ActivationMessage(active,
                     active ? this.getParentNode(s) : null,
                     active ? this.getChildrenNodes(s) : null);
-            messages.add(new ForwardedMessage(s.getNode(), waitTime, m, this.convertToForwardedMessageList(waitTime - 1, activeSensors, c)));
+            messages.add(new ForwardedMessage(s.getNode(), waitTime, m,
+                    this.convertToForwardedMessageList(waitTime - 1, activeSensors, c)));
         }
         return messages;
     }

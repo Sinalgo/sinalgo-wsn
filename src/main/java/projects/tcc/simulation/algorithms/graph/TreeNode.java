@@ -18,15 +18,17 @@ public class TreeNode<T> {
     private final List<TreeNode<T>> children = new ArrayList<>();
 
     public void print() {
+        System.out.println("START printing resulting tree");
         this.print(0);
+        System.out.println("END printing resulting tree");
     }
 
     private void print(int tabulation) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < tabulation; i++) {
-            sb.append("  ");
+            sb.append("\t");
         }
-        sb.append(value);
+        sb.append(this.getValue());
         System.out.println(sb.toString());
         for (TreeNode<T> child : this.getChildren()) {
             child.print(tabulation + 1);

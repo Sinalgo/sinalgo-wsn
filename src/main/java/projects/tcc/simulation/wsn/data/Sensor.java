@@ -211,14 +211,6 @@ public class Sensor {
         this.getChildren().add(child);
     }
 
-    private int queryDescendants() {
-        int totalChildCount = this.getChildren().size();
-        for (Sensor child : this.getChildren()) {
-            totalChildCount += child.queryDescendants();
-        }
-        return totalChildCount;
-    }
-
     private void drawEnergySpent(double energySpent) {
         this.setBatteryEnergy(Math.max(this.getBatteryEnergy() - energySpent, 0));
     }
@@ -237,10 +229,6 @@ public class Sensor {
 
     public boolean isAvailable() {
         return !this.isFailed();
-    }
-
-    public String toString() {
-        return Integer.toString(this.getIndex());
     }
 
     public void fail() {
@@ -292,15 +280,9 @@ public class Sensor {
         }
     }
 
-    public double getEnergyConsumptionEstimate() {
-        if (this.isAvailable() && this.isActive()) {
-            int childrenCount = this.queryDescendants();
-            double receivePower = this.getReceivePower() * childrenCount;
-            double transmitPower = this.getTransmitPower(this.getParent()) * (childrenCount + 1);
-            double maintenancePower = this.getMaintenancePower();
-            return receivePower + transmitPower + maintenancePower;
-        }
-        return 0;
+    @Override
+    public String toString() {
+        return this.getNode() != null ? this.getNode().toString() : Integer.toString(this.getIndex());
     }
 
 }
