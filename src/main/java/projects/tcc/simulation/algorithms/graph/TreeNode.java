@@ -16,4 +16,20 @@ public class TreeNode<T> {
     private TreeNode<T> parent;
     private final T value;
     private final List<TreeNode<T>> children = new ArrayList<>();
+
+    public void print() {
+        this.print(0);
+    }
+
+    private void print(int tabulation) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < tabulation; i++) {
+            sb.append("  ");
+        }
+        sb.append(value);
+        System.out.println(sb.toString());
+        for (TreeNode<T> child : this.getChildren()) {
+            child.print(tabulation + 1);
+        }
+    }
 }

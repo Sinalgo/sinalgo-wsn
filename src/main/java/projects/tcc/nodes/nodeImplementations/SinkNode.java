@@ -89,6 +89,9 @@ public class SinkNode extends SensorNode {
         }
         if (activeSensors != null) {
             TreeNode<Sensor> root = this.getSensorGraphAsTree();
+            System.out.println();
+            root.print();
+            System.out.println();
             this.setWaitTime(this.getMaxDepth(root));
             List<ForwardedMessage> forwardedMessages =
                     this.convertToForwardedMessageList(this.getWaitTime(), activeSensors, this.getSensorGraphAsTree());
