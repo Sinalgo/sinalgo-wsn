@@ -59,6 +59,8 @@ public class SensorNode extends SimulationNode {
             if (this.getSensor().isFailed()) {
                 return Color.RED;
             }
+            return Color.MAGENTA;
+        } else if (this.getSensor().isFailed()) {
             return Color.ORANGE;
         }
         if (this.isSleep()) {
