@@ -20,6 +20,7 @@ import projects.tcc.simulation.wsn.data.SensorIndex;
 import projects.tcc.simulation.wsn.data.Sink;
 import sinalgo.configuration.Configuration;
 import sinalgo.gui.transformation.PositionTransformation;
+import sinalgo.nodes.Node;
 import sinalgo.nodes.messages.Inbox;
 import sinalgo.nodes.messages.Message;
 import sinalgo.tools.Tools;
@@ -43,8 +44,7 @@ public class SinkNode extends SensorNode {
     public void init() {
         SimulationConfiguration config = SimulationConfigurationLoader.getConfiguration();
         int index = SensorIndex.currentInstance().getNextIndex(Sink.class);
-        this.sensor = new Sink(index, this.getPosition(),
-                config.getCommRadius(), config.getSinkCommRadius(), this);
+        this.sensor = new Sink(index, this.getPosition(), config.getSinkCommRadius(), this);
         SensorNetwork.currentInstance().addSink(this.getSensor());
     }
 
@@ -67,6 +67,10 @@ public class SinkNode extends SensorNode {
             long closestFailedNode = this.checkFailures();
             if (closestFailedNode >= 0) {
                 fail = true;
+                Node n = Tools.getNodeByID(closestFailedNode + 1);
+                if (n instanceof SimulationNode) {
+                    ((SimulationNode) n).getSensor().fail();
+                }
                 System.out.println("FAILED SENSOR: " + Tools.getNodeByID(closestFailedNode + 1));
                 if (MultiObjectiveGeneticAlgorithm.currentInstance().isStopSimulationOnFailure()) {
                     Tools.stopSimulation();
@@ -265,6 +269,12 @@ public class SinkNode extends SensorNode {
                     this.convertToForwardedMessageList(waitTime - 1, activeSensors, c)));
         }
         return messages;
+    }
+
+    @Override
+    public String toString() {
+        return "[" + this.superToString() + ": " + String.format(
+                "Rx=%d", this.getTotalReceivedMessages()) + "]";
     }
 
 }

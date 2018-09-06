@@ -1,6 +1,7 @@
 package projects.tcc.simulation.wsn;
 
 import lombok.Getter;
+import projects.tcc.nodes.SimulationNode;
 import projects.tcc.simulation.io.SimulationOutput;
 import projects.tcc.simulation.wsn.data.DemandPoint;
 import projects.tcc.simulation.wsn.data.DemandPoints;
@@ -87,19 +88,21 @@ public class Simulation {
     }
 
     private double getTotalResidualEnergy() {
-        return this.getTotalEnergy(Sensor::getBatteryEnergy);
+        return this.getTotalEnergy(SimulationNode::getBatteryEnergy);
     }
 
     private double getTotalBatteryCapacity() {
-        return this.getTotalEnergy(Sensor::getBatteryCapacity);
+        return this.getTotalEnergy(SimulationNode::getBatteryCapacity);
     }
 
-    private double getTotalEnergy(Function<Sensor, Double> energyFunction) {
+    private double getTotalEnergy(Function<SimulationNode, Double> energyFunction) {
         SensorNetwork network = SensorNetwork.currentInstance();
         double totalEnergy = 0;
         for (Sensor s : network.getSensors()) {
-            if (s.isAvailable()) {
-                totalEnergy += energyFunction.apply(s);
+            SimulationNode sn = s.getNode();
+            // This isn't enough that that the node can fail without the sensor doing so
+            if (sn.isAvailable() && s.isConnected()) {
+                totalEnergy += energyFunction.apply(sn);
             }
         }
         return totalEnergy;

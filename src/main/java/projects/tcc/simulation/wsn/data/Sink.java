@@ -5,8 +5,8 @@ import sinalgo.nodes.Position;
 
 public class Sink extends Sensor {
 
-    public Sink(int id, Position position, double commRadius, double commRatio, SinkNode node) {
-        super(id, position, commRadius, commRatio);
+    public Sink(int id, Position position, double commRadius, SinkNode node) {
+        super(id, position, commRadius);
         this.setNode(node);
     }
 

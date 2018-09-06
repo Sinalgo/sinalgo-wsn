@@ -20,24 +20,12 @@ import sinalgo.nodes.messages.Message;
 import sinalgo.nodes.messages.NackBox;
 
 import java.awt.*;
-import java.util.List;
 import java.util.function.Supplier;
 
 @Getter
 public class SensorNode extends SimulationNode {
 
-    @Getter(AccessLevel.PROTECTED)
-    @Setter(AccessLevel.NONE)
-    private long totalReceivedMessages;
-
-    @Getter(AccessLevel.PROTECTED)
-    @Setter(AccessLevel.NONE)
-    private long totalSentMessages;
-
     private Sensor sensor;
-    private boolean active;
-    private SimulationNode parent;
-    private List<SimulationNode> children;
 
     @Getter(AccessLevel.PROTECTED)
     @Setter(AccessLevel.PROTECTED)
@@ -48,27 +36,45 @@ public class SensorNode extends SimulationNode {
         SimulationConfiguration config = SimulationConfigurationLoader.getConfiguration();
         int index = SensorIndex.currentInstance().getNextIndex(Sensor.class);
         this.sensor = new Sensor(index, this.getPosition(),
-                config.getSensorRadius(), config.getCommRadius(), config.getBatteryEnergy(),
-                config.getActivationPower(), config.getReceivePower(),
-                config.getMaintenancePower(), config.getCommRatio(),
-                config.getMinBatteryThreshold(), this);
+                config.getSensorRadius(), config.getCommRadius(), this);
         SensorNetwork.currentInstance().addSensor(this.getSensor());
-    }
-
-    @Override
-    public boolean isFailed() {
-        return this.getSensor().isFailed();
+        this.setActivationPower(config.getActivationPower());
+        this.setReceivePower(config.getReceivePower());
+        this.setMaintenancePower(config.getMaintenancePower());
+        this.setBatteryEnergy(config.getBatteryEnergy());
+        this.setBatteryCapacity(config.getBatteryEnergy());
+        this.setMinBatteryThreshold(config.getMinBatteryThreshold());
+        this.setCommRatio(config.getCommRatio());
     }
 
     @Override
     public void draw(Graphics g, PositionTransformation pt, boolean highlight) {
-        this.setColor(this.isFailed() ? Color.RED :
-                this.isSleep() ? Color.GRAY :
-                        this.isActive() ?
-                                this.getSensor().isActive() ? Color.GREEN : Color.YELLOW :
-                                this.getSensor().isActive() ? Color.ORANGE : Color.BLACK);
+        this.setColor(this.getColorByStatus());
         this.setDefaultDrawingSizeInPixels(this.isFailed() ? 10 : this.isActive() || this.getSensor().isActive() ? 20 : 10);
         this.superDraw(g, pt, highlight);
+    }
+
+    private Color getColorByStatus() {
+        if (this.isFailed()) {
+            if (this.getSensor().isFailed()) {
+                return Color.RED;
+            }
+            return Color.ORANGE;
+        }
+        if (this.isSleep()) {
+            return Color.GRAY;
+        }
+        if (this.isActive()) {
+            if (this.getSensor().isActive()) {
+                return Color.GREEN;
+            }
+            return Color.PINK;
+        } else {
+            if (this.getSensor().isActive()) {
+                return Color.BLUE;
+            }
+            return Color.BLACK;
+        }
     }
 
     protected void superDraw(Graphics g, PositionTransformation pt, boolean highlight) {
@@ -89,7 +95,7 @@ public class SensorNode extends SimulationNode {
         if (this.isSleep()) {
             return;
         }
-        if (this.getSensor().isAvailable()) {
+        if (this.isAvailable()) {
             if (this.isActive()) {
                 this.sendMessage(MessageCache::pop, this.getParent());
             }
@@ -106,12 +112,12 @@ public class SensorNode extends SimulationNode {
     }
 
     protected void incrementTotalReceivedMessages(Inbox inbox) {
-        this.totalReceivedMessages += inbox.size();
+        this.setTotalReceivedMessages(this.getTotalReceivedMessages() + inbox.size());
     }
 
     private void drawReceiveEnergy(Inbox inbox) {
         for (int i = 0; i < inbox.size(); i++) {
-            this.getSensor().drawReceiveEnergy();
+            this.drawReceiveEnergy();
         }
     }
 
@@ -131,13 +137,13 @@ public class SensorNode extends SimulationNode {
                 this.setWaitTime(fm.getWaitTime());
                 ActivationMessage am = fm.getMessage();
                 if (!this.isActive() && am.isActive()) {
-                    this.getSensor().drawActivationEnergy();
+                    this.drawActivationEnergy();
                 }
-                this.active = am.isActive();
-                this.parent = am.getParent();
-                this.children = am.getChildren();
+                this.setActive(am.isActive());
+                this.setParent(am.getParent());
+                this.setChildren(am.getChildren());
                 for (ForwardedMessage c : fm.getForwardedMessages()) {
-                    this.getSensor().drawTransmitEnergy(c.getDestination().getSensor());
+                    this.drawTransmitEnergy(c.getDestination());
                     this.sendDirect(c, c.getDestination());
                 }
                 break;
@@ -152,7 +158,7 @@ public class SensorNode extends SimulationNode {
                 for (SimulationNode n : this.getChildren()) {
                     this.sendMessage(m, n);
                 }
-                this.active = false;
+                this.setActive(false);
                 break;
             }
         }
@@ -169,26 +175,10 @@ public class SensorNode extends SimulationNode {
 
     private void sendMessage(Message m, SimulationNode n) {
         if (this.isActive()) {
-            this.totalSentMessages++;
-            this.getSensor().drawTransmitEnergy(n.getSensor());
+            this.setTotalSentMessages(this.getTotalSentMessages() + 1);
+            this.drawTransmitEnergy(n);
             this.send(m, n);
         }
-    }
-
-    @NodePopupMethod(menuText = "Deactivate")
-    public void deactivate() {
-        this.active = false;
-        this.getSensor().deactivate();
-    }
-
-    @NodePopupMethod(menuText = "Force failure")
-    public void fail() {
-        this.getSensor().fail();
-    }
-
-    @Override
-    public boolean isActive() {
-        return this.active && !this.isFailed();
     }
 
 }

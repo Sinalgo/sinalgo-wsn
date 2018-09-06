@@ -48,11 +48,11 @@ public class Dijkstra {
 
     public static void main(String[] args) {
 
-        Sensor s0 = new Sensor(0, new Position(1, 1, 0), 15, 0.25);
-        Sensor s1 = new Sensor(1, new Position(1, 5, 0), 15, 0.25);
-        Sensor s2 = new Sensor(2, new Position(5, 1, 0), 15, 0.25);
-        Sensor s3 = new Sensor(3, new Position(5, 5, 0), 15, 0.25);
-        Sensor s4 = new Sensor(4, new Position(5, 15, 0), 15, 0.25);
+        Sensor s0 = new Sensor(0, new Position(1, 1, 0), 15);
+        Sensor s1 = new Sensor(1, new Position(1, 5, 0), 15);
+        Sensor s2 = new Sensor(2, new Position(5, 1, 0), 15);
+        Sensor s3 = new Sensor(3, new Position(5, 5, 0), 15);
+        Sensor s4 = new Sensor(4, new Position(5, 15, 0), 15);
 
         Graph g = new Graph(Collections.emptyList());
 

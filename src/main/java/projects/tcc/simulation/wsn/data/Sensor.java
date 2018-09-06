@@ -117,12 +117,6 @@ public class Sensor {
     private final Position position;
 
     @Getter
-    private double batteryEnergy;
-
-    @Getter
-    private double batteryCapacity;
-
-    @Getter
     private List<Sensor> children;
 
     @Getter
@@ -145,12 +139,6 @@ public class Sensor {
     @Getter
     private boolean failed;
 
-    private double activationPower;
-    private double receivePower;
-    private double maintenancePower;
-    private double commRatio; //Taxa de comunicação durante a transmissão em uma u.t.
-    private double minBatteryThreshold;
-
     @Getter
     private Map<Sensor, NeighborData> neighborhood;
 
@@ -161,7 +149,7 @@ public class Sensor {
     @Setter
     private double costToSink;
 
-    public Sensor(int index, Position position, double commRadius, double commRatio) {
+    public Sensor(int index, Position position, double commRadius) {
         this.index = index;
         this.type = this.getClass();
         this.position = position;
@@ -172,24 +160,12 @@ public class Sensor {
 
         this.setChildren(new ArrayList<>());
         this.setNeighborhood(new LinkedHashMap<>());
-
-        this.setCommRatio(commRatio);
     }
 
-    public Sensor(int index, Position position, double sensRadius, double commRadius,
-                  double batteryEnergy, double activationPower, double receivePower,
-                  double maintenancePower, double commRatio, double minBatteryThreshold,
-                  SensorNode node) {
-        this(index, position, commRadius, commRatio);
+    public Sensor(int index, Position position, double sensRadius, double commRadius, SensorNode node) {
+        this(index, position, commRadius);
 
-        this.setActivationPower(activationPower);
-        this.setReceivePower(receivePower);
-        this.setMaintenancePower(maintenancePower);
-
-        this.setBatteryEnergy(batteryEnergy);
-        this.setBatteryCapacity(batteryEnergy);
         this.setSensRadius(sensRadius);
-        this.setMinBatteryThreshold(minBatteryThreshold);
 
         this.setParent(null);
 
@@ -209,15 +185,6 @@ public class Sensor {
 
     public void addChild(Sensor child) {
         this.getChildren().add(child);
-    }
-
-    private void drawEnergySpent(double energySpent) {
-        this.setBatteryEnergy(Math.max(this.getBatteryEnergy() - energySpent, 0));
-    }
-
-    private double getTransmitPower(Sensor neighbor) {
-        double current = this.getNeighborhood().get(neighbor).getCurrent();
-        return this.getCommRatio() * current;
     }
 
     private void disconnectChildren() {
@@ -254,29 +221,6 @@ public class Sensor {
         if (this.isAvailable() && this.isActive()) {
             this.setActive(false);
             DemandPoints.currentInstance().removeCoverage(this);
-        }
-    }
-
-    public void drawActivationEnergy() {
-        this.drawEnergySpent(this.getActivationPower());
-    }
-
-    public void drawMaintenanceEnergy() {
-        this.drawEnergySpent(this.getMaintenancePower());
-    }
-
-    public void drawReceiveEnergy() {
-        this.drawEnergySpent(this.getReceivePower());
-    }
-
-    public void drawTransmitEnergy(Sensor neighbor) {
-        this.drawEnergySpent(this.getTransmitPower(neighbor));
-    }
-
-    public void updateState() {
-        if (this.isAvailable() && this.isActive() &&
-                Double.compare(this.getBatteryEnergy(), this.getMinBatteryThreshold() * this.getBatteryCapacity()) <= 0) {
-            this.fail();
         }
     }
 
