@@ -56,11 +56,13 @@ public class SinkNode extends SensorNode {
         this.handleMessageReceiving(inbox);
         boolean fail = false;
         this.increaseTimeSinceLastMessage();
-        SimulationNode closestFailedNode = this.checkFailures();
-        if (closestFailedNode != null) {
+        List<SimulationNode> failedNodes = this.checkFailures();
+        if (!failedNodes.isEmpty()) {
             fail = true;
-            closestFailedNode.getSensor().fail();
-            System.out.println("FAILED SENSOR: " + closestFailedNode);
+            failedNodes.forEach(n -> {
+                n.getSensor().fail();
+                System.out.println("FAILED SENSOR: " + n);
+            });
             if (MultiObjectiveGeneticAlgorithm.currentInstance().isStopSimulationOnFailure()) {
                 Tools.stopSimulation();
             }
@@ -125,23 +127,23 @@ public class SinkNode extends SensorNode {
         }
     }
 
-    private SimulationNode checkFailures() {
-        int minFailedHeight = Integer.MAX_VALUE;
-        SimulationNode closestFailedSensor = null;
-        List<Sensor> sensors = SensorNetwork.currentInstance().getSensors();
-        for (Sensor s : sensors) {
-            if (s.getHeight() > 0) {
-                int maximumTime = (Configuration.isInterference() ? 2 : 1)
-                        + (s.isAcknowledged() ? 0 : s.getHeight());
-                if (s.getTimeSinceLastMessage() > maximumTime) {
-                    if (s.getHeight() < minFailedHeight) {
-                        minFailedHeight = s.getHeight();
-                        closestFailedSensor = s.getNode();
-                    }
-                }
-            }
+    private List<SimulationNode> checkFailures() {
+        List<SimulationNode> failedNodes = new ArrayList<>();
+        if (this.getChildren() != null) {
+            this.getChildren().forEach(n -> this.checkFailures(n, failedNodes));
         }
-        return closestFailedSensor;
+        return failedNodes;
+    }
+
+    private void checkFailures(SimulationNode n, List<SimulationNode> failedNodes) {
+        Sensor s = n.getSensor();
+        int maximumTime = (Configuration.isInterference() ? 2 : 1)
+                + (s.isAcknowledged() ? 0 : s.getHeight());
+        if (s.getTimeSinceLastMessage() > maximumTime) {
+            failedNodes.add(n);
+        } else if (n.getChildren() != null) {
+            n.getChildren().forEach(c -> this.checkFailures(c, failedNodes));
+        }
     }
 
     private void computeExpectedHeights() {
