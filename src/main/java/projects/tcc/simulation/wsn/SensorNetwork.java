@@ -218,7 +218,7 @@ public class SensorNetwork {
                     chosen.deactivate();
                     continue;
                 } else {
-                    SimulationOutput.println("Sensor Escolhido = " + chosen);
+                    SimulationOutput.println("Sensor Escolhido = " + chosen.getNode().getID());
                 }
                 coveredPointsCount = demandPoints.getCoveredNumPoints();
             } else {

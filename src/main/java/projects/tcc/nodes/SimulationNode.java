@@ -21,6 +21,9 @@ public abstract class SimulationNode extends Node {
     public abstract Sensor getSensor();
 
     @Getter
+    private boolean active;
+
+    @Getter
     private boolean failed;
 
     @Getter
@@ -36,7 +39,6 @@ public abstract class SimulationNode extends Node {
     private double batteryCapacity;
 
     private int waitTime;
-    private boolean active;
     private long totalReceivedMessages;
     private long totalSentMessages;
     private double activationPower;
@@ -44,10 +46,6 @@ public abstract class SimulationNode extends Node {
     private double maintenancePower;
     private double commRatio; //Taxa de comunicação durante a transmissão em uma u.t.
     private double minBatteryThreshold;
-
-    public boolean isActive() {
-        return this.active && this.isAvailable();
-    }
 
     public boolean isAvailable() {
         return !this.isFailed();
@@ -65,7 +63,7 @@ public abstract class SimulationNode extends Node {
 
     @Override
     public void preStep() {
-        if (this.isActive() && !this.isSleep()) {
+        if (this.isAvailable() && this.isActive() && !this.isSleep()) {
             this.drawMaintenanceEnergy();
         }
     }
@@ -81,7 +79,7 @@ public abstract class SimulationNode extends Node {
 
     }
 
-    protected boolean isSleep() {
+    public boolean isSleep() {
         return this.getWaitTime() > 0;
     }
 
@@ -107,10 +105,10 @@ public abstract class SimulationNode extends Node {
 
     private void drawCommSensRadius(Graphics g, PositionTransformation pt) {
         CustomGlobal customGlobal = ((CustomGlobal) Global.getCustomGlobal());
-        if (customGlobal.isDrawCommRadius() && this.isActive()) {
+        if (customGlobal.isDrawCommRadius() && this.isAvailable() && this.isActive()) {
             drawRadius(g, pt, this, Color.ORANGE, this.getSensor().getCommRadius());
         }
-        if (customGlobal.isDrawSensorRadius() && this.isActive() && !(this instanceof SinkNode)) {
+        if (customGlobal.isDrawSensorRadius() && this.isAvailable() && this.isActive() && !(this instanceof SinkNode)) {
             drawRadius(g, pt, this, Color.MAGENTA, this.getSensor().getSensRadius());
         }
     }

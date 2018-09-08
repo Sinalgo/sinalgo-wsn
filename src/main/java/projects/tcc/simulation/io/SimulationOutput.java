@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.Simulation;
-import projects.tcc.simulation.wsn.data.DemandPoints;
 
 import java.util.function.Consumer;
 
@@ -54,7 +53,8 @@ public class SimulationOutput {
         println(String.format("Active Sensors: %d", this.network.getActiveSensorCount()));
         println(String.format("Res. Energy: %.3f", this.simulation.getNetworkResidualEnergy()));
         println(String.format("Cons. Energy: %.3f", this.simulation.getNetworkConsumedEnergy()));
-        println(String.format("Coverage: %.5f", DemandPoints.currentInstance().getCoveragePercent()));
+        println(String.format("Coverage (Sink): %.5f", this.simulation.getCurrentCoverageData().getSinkAwareCoveredPercent()));
+        println(String.format("Coverage (Real): %.5f", this.simulation.getCurrentCoverageData().getUniversalCoveredPercent()));
     }
 
 }

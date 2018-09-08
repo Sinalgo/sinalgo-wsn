@@ -20,7 +20,6 @@ import projects.tcc.simulation.wsn.data.SensorIndex;
 import projects.tcc.simulation.wsn.data.Sink;
 import sinalgo.configuration.Configuration;
 import sinalgo.gui.transformation.PositionTransformation;
-import sinalgo.nodes.Node;
 import sinalgo.nodes.messages.Inbox;
 import sinalgo.nodes.messages.Message;
 import sinalgo.tools.Tools;
@@ -35,10 +34,6 @@ public class SinkNode extends SensorNode {
 
     @Getter
     private Sink sensor;
-
-    private int[] heights;
-    private int[] timeSinceLastMessage;
-    private boolean[] acknowledgedSensors;
 
     @Override
     public void init() {
@@ -60,21 +55,14 @@ public class SinkNode extends SensorNode {
         this.incrementTotalReceivedMessages(inbox);
         this.handleMessageReceiving(inbox);
         boolean fail = false;
-        if (this.timeSinceLastMessage != null
-                && this.heights != null
-                && this.acknowledgedSensors != null) {
-            this.increaseTimeSinceLastMessage();
-            long closestFailedNode = this.checkFailures();
-            if (closestFailedNode >= 0) {
-                fail = true;
-                Node n = Tools.getNodeByID(closestFailedNode + 1);
-                if (n instanceof SimulationNode) {
-                    ((SimulationNode) n).getSensor().fail();
-                }
-                System.out.println("FAILED SENSOR: " + Tools.getNodeByID(closestFailedNode + 1));
-                if (MultiObjectiveGeneticAlgorithm.currentInstance().isStopSimulationOnFailure()) {
-                    Tools.stopSimulation();
-                }
+        this.increaseTimeSinceLastMessage();
+        SimulationNode closestFailedNode = this.checkFailures();
+        if (closestFailedNode != null) {
+            fail = true;
+            closestFailedNode.getSensor().fail();
+            System.out.println("FAILED SENSOR: " + closestFailedNode);
+            if (MultiObjectiveGeneticAlgorithm.currentInstance().isStopSimulationOnFailure()) {
+                Tools.stopSimulation();
             }
         }
         if (size > 0) {
@@ -82,13 +70,10 @@ public class SinkNode extends SensorNode {
         }
         int stage = (int) Tools.getGlobalTime();
         boolean[] activeSensors = null;
-        if (stage == 1) {
-            activeSensors = this.computeActiveSensors();
-        }
         // Isto só funciona aqui porque o Sink é o último nó a ser colocado.
         // Alterar para o preRound/postRound do CustomGlobal!
         Simulation.currentInstance().simulatePeriod(stage);
-        if (fail) {
+        if (fail || stage == 1) {
             activeSensors = this.computeActiveSensors();
         }
         if (activeSensors != null) {
@@ -102,7 +87,8 @@ public class SinkNode extends SensorNode {
             for (ForwardedMessage m : forwardedMessages) {
                 this.sendDirect(m, m.getDestination());
             }
-            this.resetAcknowledgement(activeSensors.length);
+            this.setChildren(this.getChildrenNodes(this.getSensor()));
+            this.resetAcknowledgement();
             this.computeExpectedHeights();
         }
     }
@@ -123,50 +109,34 @@ public class SinkNode extends SensorNode {
     protected void sendMessage(Supplier<SimulationMessage> m, SimulationNode n) {
     }
 
-    private void resetAcknowledgement(int size) {
-        if (this.acknowledgedSensors == null || this.acknowledgedSensors.length != size) {
-            this.acknowledgedSensors = new boolean[size];
-        } else {
-            for (int i = 0; i < this.acknowledgedSensors.length; i++) {
-                this.acknowledgedSensors[i] = false;
-            }
-        }
-        if (this.heights == null || this.heights.length != size) {
-            this.heights = new int[size];
-        } else {
-            for (int i = 0; i < this.heights.length; i++) {
-                this.heights[i] = 0;
-            }
-        }
-        if (this.timeSinceLastMessage == null || this.timeSinceLastMessage.length != size) {
-            this.timeSinceLastMessage = new int[size];
-        } else {
-            for (int i = 0; i < this.timeSinceLastMessage.length; i++) {
-                this.timeSinceLastMessage[i] = 0;
-            }
+    private void resetAcknowledgement() {
+        List<Sensor> sensors = SensorNetwork.currentInstance().getSensors();
+        for (Sensor s : sensors) {
+            s.resetAcknowledgement();
         }
     }
 
     private void increaseTimeSinceLastMessage() {
-        for (int i = 0; i < this.timeSinceLastMessage.length; i++) {
-            if (this.heights[i] > 0) {
-                this.timeSinceLastMessage[i]++;
+        List<Sensor> sensors = SensorNetwork.currentInstance().getSensors();
+        for (Sensor s : sensors) {
+            if (s.getHeight() > 0) {
+                s.setTimeSinceLastMessage(s.getTimeSinceLastMessage() + 1);
             }
         }
     }
 
-    private long checkFailures() {
+    private SimulationNode checkFailures() {
         int minFailedHeight = Integer.MAX_VALUE;
-        long closestFailedSensor = -1;
-        for (int i = 0; i < this.timeSinceLastMessage.length; i++) {
-            int height = this.heights[i];
-            if (height > 0) {
+        SimulationNode closestFailedSensor = null;
+        List<Sensor> sensors = SensorNetwork.currentInstance().getSensors();
+        for (Sensor s : sensors) {
+            if (s.getHeight() > 0) {
                 int maximumTime = (Configuration.isInterference() ? 2 : 1)
-                        + (this.acknowledgedSensors[i] ? 0 : height);
-                if (this.timeSinceLastMessage[i] > maximumTime) {
-                    if (height < minFailedHeight) {
-                        minFailedHeight = height;
-                        closestFailedSensor = i;
+                        + (s.isAcknowledged() ? 0 : s.getHeight());
+                if (s.getTimeSinceLastMessage() > maximumTime) {
+                    if (s.getHeight() < minFailedHeight) {
+                        minFailedHeight = s.getHeight();
+                        closestFailedSensor = s.getNode();
                     }
                 }
             }
@@ -180,7 +150,7 @@ public class SinkNode extends SensorNode {
 
     private void computeExpectedHeights(Sensor sensor, int currentHeight) {
         for (Sensor child : sensor.getChildren()) {
-            this.heights[child.getIndex()] = currentHeight;
+            child.setHeight(currentHeight);
             this.computeExpectedHeights(child, currentHeight + 1);
         }
     }
@@ -194,13 +164,12 @@ public class SinkNode extends SensorNode {
     }
 
     private void handleMessageReceiving(SimulationMessage m) {
+        m.getNodes().forEach(sn -> {
+            sn.getSensor().setAcknowledged(true);
+            sn.getSensor().setTimeSinceLastMessage(0);
+        });
         m.getNodes().push(this);
-        String messageStr = m.getNodes().stream()
-                .map(sn -> {
-                    this.acknowledgedSensors[sn.getSensor().getIndex()] = true;
-                    this.timeSinceLastMessage[sn.getSensor().getIndex()] = 0;
-                    return sn.toString();
-                })
+        String messageStr = m.getNodes().stream().map(Object::toString)
                 .collect(Collectors.joining(", "));
         System.out.println(messageStr);
         MessageCache.push(m);

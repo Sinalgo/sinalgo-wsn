@@ -149,6 +149,18 @@ public class Sensor {
     @Setter
     private double costToSink;
 
+    @Getter
+    @Setter
+    private int height;
+
+    @Getter
+    @Setter
+    private int timeSinceLastMessage;
+
+    @Getter
+    @Setter
+    private boolean acknowledged;
+
     public Sensor(int index, Position position, double commRadius) {
         this.index = index;
         this.type = this.getClass();
@@ -227,6 +239,12 @@ public class Sensor {
     @Override
     public String toString() {
         return this.getNode() != null ? this.getNode().toString() : Integer.toString(this.getIndex());
+    }
+
+    public void resetAcknowledgement() {
+        this.setAcknowledged(false);
+        this.setHeight(0);
+        this.setTimeSinceLastMessage(0);
     }
 
 }

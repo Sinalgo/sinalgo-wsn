@@ -50,7 +50,7 @@ public class SensorNode extends SimulationNode {
     @Override
     public void draw(Graphics g, PositionTransformation pt, boolean highlight) {
         this.setColor(this.getColorByStatus());
-        this.setDefaultDrawingSizeInPixels(this.isFailed() ? 10 : this.isActive() || this.getSensor().isActive() ? 20 : 10);
+        this.setDefaultDrawingSizeInPixels(this.isFailed() ? 10 : this.isAvailable() && this.isActive() || this.getSensor().isActive() ? 20 : 10);
         this.superDraw(g, pt, highlight);
     }
 
@@ -66,7 +66,7 @@ public class SensorNode extends SimulationNode {
         if (this.isSleep()) {
             return Color.GRAY;
         }
-        if (this.isActive()) {
+        if (this.isAvailable() && this.isActive()) {
             if (this.getSensor().isActive()) {
                 return Color.GREEN;
             }
@@ -85,7 +85,7 @@ public class SensorNode extends SimulationNode {
 
     @Override
     public void handleNAckMessages(NackBox nackBox) {
-        if (nackBox.hasNext() && this.isActive()) {
+        if (nackBox.hasNext() && this.isAvailable() && this.isActive()) {
             for (SimulationNode n : this.getChildren()) {
                 this.sendMessage(new FailureMessage(), n);
             }
@@ -168,7 +168,7 @@ public class SensorNode extends SimulationNode {
     }
 
     protected void sendMessage(Supplier<SimulationMessage> m, SimulationNode n) {
-        if (this.isActive()) {
+        if (this.isAvailable() && this.isActive()) {
             SimulationMessage message = m.get();
             message.getNodes().push(this);
             this.sendMessage(message, n);
@@ -176,7 +176,7 @@ public class SensorNode extends SimulationNode {
     }
 
     private void sendMessage(Message m, SimulationNode n) {
-        if (this.isActive()) {
+        if (this.isAvailable() && this.isActive()) {
             this.setTotalSentMessages(this.getTotalSentMessages() + 1);
             this.drawTransmitEnergy(n);
             this.send(m, n);
