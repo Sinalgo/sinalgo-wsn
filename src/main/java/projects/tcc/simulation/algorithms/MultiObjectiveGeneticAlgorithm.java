@@ -1,7 +1,5 @@
 package projects.tcc.simulation.algorithms;
 
-import lombok.Getter;
-import lombok.Setter;
 import projects.tcc.simulation.algorithms.genetic.StaticMultiObjectiveGeneticAlgorithm;
 import projects.tcc.simulation.io.SimulationConfiguration;
 import projects.tcc.simulation.io.SimulationConfigurationLoader;
@@ -14,10 +12,6 @@ public class MultiObjectiveGeneticAlgorithm {
     private int numberOfGenerations;
     private int populationSize;
     private double crossoverRate;
-
-    @Getter
-    @Setter
-    private boolean stopSimulationOnFailure;
 
     private static MultiObjectiveGeneticAlgorithm currentInstance;
 

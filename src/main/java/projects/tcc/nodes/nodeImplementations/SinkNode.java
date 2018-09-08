@@ -1,6 +1,7 @@
 package projects.tcc.nodes.nodeImplementations;
 
 import lombok.Getter;
+import projects.tcc.CustomGlobal;
 import projects.tcc.MessageCache;
 import projects.tcc.nodes.SimulationNode;
 import projects.tcc.nodes.messages.ActivationMessage;
@@ -63,7 +64,7 @@ public class SinkNode extends SensorNode {
                 n.getSensor().fail();
                 System.out.println("FAILED SENSOR: " + n);
             });
-            if (MultiObjectiveGeneticAlgorithm.currentInstance().isStopSimulationOnFailure()) {
+            if (((CustomGlobal) Tools.getCustomGlobal()).isStopSimulationOnFailure()) {
                 Tools.stopSimulation();
             }
         }
