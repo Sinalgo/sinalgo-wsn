@@ -149,7 +149,8 @@ public class SensorNode extends SimulationNode {
                     this.setChildren(am.getChildren());
                 }
                 for (ForwardedMessage<?> c : fm.getForwardedMessages()) {
-                    this.drawTransmitEnergy(c.getDestination());
+                    this.drawTransmitEnergy(c.getDestination(),
+                            (double) c.getSize() / (double) this.getTransmitSpeedBps());
                     this.sendDirect(c, c.getDestination());
                 }
                 break;

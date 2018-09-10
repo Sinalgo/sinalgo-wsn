@@ -130,10 +130,10 @@ public abstract class SimulationNode extends Node {
         this.setBatteryEnergy(Math.max(this.getBatteryEnergy() - energySpent, 0));
     }
 
-    private double getTransmitPower(SimulationNode neighbor) {
+    private double getTransmitPower(SimulationNode neighbor, double occupiedBandwidth) {
         double current = this.getSensor().getNeighborhood()
                 .get(neighbor.getSensor()).getCurrent();
-        return this.getCommRatio() * current;
+        return occupiedBandwidth * current;
     }
 
     protected void drawActivationEnergy() {
@@ -149,7 +149,11 @@ public abstract class SimulationNode extends Node {
     }
 
     protected void drawTransmitEnergy(SimulationNode neighbor) {
-        this.drawEnergySpent(this.getTransmitPower(neighbor));
+        this.drawTransmitEnergy(neighbor, this.getCommRatio());
+    }
+
+    protected void drawTransmitEnergy(SimulationNode neighbor, double occupiedBandwidth) {
+        this.drawEnergySpent(this.getTransmitPower(neighbor, occupiedBandwidth));
     }
 
     private void updateState() {
