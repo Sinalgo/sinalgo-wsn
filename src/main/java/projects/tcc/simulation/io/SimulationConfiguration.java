@@ -20,10 +20,10 @@ public class SimulationConfiguration {
     private transient double crossoverRate;
     private transient int numberOfGenerations;
     private transient int populationSize;
-    private transient double consumedEnergyThreshold;
     private transient double minBatteryThreshold;
     private transient int transmitSpeedBps;
     private transient boolean minimizeActivationTree;
+    private transient boolean useMessageSizeCalculation;
 
     @Data
     public static class SensorPosition {

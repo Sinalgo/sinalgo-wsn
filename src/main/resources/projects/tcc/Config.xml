@@ -257,11 +257,11 @@
 
         <CrossoverRate value="0.9"/>
 
-        <ConsumedEnergyThreshold value="0.05"/>
-
         <MinBatteryThreshold value="0.1"/>
 
         <MinimizeActivationTree value="true"/>
+
+        <UseMessageSizeCalculation value="false"/>
 
         <!-- For MICAz -->
         <TransmitSpeedBps value="250000"/>
