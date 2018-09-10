@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 import projects.tcc.CustomGlobal;
 import projects.tcc.nodes.nodeImplementations.SinkNode;
+import projects.tcc.simulation.algorithms.graph.Graph;
+import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.data.Sensor;
 import sinalgo.exception.WrongConfigurationException;
 import sinalgo.gui.transformation.PositionTransformation;
@@ -96,7 +98,9 @@ public abstract class SimulationNode extends Node {
                 this.getTotalSentMessages(),
                 this.getTotalReceivedMessages(),
                 this.getBatteryEnergy(),
-                this.isAvailable() ? "OK" : "FAILED") + "]";
+                (this.isSleep() ? "SLEEP" :
+                        this.isActive() ? "ACTIVE" :
+                                this.isAvailable() ? "INACTIVE" : "FAILED")) + "]";
     }
 
     protected String superToString() {
@@ -106,6 +110,7 @@ public abstract class SimulationNode extends Node {
     @Override
     public void draw(Graphics g, PositionTransformation pt, boolean highlight) {
         super.drawAsDisk(g, pt, highlight, this.getDefaultDrawingSizeInPixels());
+        this.drawActivationTree(g, pt);
         this.drawCommSensRadius(g, pt);
     }
 
@@ -117,6 +122,34 @@ public abstract class SimulationNode extends Node {
         if (customGlobal.isDrawSensorRadius() && this.isActive() && !(this instanceof SinkNode)) {
             drawRadius(g, pt, this, Color.MAGENTA, this.getSensor().getSensRadius());
         }
+    }
+
+    private void drawActivationTree(Graphics g, PositionTransformation pt) {
+        CustomGlobal customGlobal = ((CustomGlobal) Global.getCustomGlobal());
+        if (customGlobal.isDrawActivationTree()) {
+            SinkNode sinkNode = (SinkNode) SensorNetwork.currentInstance().getSinks().get(0).getNode();
+            if (sinkNode.getNetworkGraph() != null) {
+                Graph.Node<Sensor> node = sinkNode.getNetworkGraph().getSensorNodeMap().get(this.getSensor());
+                if (node != null && node.getPreviousSource() != null) {
+                    SimulationNode previous = node.getPreviousSource().getNode();
+                    drawLine(g, pt, previous, this);
+                }
+            }
+        }
+    }
+
+    private static void drawLine(Graphics g, PositionTransformation pt, Node source, Node destination) {
+        Color backupColor = g.getColor();
+        g.setColor(Color.LIGHT_GRAY);
+        pt.translateToGUIPosition(source.getPosition());
+        int sourceX = pt.getGuiX();
+        int sourceY = pt.getGuiY();
+        pt.translateToGUIPosition(destination.getPosition());
+        int destinationX = pt.getGuiX();
+        int destinationY = pt.getGuiY();
+        g.drawLine(sourceX, sourceY,
+                destinationX, destinationY);
+        g.setColor(backupColor);
     }
 
     private static void drawRadius(Graphics g, PositionTransformation pt, Node s, Color orange, double commRadius) {

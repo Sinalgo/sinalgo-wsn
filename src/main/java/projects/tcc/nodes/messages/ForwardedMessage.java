@@ -1,7 +1,9 @@
 package projects.tcc.nodes.messages;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import projects.tcc.nodes.SimulationNode;
 import sinalgo.nodes.messages.Message;
 
@@ -14,6 +16,9 @@ public class ForwardedMessage<T extends Message & SizedMessage> extends Message 
     private final SimulationNode destination;
     private final T message;
     private final List<ForwardedMessage<T>> forwardedMessages;
+
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     private Integer size;
 
     @Override

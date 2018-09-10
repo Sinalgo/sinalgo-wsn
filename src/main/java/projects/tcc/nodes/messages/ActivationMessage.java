@@ -1,7 +1,9 @@
 package projects.tcc.nodes.messages;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import projects.tcc.nodes.SimulationNode;
 import sinalgo.nodes.messages.Message;
 
@@ -15,6 +17,9 @@ public class ActivationMessage extends Message implements SizedMessage {
     private final int waitTime;
     private final SimulationNode parent;
     private final List<SimulationNode> children;
+
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     private Integer size;
 
     @Override

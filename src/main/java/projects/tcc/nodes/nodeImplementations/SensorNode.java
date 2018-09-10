@@ -141,16 +141,16 @@ public class SensorNode extends SimulationNode {
                 if (fmm instanceof ActivationMessage) {
                     ActivationMessage am = (ActivationMessage) fmm;
                     if (!this.isActive() && am.isActive()) {
-                        this.setWaitTime(am.getWaitTime());
                         this.drawActivationEnergy();
                     }
+                    this.setWaitTime(am.getWaitTime());
                     this.setActive(am.isActive());
                     this.setParent(am.getParent());
                     this.setChildren(am.getChildren());
                 }
                 for (ForwardedMessage<?> c : fm.getForwardedMessages()) {
                     this.drawTransmitEnergy(c.getDestination(),
-                            (double) c.getSize() / (double) this.getTransmitSpeedBps());
+                            (double) c.calculateSize() / (double) this.getTransmitSpeedBps());
                     this.sendDirect(c, c.getDestination());
                 }
                 break;

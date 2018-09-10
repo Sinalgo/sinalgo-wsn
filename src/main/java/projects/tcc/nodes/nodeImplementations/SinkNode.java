@@ -37,7 +37,7 @@ public class SinkNode extends SensorNode {
     private Sink sensor;
 
     @Getter
-    private List<ForwardedMessage<ActivationMessage>> activationMessages;
+    private Graph networkGraph;
 
     @Override
     public void init() {
@@ -52,7 +52,7 @@ public class SinkNode extends SensorNode {
         if (this.isSleep()) {
             return;
         }
-        this.activationMessages = null;
+        this.networkGraph = null;
         int size = inbox.size();
         if (size > 0) {
             System.out.println("\nSTART logging received messages for round");
@@ -84,13 +84,15 @@ public class SinkNode extends SensorNode {
             activeSensors = this.computeActiveSensors();
         }
         if (activeSensors != null) {
-            TreeNode<Sensor> root = this.getSensorGraphAsTree();
+            this.networkGraph = new Graph(SensorNetwork.currentInstance().getSensorsAndSinks());
+            this.networkGraph.computeEdges(false);
+            TreeNode<Sensor> root = this.networkGraph.getTreeRepresentation(this.getSensor());
             System.out.println();
             root.print();
             System.out.println();
             this.setWaitTime(this.getMaxDepth(root));
-            this.activationMessages =
-                    this.convertToForwardedMessageList(this.getWaitTime(), activeSensors, this.getSensorGraphAsTree());
+            List<ForwardedMessage<ActivationMessage>> activationMessages =
+                    this.convertToForwardedMessageList(this.getWaitTime(), activeSensors, root);
             for (ForwardedMessage m : activationMessages) {
                 this.sendDirect(m, m.getDestination());
             }
@@ -213,12 +215,6 @@ public class SinkNode extends SensorNode {
     @Override
     public boolean isFailed() {
         return false;
-    }
-
-    private TreeNode<Sensor> getSensorGraphAsTree() {
-        Graph g = new Graph(SensorNetwork.currentInstance().getSensorsAndSinks());
-        g.computeEdges(false);
-        return g.getTreeRepresentation(this.getSensor());
     }
 
     private int getMaxDepth(TreeNode<Sensor> n) {

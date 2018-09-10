@@ -39,14 +39,8 @@ package projects.tcc;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import projects.tcc.nodes.SimulationNode;
-import projects.tcc.nodes.messages.ActivationMessage;
-import projects.tcc.nodes.messages.ForwardedMessage;
-import projects.tcc.nodes.nodeImplementations.SinkNode;
 import projects.tcc.simulation.io.SimulationOutput;
-import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.data.DemandPoints;
-import projects.tcc.simulation.wsn.data.Sink;
 import sinalgo.exception.SinalgoFatalException;
 import sinalgo.gui.transformation.PositionTransformation;
 import sinalgo.nodes.Position;
@@ -58,7 +52,6 @@ import sinalgo.tools.logging.Logging;
 import java.awt.*;
 import java.io.PrintStream;
 import java.lang.reflect.Method;
-import java.util.List;
 
 @Getter(AccessLevel.PRIVATE)
 @Setter(AccessLevel.PRIVATE)
@@ -137,32 +130,6 @@ public class CustomGlobal extends AbstractCustomGlobal {
                 pt.drawLine(g, p, p);
             }
             g.setColor(backupColor);
-        }
-        if (this.drawActivationTree) {
-            List<Sink> sinks = SensorNetwork.currentInstance().getSinks();
-            Color backupColor = g.getColor();
-            g.setColor(Color.LIGHT_GRAY);
-            for (Sink s : sinks) {
-                SinkNode sinkNode = (SinkNode) s.getNode();
-                if (sinkNode.getActivationMessages() != null) {
-                    sinkNode.getActivationMessages().forEach(m -> paintActivationTree(g, pt, sinkNode, m));
-                }
-            }
-            g.setColor(backupColor);
-        }
-    }
-
-    private void paintActivationTree(Graphics g, PositionTransformation pt, SimulationNode source, ForwardedMessage<ActivationMessage> activationMessage) {
-        pt.translateToGUIPosition(source.getPosition());
-        int sourceX = pt.getGuiX();
-        int sourceY = pt.getGuiY();
-        pt.translateToGUIPosition(activationMessage.getDestination().getPosition());
-        int destinationX = pt.getGuiX();
-        int destinationY = pt.getGuiY();
-        g.drawLine(sourceX, sourceY,
-                destinationX, destinationY);
-        if (activationMessage.getForwardedMessages() != null) {
-            activationMessage.getForwardedMessages().forEach(fm -> this.paintActivationTree(g, pt, activationMessage.getDestination(), fm));
         }
     }
 
