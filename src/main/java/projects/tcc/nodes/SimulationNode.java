@@ -20,7 +20,6 @@ public abstract class SimulationNode extends Node {
 
     public abstract Sensor getSensor();
 
-    @Getter
     private boolean active;
 
     @Getter
@@ -38,6 +37,9 @@ public abstract class SimulationNode extends Node {
     @Getter
     private double batteryCapacity;
 
+    @Getter
+    private int transmitSpeedBps;
+
     private int waitTime;
     private long totalReceivedMessages;
     private long totalSentMessages;
@@ -49,6 +51,10 @@ public abstract class SimulationNode extends Node {
 
     public boolean isAvailable() {
         return !this.isFailed();
+    }
+
+    public boolean isActive() {
+        return this.active && this.isAvailable();
     }
 
     @Override
@@ -63,7 +69,7 @@ public abstract class SimulationNode extends Node {
 
     @Override
     public void preStep() {
-        if (this.isAvailable() && this.isActive() && !this.isSleep()) {
+        if (this.isActive() && !this.isSleep()) {
             this.drawMaintenanceEnergy();
         }
     }
@@ -105,10 +111,10 @@ public abstract class SimulationNode extends Node {
 
     private void drawCommSensRadius(Graphics g, PositionTransformation pt) {
         CustomGlobal customGlobal = ((CustomGlobal) Global.getCustomGlobal());
-        if (customGlobal.isDrawCommRadius() && this.isAvailable() && this.isActive()) {
+        if (customGlobal.isDrawCommRadius() && this.isActive()) {
             drawRadius(g, pt, this, Color.ORANGE, this.getSensor().getCommRadius());
         }
-        if (customGlobal.isDrawSensorRadius() && this.isAvailable() && this.isActive() && !(this instanceof SinkNode)) {
+        if (customGlobal.isDrawSensorRadius() && this.isActive() && !(this instanceof SinkNode)) {
             drawRadius(g, pt, this, Color.MAGENTA, this.getSensor().getSensRadius());
         }
     }
@@ -147,7 +153,7 @@ public abstract class SimulationNode extends Node {
     }
 
     private void updateState() {
-        if (this.isAvailable() && this.isActive() &&
+        if (this.isAvailable() &&
                 Double.compare(this.getBatteryEnergy(), this.getMinBatteryThreshold() * this.getBatteryCapacity()) <= 0) {
             this.setFailed(true);
         }

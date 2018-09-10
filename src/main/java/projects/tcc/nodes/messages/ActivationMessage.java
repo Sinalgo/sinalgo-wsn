@@ -12,6 +12,7 @@ import java.util.List;
 public class ActivationMessage extends Message {
 
     private final boolean active;
+    private final int waitTime;
     private final SimulationNode parent;
     private final List<SimulationNode> children;
 

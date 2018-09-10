@@ -85,12 +85,11 @@ public class SinkNode extends SensorNode {
             root.print();
             System.out.println();
             this.setWaitTime(this.getMaxDepth(root));
-            List<ForwardedMessage> forwardedMessages =
+            List<ForwardedMessage<ActivationMessage>> activationMessages =
                     this.convertToForwardedMessageList(this.getWaitTime(), activeSensors, this.getSensorGraphAsTree());
-            for (ForwardedMessage m : forwardedMessages) {
+            for (ForwardedMessage m : activationMessages) {
                 this.sendDirect(m, m.getDestination());
             }
-            this.setChildren(this.getChildrenNodes(this.getSensor()));
             this.resetAcknowledgement();
             this.computeExpectedHeights();
         }
@@ -130,20 +129,21 @@ public class SinkNode extends SensorNode {
 
     private List<SimulationNode> checkFailures() {
         List<SimulationNode> failedNodes = new ArrayList<>();
-        if (this.getChildren() != null) {
-            this.getChildren().forEach(n -> this.checkFailures(n, failedNodes));
+        if (this.getSensor().getChildren() != null) {
+            this.getSensor().getChildren().forEach(n -> this.checkFailures(n, failedNodes));
         }
         return failedNodes;
     }
 
-    private void checkFailures(SimulationNode n, List<SimulationNode> failedNodes) {
-        Sensor s = n.getSensor();
-        int maximumTime = (Configuration.isInterference() ? 2 : 1)
-                + (s.isAcknowledged() ? 0 : s.getHeight());
-        if (s.getTimeSinceLastMessage() > maximumTime) {
-            failedNodes.add(n);
-        } else if (n.getChildren() != null) {
-            n.getChildren().forEach(c -> this.checkFailures(c, failedNodes));
+    private void checkFailures(Sensor s, List<SimulationNode> failedNodes) {
+        if (s.isActive()) {
+            int maximumTime = (Configuration.isInterference() ? 2 : 1)
+                    + (s.isAcknowledged() ? 0 : s.getHeight());
+            if (s.getTimeSinceLastMessage() > maximumTime) {
+                failedNodes.add(s.getNode());
+            } else if (s.getChildren() != null) {
+                s.getChildren().forEach(c -> this.checkFailures(c, failedNodes));
+            }
         }
     }
 
@@ -192,7 +192,7 @@ public class SinkNode extends SensorNode {
     @Override
     public void draw(Graphics g, PositionTransformation pt, boolean highlight) {
         this.setColor(Color.BLUE);
-        this.setDefaultDrawingSizeInPixels(30);
+        this.setDefaultDrawingSizeInPixels(20);
         this.superDraw(g, pt, highlight);
     }
 
@@ -229,15 +229,16 @@ public class SinkNode extends SensorNode {
         return maxDepth;
     }
 
-    private List<ForwardedMessage> convertToForwardedMessageList(int waitTime, boolean[] activeSensors, TreeNode<Sensor> n) {
-        List<ForwardedMessage> messages = new ArrayList<>(n.getChildren().size());
+    private List<ForwardedMessage<ActivationMessage>> convertToForwardedMessageList(int waitTime, boolean[] activeSensors, TreeNode<Sensor> n) {
+        List<ForwardedMessage<ActivationMessage>> messages = new ArrayList<>(n.getChildren().size());
         for (TreeNode<Sensor> c : n.getChildren()) {
             Sensor s = c.getValue();
             boolean active = activeSensors[s.getIndex()];
             ActivationMessage m = new ActivationMessage(active,
+                    waitTime,
                     active ? this.getParentNode(s) : null,
                     active ? this.getChildrenNodes(s) : null);
-            messages.add(new ForwardedMessage(s.getNode(), waitTime, m,
+            messages.add(new ForwardedMessage<>(s.getNode(), m,
                     this.convertToForwardedMessageList(waitTime - 1, activeSensors, c)));
         }
         return messages;

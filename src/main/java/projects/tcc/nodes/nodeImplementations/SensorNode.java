@@ -45,12 +45,13 @@ public class SensorNode extends SimulationNode {
         this.setBatteryCapacity(config.getBatteryEnergy());
         this.setMinBatteryThreshold(config.getMinBatteryThreshold());
         this.setCommRatio(config.getCommRatio());
+        this.setTransmitSpeedBps(config.getTransmitSpeedBps());
     }
 
     @Override
     public void draw(Graphics g, PositionTransformation pt, boolean highlight) {
         this.setColor(this.getColorByStatus());
-        this.setDefaultDrawingSizeInPixels(this.isFailed() ? 10 : this.isAvailable() && this.isActive() || this.getSensor().isActive() ? 20 : 10);
+        this.setDefaultDrawingSizeInPixels(10);
         this.superDraw(g, pt, highlight);
     }
 
@@ -66,7 +67,7 @@ public class SensorNode extends SimulationNode {
         if (this.isSleep()) {
             return Color.GRAY;
         }
-        if (this.isAvailable() && this.isActive()) {
+        if (this.isActive()) {
             if (this.getSensor().isActive()) {
                 return Color.GREEN;
             }
@@ -85,7 +86,7 @@ public class SensorNode extends SimulationNode {
 
     @Override
     public void handleNAckMessages(NackBox nackBox) {
-        if (nackBox.hasNext() && this.isAvailable() && this.isActive()) {
+        if (nackBox.hasNext() && this.isActive()) {
             for (SimulationNode n : this.getChildren()) {
                 this.sendMessage(new FailureMessage(), n);
             }
@@ -135,16 +136,19 @@ public class SensorNode extends SimulationNode {
     private void handleForwardedMessages(Inbox inbox) {
         for (Message m : inbox) {
             if (m instanceof ForwardedMessage) {
-                ForwardedMessage fm = (ForwardedMessage) m;
-                this.setWaitTime(fm.getWaitTime());
-                ActivationMessage am = fm.getMessage();
-                if (!this.isActive() && am.isActive()) {
-                    this.drawActivationEnergy();
+                ForwardedMessage<?> fm = (ForwardedMessage) m;
+                Message fmm = fm.getMessage();
+                if (fmm instanceof ActivationMessage) {
+                    ActivationMessage am = (ActivationMessage) fmm;
+                    if (!this.isActive() && am.isActive()) {
+                        this.setWaitTime(am.getWaitTime());
+                        this.drawActivationEnergy();
+                    }
+                    this.setActive(am.isActive());
+                    this.setParent(am.getParent());
+                    this.setChildren(am.getChildren());
                 }
-                this.setActive(am.isActive());
-                this.setParent(am.getParent());
-                this.setChildren(am.getChildren());
-                for (ForwardedMessage c : fm.getForwardedMessages()) {
+                for (ForwardedMessage<?> c : fm.getForwardedMessages()) {
                     this.drawTransmitEnergy(c.getDestination());
                     this.sendDirect(c, c.getDestination());
                 }
@@ -168,7 +172,7 @@ public class SensorNode extends SimulationNode {
     }
 
     protected void sendMessage(Supplier<SimulationMessage> m, SimulationNode n) {
-        if (this.isAvailable() && this.isActive()) {
+        if (this.isActive()) {
             SimulationMessage message = m.get();
             message.getNodes().push(this);
             this.sendMessage(message, n);
@@ -176,7 +180,7 @@ public class SensorNode extends SimulationNode {
     }
 
     private void sendMessage(Message m, SimulationNode n) {
-        if (this.isAvailable() && this.isActive()) {
+        if (this.isActive()) {
             this.setTotalSentMessages(this.getTotalSentMessages() + 1);
             this.drawTransmitEnergy(n);
             this.send(m, n);

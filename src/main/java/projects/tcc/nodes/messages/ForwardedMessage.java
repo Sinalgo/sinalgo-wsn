@@ -9,12 +9,11 @@ import java.util.List;
 
 @Getter
 @RequiredArgsConstructor
-public class ForwardedMessage extends Message {
+public class ForwardedMessage<T extends Message> extends Message {
 
     private final SimulationNode destination;
-    private final int waitTime;
-    private final ActivationMessage message;
-    private final List<ForwardedMessage> forwardedMessages;
+    private final T message;
+    private final List<ForwardedMessage<T>> forwardedMessages;
 
     @Override
     public Message clone() {

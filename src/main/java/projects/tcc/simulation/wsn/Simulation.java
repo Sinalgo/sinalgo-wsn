@@ -4,13 +4,11 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import projects.tcc.nodes.SimulationNode;
 import projects.tcc.simulation.io.SimulationOutput;
-import projects.tcc.simulation.wsn.data.DemandPoint;
 import projects.tcc.simulation.wsn.data.DemandPoints;
 import projects.tcc.simulation.wsn.data.Sensor;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 @Getter
@@ -20,10 +18,8 @@ public class Simulation {
     @RequiredArgsConstructor
     public static class CoverageData {
         private final double sinkAwareCoveredPercent;
-        private final double universalCoveredPercent;
+        private final double realCoveredPercent;
     }
-
-    private final static BiConsumer<DemandPoint, boolean[]> ADD_COVERAGE = (d, v) -> v[d.getIndex()] = true;
 
     private List<Double> residualEnergy;
     private List<Double> consumedEnergy;
@@ -66,7 +62,7 @@ public class Simulation {
         this.previousResidualEnergy = currentStage == 1 ? this.getTotalBatteryCapacity() : this.networkResidualEnergy;
         this.networkResidualEnergy = this.getTotalResidualEnergy();
         this.networkConsumedEnergy = this.previousResidualEnergy - this.networkResidualEnergy;
-        this.currentCoverageData = this.getRealConnectedCoverage();
+        this.currentCoverageData = this.computeCoverageData();
 
         this.residualEnergy.add(this.networkResidualEnergy);
         this.consumedEnergy.add(this.networkConsumedEnergy);
@@ -78,48 +74,43 @@ public class Simulation {
         output.generateConsoleOutput(currentStage);
     }
 
-    private CoverageData getRealConnectedCoverage() {
-        DemandPoints demandPoints = DemandPoints.currentInstance();
-        boolean[] sinkAwareCoveredPoints = new boolean[demandPoints.getTotalNumPoints()];
-        boolean[] universalCoveredPoints = new boolean[demandPoints.getTotalNumPoints()];
-        SensorNetwork.currentInstance().getSinks().forEach(s -> {
-            if (s.getNode().getChildren() != null) {
-                for (SimulationNode c : s.getNode().getChildren()) {
-                    this.computeCoveredPoints(c, sinkAwareCoveredPoints, universalCoveredPoints);
-                }
-            }
-        });
-        int sinkAwareCoveredPointsNum = 0;
-        for (boolean b : sinkAwareCoveredPoints) {
-            if (b) {
-                sinkAwareCoveredPointsNum += 1;
-            }
-        }
-        int universalCoveredPointsNum = 0;
-        for (boolean b : universalCoveredPoints) {
-            if (b) {
-                universalCoveredPointsNum += 1;
-            }
-        }
-        return new CoverageData(((double) sinkAwareCoveredPointsNum) / ((double) demandPoints.getTotalNumPoints()),
-                ((double) universalCoveredPointsNum) / ((double) demandPoints.getTotalNumPoints()));
+    private CoverageData computeCoverageData() {
+        int totalNumPoints = DemandPoints.currentInstance().getTotalNumPoints();
+        int sinkAwareCoveredPointsNum = this.computeSinkAwareCoverage();
+        int realCoveredPointsNum = this.computeRealCoverage();
+        return new CoverageData(((double) sinkAwareCoveredPointsNum) / ((double) totalNumPoints),
+                ((double) realCoveredPointsNum) / ((double) totalNumPoints));
     }
 
-    private void computeCoveredPoints(SimulationNode n,
-                                      boolean[] sinkAwareCoveredPoints,
-                                      boolean[] universalCoveredPoints) {
-        if (n.isActive() && n.getSensor().isAvailable()) {
-            if (n.isAvailable()) {
-                n.getSensor().getCoveredPoints().forEach(d -> ADD_COVERAGE.accept(d, sinkAwareCoveredPoints));
-                n.getSensor().getCoveredPoints().forEach(d -> ADD_COVERAGE.accept(d, universalCoveredPoints));
-                if (n.getChildren() != null) {
-                    n.getChildren().forEach(c -> this.computeCoveredPoints(c, sinkAwareCoveredPoints, universalCoveredPoints));
-                }
-            } else {
-                n.getSensor().getCoveredPoints().forEach(d -> ADD_COVERAGE.accept(d, sinkAwareCoveredPoints));
-                if (n.getChildren() != null) {
-                    n.getChildren().forEach(c -> this.computeCoveredPoints(c, sinkAwareCoveredPoints, universalCoveredPoints));
-                }
+    private int computeSinkAwareCoverage() {
+        return this.computeCoverage(Sensor::isFailed);
+    }
+
+    private int computeRealCoverage() {
+        return this.computeCoverage(sn -> sn.getNode().isFailed());
+    }
+
+    private int computeCoverage(Function<Sensor, Boolean> stopCondition) {
+        boolean[] coverageArray = new boolean[DemandPoints.currentInstance().getTotalNumPoints()];
+        SensorNetwork.currentInstance().getSinks().forEach(s -> {
+            if (s.getChildren() != null) {
+                s.getChildren().forEach(c -> this.computeCoverage(c, coverageArray, stopCondition));
+            }
+        });
+        int coveredPoints = 0;
+        for (boolean b : coverageArray) {
+            if (b) {
+                coveredPoints += 1;
+            }
+        }
+        return coveredPoints;
+    }
+
+    private void computeCoverage(Sensor s, boolean[] coverageArray, Function<Sensor, Boolean> stopCondition) {
+        if (s.isActive() && !stopCondition.apply(s)) {
+            s.getCoveredPoints().forEach(d -> coverageArray[d.getIndex()] = true);
+            if (s.getChildren() != null) {
+                s.getChildren().forEach(c -> this.computeCoverage(c, coverageArray, stopCondition));
             }
         }
     }

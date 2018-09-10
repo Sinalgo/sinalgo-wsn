@@ -22,6 +22,7 @@ public class SimulationConfiguration {
     private transient int populationSize;
     private transient double consumedEnergyThreshold;
     private transient double minBatteryThreshold;
+    private transient int transmitSpeedBps;
 
     @Data
     public static class SensorPosition {

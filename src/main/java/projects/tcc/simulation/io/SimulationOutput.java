@@ -54,7 +54,7 @@ public class SimulationOutput {
         println(String.format("Res. Energy: %.3f", this.simulation.getNetworkResidualEnergy()));
         println(String.format("Cons. Energy: %.3f", this.simulation.getNetworkConsumedEnergy()));
         println(String.format("Coverage (Sink): %.5f", this.simulation.getCurrentCoverageData().getSinkAwareCoveredPercent()));
-        println(String.format("Coverage (Real): %.5f", this.simulation.getCurrentCoverageData().getUniversalCoveredPercent()));
+        println(String.format("Coverage (Real): %.5f", this.simulation.getCurrentCoverageData().getRealCoveredPercent()));
     }
 
 }

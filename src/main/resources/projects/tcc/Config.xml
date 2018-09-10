@@ -261,6 +261,9 @@
 
         <MinBatteryThreshold value="0.1"/>
 
+        <!-- For MICAz -->
+        <TransmitSpeedBps value="250000"/>
+
         <MessageTransmission ConstantTime="1"/>
 
         <Node defaultSize="10"/>
