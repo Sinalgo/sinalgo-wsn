@@ -61,7 +61,7 @@ public class SinkNode extends SensorNode {
         this.incrementTotalReceivedMessages(inbox);
         this.handleMessageReceiving(inbox);
         boolean fail = false;
-        this.increaseTimeSinceLastMessage();
+        increaseTimeSinceLastMessage();
         List<SimulationNode> failedNodes = this.checkFailures();
         if (!failedNodes.isEmpty()) {
             fail = true;
@@ -84,7 +84,7 @@ public class SinkNode extends SensorNode {
         Simulation.currentInstance().simulatePeriod(stage);
         if (fail || stage == 1) {
             currentActiveSensors = SensorNetwork.currentInstance().getSensorsStatusArray();
-            activeSensors = this.computeActiveSensors();
+            activeSensors = computeActiveSensors();
         }
         if (activeSensors != null) {
             this.networkGraph = new Graph(SensorNetwork.currentInstance().getSensorsAndSinks());
@@ -96,14 +96,14 @@ public class SinkNode extends SensorNode {
             System.out.println();
             root.print();
             System.out.println();
-            this.setWaitTime(this.getMaxDepth(root));
+            this.setWaitTime(getMaxDepth(root));
             List<ForwardedMessage<ActivationMessage>> activationMessages =
-                    this.convertToForwardedMessageList(this.getWaitTime(), activeSensors, root);
+                    convertToForwardedMessageList(this.getWaitTime(), activeSensors, root);
             for (ForwardedMessage m : activationMessages) {
                 this.sendDirect(m, m.getDestination());
             }
-            this.resetAcknowledgement();
-            this.computeExpectedHeights();
+            resetAcknowledgement();
+            computeExpectedHeights(this.getSensor());
         }
     }
 
@@ -144,14 +144,14 @@ public class SinkNode extends SensorNode {
     protected void sendMessage(Supplier<SimulationMessage> m, SimulationNode n) {
     }
 
-    private void resetAcknowledgement() {
+    private static void resetAcknowledgement() {
         List<Sensor> sensors = SensorNetwork.currentInstance().getSensors();
         for (Sensor s : sensors) {
             s.resetAcknowledgement();
         }
     }
 
-    private void increaseTimeSinceLastMessage() {
+    private static void increaseTimeSinceLastMessage() {
         List<Sensor> sensors = SensorNetwork.currentInstance().getSensors();
         for (Sensor s : sensors) {
             if (s.getHeight() > 0) {
@@ -180,14 +180,14 @@ public class SinkNode extends SensorNode {
         }
     }
 
-    private void computeExpectedHeights() {
-        this.computeExpectedHeights(this.getSensor(), 1);
+    private static void computeExpectedHeights(Sensor root) {
+        computeExpectedHeights(root, 1);
     }
 
-    private void computeExpectedHeights(Sensor sensor, int currentHeight) {
+    private static void computeExpectedHeights(Sensor sensor, int currentHeight) {
         for (Sensor child : sensor.getChildren()) {
             child.setHeight(currentHeight);
-            this.computeExpectedHeights(child, currentHeight + 1);
+            computeExpectedHeights(child, currentHeight + 1);
         }
     }
 
@@ -211,7 +211,7 @@ public class SinkNode extends SensorNode {
         MessageCache.push(m);
     }
 
-    private boolean[] computeActiveSensors() {
+    private static boolean[] computeActiveSensors() {
         SimulationOutput.println("===== Running Genetic Algorithm at round: " + (int) Tools.getGlobalTime());
         boolean[] activeSensors = MultiObjectiveGeneticAlgorithm.currentInstance().computeActiveSensors();
         if (Double.compare(DemandPoints.currentInstance().getCoveragePercent(), SensorNetwork.currentInstance().getCoverageFactor()) < 0) {
@@ -244,19 +244,19 @@ public class SinkNode extends SensorNode {
         return false;
     }
 
-    private int getMaxDepth(TreeNode<Sensor> n) {
-        return this.getMaxDepth(1, n);
+    private static int getMaxDepth(TreeNode<Sensor> n) {
+        return getMaxDepth(1, n);
     }
 
-    private int getMaxDepth(int depth, TreeNode<Sensor> n) {
+    private static int getMaxDepth(int depth, TreeNode<Sensor> n) {
         int maxDepth = depth;
         for (TreeNode<Sensor> c : n.getChildren()) {
-            maxDepth = Math.max(maxDepth, this.getMaxDepth(depth + 1, c));
+            maxDepth = Math.max(maxDepth, getMaxDepth(depth + 1, c));
         }
         return maxDepth;
     }
 
-    private List<ForwardedMessage<ActivationMessage>> convertToForwardedMessageList(int waitTime, boolean[] activeSensors, TreeNode<Sensor> n) {
+    private static List<ForwardedMessage<ActivationMessage>> convertToForwardedMessageList(int waitTime, boolean[] activeSensors, TreeNode<Sensor> n) {
         List<ForwardedMessage<ActivationMessage>> messages = new ArrayList<>(n.getChildren().size());
         for (TreeNode<Sensor> c : n.getChildren()) {
             Sensor s = c.getValue();
@@ -266,7 +266,7 @@ public class SinkNode extends SensorNode {
                     active ? getParentNode(s) : null,
                     active ? getChildrenNodes(s) : null);
             messages.add(new ForwardedMessage<>(s.getNode(), m,
-                    this.convertToForwardedMessageList(waitTime - 1, activeSensors, c)));
+                    convertToForwardedMessageList(waitTime - 1, activeSensors, c)));
         }
         return messages;
     }
