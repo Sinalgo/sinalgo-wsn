@@ -27,6 +27,7 @@ import sinalgo.tools.Tools;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -76,17 +77,22 @@ public class SinkNode extends SensorNode {
             System.out.println("END logging received messages for round\n");
         }
         int stage = (int) Tools.getGlobalTime();
+        boolean[] currentActiveSensors = null;
         boolean[] activeSensors = null;
         // Isto só funciona aqui porque o Sink é o último nó a ser colocado.
         // Alterar para o preRound/postRound do CustomGlobal!
         Simulation.currentInstance().simulatePeriod(stage);
         if (fail || stage == 1) {
+            currentActiveSensors = SensorNetwork.currentInstance().getSensorsStatusArray();
             activeSensors = this.computeActiveSensors();
         }
         if (activeSensors != null) {
             this.networkGraph = new Graph(SensorNetwork.currentInstance().getSensorsAndSinks());
             this.networkGraph.computeEdges(false);
             TreeNode<Sensor> root = this.networkGraph.getTreeRepresentation(this.getSensor());
+            if (SimulationConfigurationLoader.getConfiguration().isMinimizeActivationTree()) {
+                this.minimizeActivationTree(root, currentActiveSensors, activeSensors);
+            }
             System.out.println();
             root.print();
             System.out.println();
@@ -99,6 +105,27 @@ public class SinkNode extends SensorNode {
             this.resetAcknowledgement();
             this.computeExpectedHeights();
         }
+    }
+
+    private void minimizeActivationTree(TreeNode<Sensor> root, boolean[] currentActiveSensors, boolean[] activeSensors) {
+        this.minimizeActivationTreeRecursive(root, currentActiveSensors, activeSensors);
+    }
+
+    private boolean minimizeActivationTreeRecursive(TreeNode<Sensor> node, boolean[] currentActiveSensors, boolean[] activeSensors) {
+        boolean hasDiff = false;
+        for (Iterator<TreeNode<Sensor>> i = node.getChildren().iterator(); i.hasNext(); ) {
+            TreeNode<Sensor> child = i.next();
+            if (this.minimizeActivationTreeRecursive(child, currentActiveSensors, activeSensors)) {
+                hasDiff = true;
+            } else {
+                this.getNetworkGraph().getSensorNodeMap().remove(child.getValue());
+                i.remove();
+            }
+        }
+        return hasDiff
+                || node.getValue() instanceof Sink
+                || activeSensors[node.getValue().getIndex()]
+                || currentActiveSensors[node.getValue().getIndex()] != activeSensors[node.getValue().getIndex()];
     }
 
     private SimulationNode getParentNode(Sensor s) {

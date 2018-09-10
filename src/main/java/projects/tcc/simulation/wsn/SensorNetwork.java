@@ -47,6 +47,14 @@ public class SensorNetwork {
         this.coverageFactor = configuration.getCoverageFactor();
     }
 
+    public boolean[] getSensorsStatusArray() {
+        boolean[] statusArray = new boolean[this.getSensors().size()];
+        for (Sensor s : this.getSensors()) {
+            statusArray[s.getIndex()] = s.isActive();
+        }
+        return statusArray;
+    }
+
     public int[] getAvailableSensorsArray() {
         return this.getSensors().stream()
                 .filter(Sensor::isAvailable)

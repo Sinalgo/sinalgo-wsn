@@ -261,6 +261,8 @@
 
         <MinBatteryThreshold value="0.1"/>
 
+        <MinimizeActivationTree value="true"/>
+
         <!-- For MICAz -->
         <TransmitSpeedBps value="250000"/>
 

@@ -8,6 +8,7 @@ import projects.tcc.nodes.nodeImplementations.SinkNode;
 import projects.tcc.simulation.algorithms.graph.Graph;
 import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.data.Sensor;
+import projects.tcc.simulation.wsn.data.Sink;
 import sinalgo.exception.WrongConfigurationException;
 import sinalgo.gui.transformation.PositionTransformation;
 import sinalgo.nodes.Node;
@@ -127,12 +128,14 @@ public abstract class SimulationNode extends Node {
     private void drawActivationTree(Graphics g, PositionTransformation pt) {
         CustomGlobal customGlobal = ((CustomGlobal) Global.getCustomGlobal());
         if (customGlobal.isDrawActivationTree()) {
-            SinkNode sinkNode = (SinkNode) SensorNetwork.currentInstance().getSinks().get(0).getNode();
-            if (sinkNode.getNetworkGraph() != null) {
-                Graph.Node<Sensor> node = sinkNode.getNetworkGraph().getSensorNodeMap().get(this.getSensor());
-                if (node != null && node.getPreviousSource() != null) {
-                    SimulationNode previous = node.getPreviousSource().getNode();
-                    drawLine(g, pt, previous, this);
+            for (Sink s : SensorNetwork.currentInstance().getSinks()) {
+                SinkNode sinkNode = (SinkNode) s.getNode();
+                if (sinkNode.getNetworkGraph() != null) {
+                    Graph.Node<Sensor> node = sinkNode.getNetworkGraph().getSensorNodeMap().get(this.getSensor());
+                    if (node != null && node.getPreviousSource() != null) {
+                        SimulationNode previous = node.getPreviousSource().getNode();
+                        drawLine(g, pt, previous, this);
+                    }
                 }
             }
         }

@@ -1,8 +1,6 @@
 package projects.tcc.nodes.nodeImplementations;
 
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
 import projects.tcc.MessageCache;
 import projects.tcc.nodes.SimulationNode;
 import projects.tcc.nodes.messages.ActivationMessage;
@@ -26,10 +24,6 @@ import java.util.function.Supplier;
 public class SensorNode extends SimulationNode {
 
     private Sensor sensor;
-
-    @Getter(AccessLevel.PROTECTED)
-    @Setter(AccessLevel.PROTECTED)
-    private int waitTime;
 
     @Override
     public void init() {
@@ -87,9 +81,7 @@ public class SensorNode extends SimulationNode {
     @Override
     public void handleNAckMessages(NackBox nackBox) {
         if (nackBox.hasNext() && this.isActive()) {
-            for (SimulationNode n : this.getChildren()) {
-                this.sendMessage(new FailureMessage(), n);
-            }
+            this.setActive(false);
         }
     }
 
