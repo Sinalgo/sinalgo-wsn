@@ -128,11 +128,11 @@ public class SinkNode extends SensorNode {
                 || currentActiveSensors[node.getValue().getIndex()] != activeSensors[node.getValue().getIndex()];
     }
 
-    private SimulationNode getParentNode(Sensor s) {
+    private static SimulationNode getParentNode(Sensor s) {
         return s.getParent() == null ? null : s.getParent().getNode();
     }
 
-    private List<SimulationNode> getChildrenNodes(Sensor s) {
+    private static List<SimulationNode> getChildrenNodes(Sensor s) {
         List<SimulationNode> childrenNodes = new ArrayList<>(s.getChildren().size());
         for (Sensor c : s.getChildren()) {
             childrenNodes.add(c.getNode());
@@ -263,8 +263,8 @@ public class SinkNode extends SensorNode {
             boolean active = activeSensors[s.getIndex()];
             ActivationMessage m = new ActivationMessage(active,
                     waitTime,
-                    active ? this.getParentNode(s) : null,
-                    active ? this.getChildrenNodes(s) : null);
+                    active ? getParentNode(s) : null,
+                    active ? getChildrenNodes(s) : null);
             messages.add(new ForwardedMessage<>(s.getNode(), m,
                     this.convertToForwardedMessageList(waitTime - 1, activeSensors, c)));
         }
