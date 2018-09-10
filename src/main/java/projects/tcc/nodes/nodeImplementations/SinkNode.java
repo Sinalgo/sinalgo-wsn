@@ -36,6 +36,9 @@ public class SinkNode extends SensorNode {
     @Getter
     private Sink sensor;
 
+    @Getter
+    private List<ForwardedMessage<ActivationMessage>> activationMessages;
+
     @Override
     public void init() {
         SimulationConfiguration config = SimulationConfigurationLoader.getConfiguration();
@@ -49,6 +52,7 @@ public class SinkNode extends SensorNode {
         if (this.isSleep()) {
             return;
         }
+        this.activationMessages = null;
         int size = inbox.size();
         if (size > 0) {
             System.out.println("\nSTART logging received messages for round");
@@ -85,7 +89,7 @@ public class SinkNode extends SensorNode {
             root.print();
             System.out.println();
             this.setWaitTime(this.getMaxDepth(root));
-            List<ForwardedMessage<ActivationMessage>> activationMessages =
+            this.activationMessages =
                     this.convertToForwardedMessageList(this.getWaitTime(), activeSensors, this.getSensorGraphAsTree());
             for (ForwardedMessage m : activationMessages) {
                 this.sendDirect(m, m.getDestination());

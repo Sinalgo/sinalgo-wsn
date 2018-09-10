@@ -39,8 +39,14 @@ package projects.tcc;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import projects.tcc.nodes.SimulationNode;
+import projects.tcc.nodes.messages.ActivationMessage;
+import projects.tcc.nodes.messages.ForwardedMessage;
+import projects.tcc.nodes.nodeImplementations.SinkNode;
 import projects.tcc.simulation.io.SimulationOutput;
+import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.data.DemandPoints;
+import projects.tcc.simulation.wsn.data.Sink;
 import sinalgo.exception.SinalgoFatalException;
 import sinalgo.gui.transformation.PositionTransformation;
 import sinalgo.nodes.Position;
@@ -52,6 +58,7 @@ import sinalgo.tools.logging.Logging;
 import java.awt.*;
 import java.io.PrintStream;
 import java.lang.reflect.Method;
+import java.util.List;
 
 @Getter(AccessLevel.PRIVATE)
 @Setter(AccessLevel.PRIVATE)
@@ -59,19 +66,28 @@ public class CustomGlobal extends AbstractCustomGlobal {
 
     private Logging log = Logging.getLogger("tcc_log.txt");
 
-    private boolean drawPoints = false;
+    private boolean drawPoints;
 
     @Getter
-    private boolean drawCommRadius = false;
+    private boolean drawCommRadius;
 
     @Getter
-    private boolean drawSensorRadius = false;
+    private boolean drawSensorRadius;
 
     @Getter
-    private boolean drawAll = false;
+    private boolean drawAll;
 
     @Getter
     private boolean stopSimulationOnFailure;
+
+    @Getter
+    private boolean drawActivationTree;
+
+    @GlobalMethod(menuText = "Toggle Draw Activation Tree", subMenu = "View")
+    public void toggleDrawActivationTree() {
+        this.drawActivationTree = !this.drawActivationTree;
+        this.drawAll &= this.drawActivationTree;
+    }
 
     @GlobalMethod(menuText = "Toggle Draw Demand Points", subMenu = "View")
     public void toggleDrawDemandPoints() {
@@ -97,10 +113,12 @@ public class CustomGlobal extends AbstractCustomGlobal {
             this.drawSensorRadius = false;
             this.drawCommRadius = false;
             this.drawPoints = false;
+            this.drawActivationTree = false;
         } else {
             this.drawSensorRadius = true;
             this.drawCommRadius = true;
             this.drawPoints = true;
+            this.drawActivationTree = true;
         }
         this.drawAll = !this.drawAll;
     }
@@ -113,12 +131,38 @@ public class CustomGlobal extends AbstractCustomGlobal {
     @Override
     public void customPaint(Graphics g, PositionTransformation pt) {
         if (this.drawPoints) {
+            Color backupColor = g.getColor();
             for (Position p : DemandPoints.currentInstance().getPoints()) {
-                Color backupColor = g.getColor();
                 g.setColor(Color.DARK_GRAY);
                 pt.drawLine(g, p, p);
-                g.setColor(backupColor);
             }
+            g.setColor(backupColor);
+        }
+        if (this.drawActivationTree) {
+            List<Sink> sinks = SensorNetwork.currentInstance().getSinks();
+            Color backupColor = g.getColor();
+            g.setColor(Color.LIGHT_GRAY);
+            for (Sink s : sinks) {
+                SinkNode sinkNode = (SinkNode) s.getNode();
+                if (sinkNode.getActivationMessages() != null) {
+                    sinkNode.getActivationMessages().forEach(m -> paintActivationTree(g, pt, sinkNode, m));
+                }
+            }
+            g.setColor(backupColor);
+        }
+    }
+
+    private void paintActivationTree(Graphics g, PositionTransformation pt, SimulationNode source, ForwardedMessage<ActivationMessage> activationMessage) {
+        pt.translateToGUIPosition(source.getPosition());
+        int sourceX = pt.getGuiX();
+        int sourceY = pt.getGuiY();
+        pt.translateToGUIPosition(activationMessage.getDestination().getPosition());
+        int destinationX = pt.getGuiX();
+        int destinationY = pt.getGuiY();
+        g.drawLine(sourceX, sourceY,
+                destinationX, destinationY);
+        if (activationMessage.getForwardedMessages() != null) {
+            activationMessage.getForwardedMessages().forEach(fm -> this.paintActivationTree(g, pt, activationMessage.getDestination(), fm));
         }
     }
 
@@ -146,16 +190,18 @@ public class CustomGlobal extends AbstractCustomGlobal {
     public String includeGlobalMethodInMenu(Method m, String defaultText) {
         switch (m.getName()) {
             case "toggleDrawDemandPoints":
-                return getEnableDisableString(drawPoints) + "Demand Points";
+                return getEnableDisableString(this.drawPoints) + "Demand Points";
             case "toggleDrawCommRadius":
-                return getEnableDisableString(drawCommRadius) + "Comm. Radius";
+                return getEnableDisableString(this.drawCommRadius) + "Comm. Radius";
             case "toggleDrawSensorRadius":
-                return getEnableDisableString(drawSensorRadius) + "Sensorinig Radius";
+                return getEnableDisableString(this.drawSensorRadius) + "Sensorinig Radius";
             case "toggleAll":
-                return getEnableDisableString(drawAll) + "All";
+                return getEnableDisableString(this.drawAll) + "All";
             case "togglePauseOnSensorFailure":
                 return (this.stopSimulationOnFailure
                         ? "Disable" : "Enable") + " stop simulation on Sensor failure";
+            case "toggleDrawActivationTree":
+                return getEnableDisableString(this.drawActivationTree) + "Activation Tree";
         }
         return defaultText;
     }
