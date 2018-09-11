@@ -90,15 +90,14 @@ public class SinkNode extends SensorNode {
             this.networkGraph = new Graph(SensorNetwork.currentInstance().getSensorsAndSinks());
             this.networkGraph.computeEdges(false);
             TreeNode<Sensor> root = this.networkGraph.getTreeRepresentation(this.getSensor());
-            if (SimulationConfigurationLoader.getConfiguration().isMinimizeActivationTree()) {
-                this.minimizeActivationTree(root, currentActiveSensors, activeSensors);
-            }
+            this.minimizeActivationTree(root, currentActiveSensors, activeSensors);
             System.out.println();
             root.print();
             System.out.println();
-            this.setWaitTime(getMaxDepth(root));
+            int maxDepth = getMaxDepth(root);
+            this.setWaitTime(maxDepth + 1);
             List<ForwardedMessage<ActivationMessage>> activationMessages =
-                    convertToForwardedMessageList(this.getWaitTime(), activeSensors, root);
+                    convertToForwardedMessageList(maxDepth, activeSensors, root);
             for (ForwardedMessage m : activationMessages) {
                 this.sendDirect(m, m.getDestination());
             }
@@ -108,7 +107,9 @@ public class SinkNode extends SensorNode {
     }
 
     private void minimizeActivationTree(TreeNode<Sensor> root, boolean[] currentActiveSensors, boolean[] activeSensors) {
-        this.minimizeActivationTreeRecursive(root, currentActiveSensors, activeSensors);
+        if (SimulationConfigurationLoader.getConfiguration().isMinimizeActivationTree()) {
+            this.minimizeActivationTreeRecursive(root, currentActiveSensors, activeSensors);
+        }
     }
 
     private boolean minimizeActivationTreeRecursive(TreeNode<Sensor> node, boolean[] currentActiveSensors, boolean[] activeSensors) {
@@ -152,8 +153,7 @@ public class SinkNode extends SensorNode {
     }
 
     private static void increaseTimeSinceLastMessage() {
-        List<Sensor> sensors = SensorNetwork.currentInstance().getSensors();
-        for (Sensor s : sensors) {
+        for (Sensor s : SensorNetwork.currentInstance().getSensors()) {
             if (s.getHeight() > 0) {
                 s.setTimeSinceLastMessage(s.getTimeSinceLastMessage() + 1);
             }
@@ -162,10 +162,19 @@ public class SinkNode extends SensorNode {
 
     private List<SimulationNode> checkFailures() {
         List<SimulationNode> failedNodes = new ArrayList<>();
-        if (this.getSensor().getChildren() != null) {
-            this.getSensor().getChildren().forEach(n -> this.checkFailures(n, failedNodes));
+        if (SimulationConfigurationLoader.getConfiguration().isInstantaneousFailureDetection()) {
+            for (Sensor s : SensorNetwork.currentInstance().getSensors()) {
+                if (s.getNode().isFailed() && s.isAvailable()) {
+                    failedNodes.add(s.getNode());
+                }
+            }
+        } else {
+            if (this.getSensor().getChildren() != null) {
+                this.getSensor().getChildren().forEach(n -> this.checkFailures(n, failedNodes));
+            }
         }
         return failedNodes;
+
     }
 
     private void checkFailures(Sensor s, List<SimulationNode> failedNodes) {
@@ -224,7 +233,7 @@ public class SinkNode extends SensorNode {
 
     @Override
     public void draw(Graphics g, PositionTransformation pt, boolean highlight) {
-        this.setColor(Color.BLUE);
+        this.setColor(this.isSleep() ? Color.GRAY : Color.BLUE);
         this.setDefaultDrawingSizeInPixels(20);
         this.superDraw(g, pt, highlight);
     }

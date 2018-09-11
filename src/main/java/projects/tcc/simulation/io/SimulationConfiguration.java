@@ -24,6 +24,7 @@ public class SimulationConfiguration {
     private transient int transmitSpeedBps;
     private transient boolean minimizeActivationTree;
     private transient boolean useMessageSizeCalculation;
+    private transient boolean instantaneousFailureDetection;
 
     @Data
     public static class SensorPosition {
