@@ -39,8 +39,10 @@ package projects.tcc;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import projects.tcc.nodes.NodeStatus;
 import projects.tcc.simulation.io.SimulationOutput;
 import projects.tcc.simulation.wsn.data.DemandPoints;
+import sinalgo.configuration.Configuration;
 import sinalgo.exception.SinalgoFatalException;
 import sinalgo.gui.transformation.PositionTransformation;
 import sinalgo.nodes.Position;
@@ -52,6 +54,7 @@ import sinalgo.tools.logging.Logging;
 import java.awt.*;
 import java.io.PrintStream;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 @Getter(AccessLevel.PRIVATE)
 @Setter(AccessLevel.PRIVATE)
@@ -75,6 +78,9 @@ public class CustomGlobal extends AbstractCustomGlobal {
 
     @Getter
     private boolean drawActivationTree;
+
+    @Getter
+    private boolean drawLegend = true;
 
     @GlobalMethod(menuText = "Toggle Draw Activation Tree", subMenu = "View")
     public void toggleDrawActivationTree() {
@@ -100,6 +106,11 @@ public class CustomGlobal extends AbstractCustomGlobal {
         this.drawAll &= this.drawSensorRadius;
     }
 
+    @GlobalMethod(menuText = "Toggle Draw Sensor Radius", subMenu = "View", order = 2)
+    public void toggleDrawLegend() {
+        this.drawLegend = !this.drawLegend;
+    }
+
     @GlobalMethod(menuText = "Toggle All", subMenu = "View", order = 3)
     public void toggleAll() {
         if (this.drawAll) {
@@ -123,14 +134,47 @@ public class CustomGlobal extends AbstractCustomGlobal {
 
     @Override
     public void customPaint(Graphics g, PositionTransformation pt) {
+        Color backupColor = g.getColor();
         if (this.drawPoints) {
-            Color backupColor = g.getColor();
+            g.setColor(Color.DARK_GRAY);
             for (Position p : DemandPoints.currentInstance().getPoints()) {
-                g.setColor(Color.DARK_GRAY);
                 pt.drawLine(g, p, p);
             }
-            g.setColor(backupColor);
         }
+        if (this.drawLegend) {
+            Font font = new Font(null, Font.PLAIN, (int) (1.2 * pt.getZoomFactor()));
+            g.setFont(font);
+            FontMetrics fm = g.getFontMetrics(font);
+            int maxWidth = Arrays.stream(NodeStatus.values())
+                    .map(NodeStatus::getDescription)
+                    .mapToInt(d -> (int) Math.ceil(fm.stringWidth(d)))
+                    .max()
+                    .orElse(0);
+            double offset = 2.2;
+            double x = Configuration.getDimX() * 1.05;
+            double y = Configuration.getDimY() / 2.0;
+            int height = (int) (offset * 0.95 * (NodeStatus.values().length + 1) * pt.getZoomFactor());
+            pt.translateToGUIPosition(x, y, 0);
+            g.setColor(Color.BLACK);
+            g.drawRect(pt.getGuiX(), pt.getGuiY(), (int) (maxWidth + (0.5 + 1.8 + 1.2) * pt.getZoomFactor()), height);
+            double legendX = x + 0.5;
+            double legendY = y;
+            boolean firstLine = true;
+            for (NodeStatus s : NodeStatus.values()) {
+                legendY += offset;
+                if (firstLine) {
+                    firstLine = false;
+                    legendY -= offset / 2;
+                }
+                pt.translateToGUIPosition(legendX, legendY, 0);
+                g.setColor(s.getColor());
+                g.fillOval(pt.getGuiX(), pt.getGuiY(), (int) (1.2 * pt.getZoomFactor()), (int) (1.2 * pt.getZoomFactor()));
+                pt.translateToGUIPosition(legendX + 1.8, legendY + 1, 0);
+                g.setColor(Color.BLACK);
+                g.drawChars(s.getDescription().toCharArray(), 0, s.getDescription().length(), pt.getGuiX(), pt.getGuiY());
+            }
+        }
+        g.setColor(backupColor);
     }
 
     @Override
@@ -169,6 +213,8 @@ public class CustomGlobal extends AbstractCustomGlobal {
                         ? "Disable" : "Enable") + " stop simulation on Sensor failure";
             case "toggleDrawActivationTree":
                 return getEnableDisableString(this.drawActivationTree) + "Activation Tree";
+            case "toggleDrawLegend":
+                return getEnableDisableString(this.drawLegend) + "Legend";
         }
         return defaultText;
     }

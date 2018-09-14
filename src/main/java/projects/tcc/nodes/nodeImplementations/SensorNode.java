@@ -2,6 +2,7 @@ package projects.tcc.nodes.nodeImplementations;
 
 import lombok.Getter;
 import projects.tcc.MessageCache;
+import projects.tcc.nodes.NodeStatus;
 import projects.tcc.nodes.SimulationNode;
 import projects.tcc.nodes.messages.ActivationMessage;
 import projects.tcc.nodes.messages.FailureMessage;
@@ -44,33 +45,33 @@ public class SensorNode extends SimulationNode {
 
     @Override
     public void draw(Graphics g, PositionTransformation pt, boolean highlight) {
-        this.setColor(this.getColorByStatus());
+        this.setColor(this.computeNodeStatus().getColor());
         this.setDefaultDrawingSizeInPixels(10);
         this.superDraw(g, pt, highlight);
     }
 
-    private Color getColorByStatus() {
+    private NodeStatus computeNodeStatus() {
         if (this.isFailed()) {
             if (this.getSensor().isFailed()) {
-                return Color.RED;
+                return NodeStatus.FAILED;
             }
-            return Color.MAGENTA;
+            return NodeStatus.FAILED_SINK_UNAWARE;
         } else if (this.getSensor().isFailed()) {
-            return Color.ORANGE;
+            return NodeStatus.MISIDENTIFIED_FAILURE;
         }
         if (this.isSleep()) {
-            return Color.GRAY;
+            return NodeStatus.SLEEP;
         }
         if (this.isActive()) {
             if (this.getSensor().isActive()) {
-                return Color.GREEN;
+                return NodeStatus.ACTIVE;
             }
-            return Color.PINK;
+            return NodeStatus.TURNING_OFF;
         } else {
             if (this.getSensor().isActive()) {
-                return Color.BLUE;
+                return NodeStatus.TURNING_ON;
             }
-            return Color.BLACK;
+            return NodeStatus.INACTIVE;
         }
     }
 
