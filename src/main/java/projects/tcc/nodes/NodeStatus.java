@@ -12,8 +12,8 @@ public enum NodeStatus {
 
     INACTIVE(Color.BLACK, "Inativo"),
     SLEEP(Color.GRAY, "Modo de espera"),
-    TURNING_OFF(Color.GREEN.darker(), "Eleito (desativação)"),
-    TURNING_ON(Color.BLUE, "Eleito (ativação)"),
+    TURNING_OFF(Color.BLUE, "Eleito (desativação)"),
+    TURNING_ON(Color.GREEN.darker(), "Eleito (ativação)"),
     ACTIVE(Color.GREEN, "Ativo"),
     FAILED_SINK_UNAWARE(Color.MAGENTA, "Falho (não-detectado)"),
     MISIDENTIFIED_FAILURE(Color.ORANGE, "Falho (detecção errônea)"),

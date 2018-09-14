@@ -117,10 +117,10 @@ public abstract class SimulationNode extends Node {
 
     private void drawCommSensRadius(Graphics g, PositionTransformation pt) {
         CustomGlobal customGlobal = ((CustomGlobal) Global.getCustomGlobal());
-        if (customGlobal.isDrawCommRadius() && this.isActive()) {
+        if (customGlobal.isDrawCommRadius() && this.isActive() && !this.isSleep()) {
             drawRadius(g, pt, this, Color.ORANGE, this.getSensor().getCommRadius());
         }
-        if (customGlobal.isDrawSensorRadius() && this.isActive() && !(this instanceof SinkNode)) {
+        if (customGlobal.isDrawSensorRadius() && this.isActive() && !this.isSleep() && !(this instanceof SinkNode)) {
             drawRadius(g, pt, this, Color.MAGENTA, this.getSensor().getSensRadius());
         }
     }
