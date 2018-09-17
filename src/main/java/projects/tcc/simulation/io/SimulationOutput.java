@@ -1,11 +1,17 @@
 package projects.tcc.simulation.io;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.Simulation;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 @Getter(AccessLevel.PROTECTED)
@@ -55,6 +61,35 @@ public class SimulationOutput {
         println(String.format("Cons. Energy: %.3f", this.simulation.getNetworkConsumedEnergy()));
         println(String.format("Coverage (Sink): %.5f", this.simulation.getCurrentCoverageData().getSinkAwareCoveredPercent()));
         println(String.format("Coverage (Real): %.5f", this.simulation.getCurrentCoverageData().getRealCoveredPercent()));
+    }
+
+    @Data
+    @Builder
+    public static class OutputElement {
+        private final int round;
+        private final int activeSensorCount;
+        private final double residualEnergy;
+        private final double consumedEnergy;
+        private final double sinkCoverage;
+        private final double realCoverage;
+    }
+
+    public void generateFinalOutput() {
+        System.out.println("\n");
+        System.out.println("Final Simulation Results:");
+        List<OutputElement> outputElements = new ArrayList<>();
+        for (int i = 0; i < this.simulation.getPeriods().size(); i++) {
+            outputElements.add(OutputElement.builder()
+                    .round(this.simulation.getPeriods().get(i))
+                    .activeSensorCount(this.simulation.getActiveSensorCount().get(i))
+                    .residualEnergy(this.simulation.getResidualEnergy().get(i))
+                    .consumedEnergy(this.simulation.getConsumedEnergy().get(i))
+                    .sinkCoverage(this.simulation.getCoverage().get(i).getSinkAwareCoveredPercent())
+                    .realCoverage(this.simulation.getCoverage().get(i).getRealCoveredPercent())
+                    .build());
+        }
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        System.out.println(gson.toJson(outputElements));
     }
 
 }

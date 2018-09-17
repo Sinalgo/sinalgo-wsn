@@ -41,6 +41,7 @@ import lombok.Getter;
 import lombok.Setter;
 import projects.tcc.nodes.NodeStatus;
 import projects.tcc.simulation.io.SimulationOutput;
+import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.data.DemandPoints;
 import sinalgo.configuration.Configuration;
 import sinalgo.exception.SinalgoFatalException;
@@ -181,6 +182,11 @@ public class CustomGlobal extends AbstractCustomGlobal {
 
     @Override
     public boolean hasTerminated() {
+        if (Double.compare(DemandPoints.currentInstance().getCoveragePercent(), SensorNetwork.currentInstance().getCoverageFactor()) < 0) {
+            Tools.minorError("The coverage could not be kept above the desired factor anymore. Stopping simulation.");
+            SimulationOutput.currentInstance().generateFinalOutput();
+            return true;
+        }
         return false;
     }
 

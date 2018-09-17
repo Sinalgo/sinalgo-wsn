@@ -224,8 +224,6 @@ public class SinkNode extends SensorNode {
         SimulationOutput.println("===== Running Genetic Algorithm at round: " + (int) Tools.getGlobalTime());
         boolean[] activeSensors = MultiObjectiveGeneticAlgorithm.currentInstance().computeActiveSensors();
         if (Double.compare(DemandPoints.currentInstance().getCoveragePercent(), SensorNetwork.currentInstance().getCoverageFactor()) < 0) {
-            Tools.stopSimulation();
-            Tools.minorError("The coverage could not be kept above the desired factor anymore. Stopping simulation.");
             return null;
         }
         return activeSensors;
