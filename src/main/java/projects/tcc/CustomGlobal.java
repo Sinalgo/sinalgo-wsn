@@ -155,6 +155,8 @@ public class CustomGlobal extends AbstractCustomGlobal {
             double y = Configuration.getDimY() / 2.0;
             int height = (int) (offset * 0.95 * (NodeStatus.values().length + 1) * pt.getZoomFactor());
             pt.translateToGUIPosition(x, y, 0);
+            g.setColor(Color.WHITE);
+            g.fillRect(pt.getGuiX(), pt.getGuiY(), (int) (maxWidth + (0.5 + 1.8 + 1.2) * pt.getZoomFactor()), height);
             g.setColor(Color.BLACK);
             g.drawRect(pt.getGuiX(), pt.getGuiY(), (int) (maxWidth + (0.5 + 1.8 + 1.2) * pt.getZoomFactor()), height);
             double legendX = x + 0.5;

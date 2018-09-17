@@ -12,6 +12,7 @@ import projects.tcc.simulation.wsn.data.Sink;
 import sinalgo.exception.WrongConfigurationException;
 import sinalgo.gui.transformation.PositionTransformation;
 import sinalgo.nodes.Node;
+import sinalgo.nodes.Position;
 import sinalgo.runtime.Global;
 
 import java.awt.*;
@@ -150,16 +151,24 @@ public abstract class SimulationNode extends Node {
         pt.translateToGUIPosition(destination.getPosition());
         int destinationX = pt.getGuiX();
         int destinationY = pt.getGuiY();
-        g.drawLine(sourceX, sourceY,
-                destinationX, destinationY);
+        g.drawLine(sourceX, sourceY, destinationX, destinationY);
         g.setColor(backupColor);
     }
 
-    private static void drawRadius(Graphics g, PositionTransformation pt, Node s, Color orange, double commRadius) {
+    private static void drawRadius(Graphics g, PositionTransformation pt, Node s, Color color, double radius) {
         Color backupColor = g.getColor();
-        g.setColor(orange);
-        pt.drawCircle(g, s.getPosition(), commRadius);
+        Color fillColor = new Color(color.getRed(), color.getGreen(), color.getBlue(), (int) (255 * 0.07));
+        g.setColor(fillColor);
+        fillCircle(g, pt, s.getPosition(), radius);
+        g.setColor(color);
+        pt.drawCircle(g, s.getPosition(), radius);
         g.setColor(backupColor);
+    }
+
+    private static void fillCircle(Graphics g, PositionTransformation pt, Position center, double radius) {
+        pt.translateToGUIPosition(center);
+        int r = (int) (pt.getZoomFactor() * radius);
+        g.fillOval(pt.getGuiX() - r, pt.getGuiY() - r, 2 * r, 2 * r);
     }
 
     private void drawEnergySpent(double energySpent) {
@@ -167,8 +176,7 @@ public abstract class SimulationNode extends Node {
     }
 
     private double getTransmitPower(SimulationNode neighbor, double occupiedBandwidth) {
-        double current = this.getSensor().getNeighborhood()
-                .get(neighbor.getSensor()).getCurrent();
+        double current = this.getSensor().getNeighborhood().get(neighbor.getSensor()).getCurrent();
         return occupiedBandwidth * current;
     }
 
