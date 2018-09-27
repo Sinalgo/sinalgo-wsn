@@ -52,7 +52,7 @@ public class SimulationConfigurationLoader {
             config.setTransmitSpeedBps(Configuration.getIntegerParameter("TransmitSpeedBps"));
             config.setMinimizeActivationTree(Configuration.getBooleanParameter("MinimizeActivationTree"));
             config.setUseMessageSizeCalculation(Configuration.getBooleanParameter("UseMessageSizeCalculation"));
-            config.setInstantaneousFailureDetection(Configuration.getBooleanParameter("InstantaneousFailureDetection"));
+            config.setFailureDetectionModelSuccessRate(Configuration.getDoubleParameter("FailureDetectionModelSuccessRate"));
             setConfiguration(config);
         } catch (Exception e) {
             log.severe("Error while loading " + resourcePath);

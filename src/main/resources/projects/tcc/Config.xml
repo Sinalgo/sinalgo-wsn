@@ -263,7 +263,7 @@
 
         <UseMessageSizeCalculation value="false"/>
 
-        <InstantaneousFailureDetection value="false"/>
+        <FailureDetectionModelSuccessRate value="1.0"/>
 
         <!-- For MICAz -->
         <TransmitSpeedBps value="250000"/>

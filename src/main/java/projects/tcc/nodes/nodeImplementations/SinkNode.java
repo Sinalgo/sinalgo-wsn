@@ -27,8 +27,11 @@ import sinalgo.tools.Tools;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -62,7 +65,7 @@ public class SinkNode extends SensorNode {
         this.handleMessageReceiving(inbox);
         boolean fail = false;
         increaseTimeSinceLastMessage();
-        List<SimulationNode> failedNodes = this.checkFailures();
+        Set<SimulationNode> failedNodes = this.checkFailures();
         if (!failedNodes.isEmpty()) {
             fail = true;
             failedNodes.forEach(n -> {
@@ -160,24 +163,30 @@ public class SinkNode extends SensorNode {
         }
     }
 
-    private List<SimulationNode> checkFailures() {
-        List<SimulationNode> failedNodes = new ArrayList<>();
-        if (SimulationConfigurationLoader.getConfiguration().isInstantaneousFailureDetection()) {
-            for (Sensor s : SensorNetwork.currentInstance().getSensors()) {
-                if (s.getNode().isFailed() && s.isAvailable()) {
-                    failedNodes.add(s.getNode());
-                }
+    private Set<SimulationNode> checkFailures() {
+        Set<SimulationNode> failedNodes = new HashSet<>();
+        for (Sensor s : SensorNetwork.currentInstance().getSensors()) {
+            if (this.failurePredicted(s)) {
+                failedNodes.add(s.getNode());
             }
-        } else {
+        }
+        if (!SimulationConfigurationLoader.getConfiguration().isPerfectDetectionModel()) {
             if (this.getSensor().getChildren() != null) {
                 this.getSensor().getChildren().forEach(n -> this.checkFailures(n, failedNodes));
             }
         }
         return failedNodes;
-
     }
 
-    private void checkFailures(Sensor s, List<SimulationNode> failedNodes) {
+    private boolean failurePredicted(Sensor s) {
+        SimulationConfiguration configuration = SimulationConfigurationLoader.getConfiguration();
+        return s.getNode().isFailed() && s.isAvailable()
+                && configuration.isUseFailureDetectionModel()
+                && (configuration.isPerfectDetectionModel() ||
+                ThreadLocalRandom.current().nextDouble(1) < configuration.getFailureDetectionModelSuccessRate());
+    }
+
+    private void checkFailures(Sensor s, Set<SimulationNode> failedNodes) {
         if (s.isActive()) {
             int maximumTime = (Configuration.isInterference() ? 2 : 1)
                     + (s.isAcknowledged() ? 0 : s.getHeight());

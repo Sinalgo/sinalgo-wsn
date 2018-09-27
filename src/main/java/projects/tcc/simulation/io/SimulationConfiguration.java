@@ -24,7 +24,16 @@ public class SimulationConfiguration {
     private transient int transmitSpeedBps;
     private transient boolean minimizeActivationTree;
     private transient boolean useMessageSizeCalculation;
-    private transient boolean instantaneousFailureDetection;
+    private transient double failureDetectionModelSuccessRate;
+
+    public boolean isUseFailureDetectionModel() {
+        return this.failureDetectionModelSuccessRate > 0
+                && this.failureDetectionModelSuccessRate <= 1;
+    }
+
+    public boolean isPerfectDetectionModel() {
+        return this.failureDetectionModelSuccessRate == 1;
+    }
 
     @Data
     public static class SensorPosition {
