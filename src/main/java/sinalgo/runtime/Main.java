@@ -383,6 +383,7 @@ public class Main {
                         } else {
                             try {
                                 Field field = Configuration.class.getDeclaredField(nameVal[0]);
+                                field.setAccessible(true);
                                 if (field.getType() == int.class) {
                                     field.setInt(null, Integer.parseInt(nameVal[1]));
                                 } else if (field.getType().equals(boolean.class)) {

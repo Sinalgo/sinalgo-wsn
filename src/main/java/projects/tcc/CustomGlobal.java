@@ -192,9 +192,11 @@ public class CustomGlobal extends AbstractCustomGlobal {
 
     @Override
     public void preRun() {
-        PrintStream ps = Tools.getTextOutputPrintStream();
-        SimulationOutput.setPrintFunction(ps::print);
-        SimulationOutput.setPrintlnFunction(ps::println);
+        if (Tools.isSimulationInGuiMode()) {
+            PrintStream ps = Tools.getTextOutputPrintStream();
+            SimulationOutput.setPrintFunction(ps::print);
+            SimulationOutput.setPrintlnFunction(ps::println);
+        }
     }
 
     @Override
