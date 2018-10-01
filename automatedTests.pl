@@ -29,7 +29,7 @@ for $numNodes (@numNodesList) {
     		 "'exitOnTerminationInGUI=true', " .  # Close GUI when hasTerminated() returns true
     		 "'outputToConsole=false', " .        # Create a framework log-file for each run
     		 "'-refreshRate', '$refreshRate', " . # Don't draw GUI often
-    		 "'-batch']\" > ~/saida-rssf/sim\\ $numNodes\\ $i.txt"                        # Use batch
+    		 "'-batch']\" > ~/saida-rssf/sim\\ $numNodes\\ $failureDetectionModelSuccessRate\\ $i.txt"                        # Use batch
     		) == 0;
 
   }
