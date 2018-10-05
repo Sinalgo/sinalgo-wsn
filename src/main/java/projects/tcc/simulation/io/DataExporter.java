@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -23,7 +24,7 @@ public class DataExporter {
             Files.list(Paths.get(args[0])).filter(p -> p.getFileName().toString().endsWith(".json")).forEach(p -> {
                 List<String> csvRepresentation = Stream.concat(
                         Stream.of("Round,Active Sensor Count,Consumed Energy,Residual Energy,Real Coverage, Sink Coverage"),
-                        readElementsList(p).getElements().stream().map(DataExporter::createCsv))
+                        readElementsList(p).stream().map(DataExporter::createCsv))
                         .collect(Collectors.toList());
                 Path newPath = p.getParent().resolve(p.getFileName().toString().replace(".json", ".csv"));
                 writeFile(csvRepresentation, newPath);
@@ -41,9 +42,20 @@ public class DataExporter {
         }
     }
 
-    private static OutputElementList readElementsList(Path p) {
+    private static List<OutputElement> readElementsList(Path p) {
         try {
-            return GSON.fromJson(String.join("", Files.readAllLines(p)), OutputElementList.class);
+            OutputElementList elementList = GSON.fromJson(String.join("", Files.readAllLines(p)), OutputElementList.class);
+            List<OutputElement> outputElements = new ArrayList<>();
+            int lastTime = 1;
+            for (OutputElement e : elementList.getElements()) {
+                while (e.getRound() > lastTime + 1) {
+                    outputElements.add(OutputElement.builder().round(++lastTime)
+                            .residualEnergy(e.getResidualEnergy()).build());
+                }
+                outputElements.add(e);
+                lastTime = e.getRound();
+            }
+            return outputElements;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
