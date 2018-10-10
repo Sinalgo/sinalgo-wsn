@@ -6,6 +6,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.Simulation;
@@ -74,12 +75,18 @@ public class SimulationOutput {
         private final double realCoverage;
     }
 
+    @Getter
+    @NoArgsConstructor
+    public static class OutputElementList {
+        private final List<OutputElement> elements = new ArrayList<>();
+    }
+
     public void generateFinalOutput() {
         System.out.println("\n");
         System.out.println("Final Simulation Results:");
-        List<OutputElement> outputElements = new ArrayList<>();
+        OutputElementList outputElements = new OutputElementList();
         for (int i = 0; i < this.simulation.getPeriods().size(); i++) {
-            outputElements.add(OutputElement.builder()
+            outputElements.getElements().add(OutputElement.builder()
                     .round(this.simulation.getPeriods().get(i))
                     .activeSensorCount(this.simulation.getActiveSensorCount().get(i))
                     .residualEnergy(this.simulation.getResidualEnergy().get(i))
