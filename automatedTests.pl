@@ -12,7 +12,7 @@
 
 $numRepetitions = 20;  # Number of rounds to perform for each simulation
 $refreshRate = 10; # Refresh rate
-$failureDetectionModelSuccessRate = 1.0;
+$failureDetectionModelSuccessRate = -1.0;
 @numNodesList = (36, 49, 64, 81, 100);
 
 for $numNodes (@numNodesList) {

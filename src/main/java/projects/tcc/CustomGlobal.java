@@ -40,12 +40,16 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import projects.tcc.nodes.NodeStatus;
+import projects.tcc.nodes.SimulationNode;
 import projects.tcc.simulation.io.SimulationOutput;
 import projects.tcc.simulation.wsn.SensorNetwork;
 import projects.tcc.simulation.wsn.data.DemandPoints;
+import projects.tcc.simulation.wsn.data.Sensor;
+import projects.tcc.simulation.wsn.data.Sink;
 import sinalgo.configuration.Configuration;
 import sinalgo.exception.SinalgoFatalException;
 import sinalgo.gui.transformation.PositionTransformation;
+import sinalgo.nodes.Node;
 import sinalgo.nodes.Position;
 import sinalgo.runtime.AbstractCustomGlobal;
 import sinalgo.runtime.Global;
@@ -182,12 +186,33 @@ public class CustomGlobal extends AbstractCustomGlobal {
 
     @Override
     public boolean hasTerminated() {
-        if (Double.compare(DemandPoints.currentInstance().getCoveragePercent(), SensorNetwork.currentInstance().getCoverageFactor()) < 0) {
+        if (Double.compare(DemandPoints.currentInstance().getCoveragePercent(), SensorNetwork.currentInstance().getCoverageFactor()) < 0
+                || !isConnectable()) {
             Tools.minorError("The coverage could not be kept above the desired factor anymore. Stopping simulation.");
             SimulationOutput.currentInstance().generateFinalOutput();
             return true;
         }
         return false;
+    }
+
+    private boolean isConnectable() {
+        Iterable<Node> nodes = Tools.getNodeList();
+        boolean isConnectable = false;
+        for (Node n : nodes) {
+            if (n instanceof SimulationNode) {
+                isConnectable |= isConnectable((SimulationNode) n);
+            }
+        }
+        return isConnectable;
+    }
+
+    private static boolean isConnectable(SimulationNode n) {
+        Sensor s = n.getSensor();
+        return !(s instanceof Sink)
+                && s.isAvailable()
+                && s.getParent() != null
+                && s.getParent().isAvailable()
+                && (s.getParent() instanceof Sink || isConnectable(s.getParent().getNode()));
     }
 
     @Override
