@@ -17,12 +17,17 @@ import java.util.stream.Stream;
 public class DataExporter {
 
     private static final Gson GSON = new GsonBuilder().create();
+    private static int index = 1;
+    private static int lastRound = 1;
 
     public static void main(String[] args) {
         try {
             Files.list(Paths.get(args[0])).filter(p -> p.getFileName().toString().endsWith(".json")).forEach(p -> {
+                index = 1;
+                lastRound = 1;
                 List<String> csvRepresentation = Stream.concat(
-                        Stream.of("Round,Active Sensor Count,Consumed Energy,Residual Energy,Real Coverage, Sink Coverage"),
+                        Stream.of("Index,Round Delta,Round,Active Sensor Count,Consumed Energy," +
+                                "Residual Energy,Real Coverage, Sink Coverage,Coverage Delta"),
                         readElementsList(p).getElements().stream().map(DataExporter::createCsv))
                         .collect(Collectors.toList());
                 Path newPath = p.getParent().resolve(p.getFileName().toString().replace(".json", ".csv"));
@@ -33,9 +38,10 @@ public class DataExporter {
         }
     }
 
-    public static void writeFile(List<String> csvRepresentation, Path newPath) {
+    private static void writeFile(List<String> csvRepresentation, Path newPath) {
         try {
-            Files.write(newPath, csvRepresentation, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+            Files.deleteIfExists(newPath);
+            Files.write(newPath, csvRepresentation, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -50,9 +56,18 @@ public class DataExporter {
     }
 
     private static String createCsv(OutputElement element) {
-        return String.join(",", Integer.toString(element.getRound()), Integer.toString(element.getActiveSensorCount()),
-                Double.toString(element.getConsumedEnergy()), Double.toString(element.getResidualEnergy()),
-                Double.toString(element.getRealCoverage()), Double.toString(element.getSinkCoverage()));
+        String csv = String.join(",",
+                Integer.toString(index++),
+                Integer.toString(element.getRound() - lastRound),
+                Integer.toString(element.getRound()),
+                Integer.toString(element.getActiveSensorCount()),
+                Double.toString(element.getConsumedEnergy()),
+                Double.toString(element.getResidualEnergy()),
+                Double.toString(element.getRealCoverage()),
+                Double.toString(element.getSinkCoverage()),
+                Double.toString(element.getSinkCoverage() - element.getRealCoverage()));
+        lastRound = element.getRound();
+        return csv;
     }
 
 }
