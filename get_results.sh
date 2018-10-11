@@ -1,7 +1,7 @@
 #!/bin/bash
 
 for filename in sim*.txt; do
-	prefix=$(echo "$filename" | sed 's/\.\w+$//')
+	prefix=$(echo "$filename" | sed -E 's/\.\w+$//')
 	length=$(cat "$filename" | wc -l)
 	result_line=$(cat "$filename" | grep -n "Final Simulation Results" | cut -d : -f 1)
 	tail -n -$(($length - $result_line)) "$filename" > temp.txt
