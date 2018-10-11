@@ -10,27 +10,28 @@
 # Hints:         If you are new to perl, a good starting point may be 
 #                http://perldoc.perl.org
 
-$numRepetitions = 20;  # Number of rounds to perform for each simulation
-$refreshRate = 10; # Refresh rate
-$failureDetectionModelSuccessRate = -1.0;
-@numNodesList = (36, 49, 64, 81, 100);
+use strict;
+use warnings;
 
-for $numNodes (@numNodesList) {
-  # run the simulation for different node speeds (2, 5, 8)
-  for($i=0; $i<$numRepetitions; $i+=1) {
+my $numRepetitions = 20; # Number of rounds to perform for each simulation
+my $refreshRate = 10;    # Refresh rate
+my @failureDetectionModelSuccessRate = (-1.0, 0.95, 1.0);
+my @numNodesList = (36, 49, 64, 81, 100);
 
-    # and run with some different node densities (200, 300, 400, 500 nodes)
-    die "Terminated prematurely" unless
-      system("./gradlew run -PappArgs=\"[" .
-    		 "'-project', 'tcc', " .             # choose the project
-    		 "'-gen', '$numNodes', 'tcc:SensorNode', 'tcc:ListBasedPositionModel', 'NoMobility', " . # generate nodes
-    		 "'-gen', '1', 'tcc:SinkNode', 'tcc:ListBasedPositionModel', 'NoMobility', " . # generate nodes
-    		 "'-overwrite', 'failureDetectionModelSuccessRate=$failureDetectionModelSuccessRate', " .  # Detection rate
-    		 "'exitOnTerminationInGUI=true', " .  # Close GUI when hasTerminated() returns true
-    		 "'outputToConsole=false', " .        # Create a framework log-file for each run
-    		 "'-refreshRate', '$refreshRate', " . # Don't draw GUI often
-    		 "'-batch']\" > ~/saida-rssf/sim\\ $numNodes\\ $failureDetectionModelSuccessRate\\ $i.txt"                        # Use batch
-    		) == 0;
-
-  }
+for my $numNodes (@numNodesList) {
+    for my $detectionRate (@failureDetectionModelSuccessRate) {
+        for (my $i = 0; $i < $numRepetitions; $i += 1) {
+            die "Terminated prematurely" unless
+                system("./gradlew run -PappArgs=\"[" .
+                    "'-project', 'tcc', " .                                                                 # choose the project
+                    "'-gen', '$numNodes', 'tcc:SensorNode', 'tcc:ListBasedPositionModel', 'NoMobility', " . # generate nodes
+                    "'-gen', '1', 'tcc:SinkNode', 'tcc:ListBasedPositionModel', 'NoMobility', " .           # generate nodes
+                    "'-overwrite', 'failureDetectionModelSuccessRate=$detectionRate', " .                   # Detection rate
+                    "'exitOnTerminationInGUI=true', " .                                                     # Close GUI when hasTerminated() returns true
+                    "'outputToConsole=false', " .                                                           # Create a framework log-file for each run
+                    "'-refreshRate', '$refreshRate', " .                                                    # Don't draw GUI often
+                    "'-batch']\" > ~/saida-rssf/sim\\ $numNodes\\ $detectionRate\\ $i.txt"                  # Use batch
+                ) == 0;
+        }
+    }
 }

@@ -186,8 +186,13 @@ public class CustomGlobal extends AbstractCustomGlobal {
 
     @Override
     public boolean hasTerminated() {
-        if (Double.compare(DemandPoints.currentInstance().getCoveragePercent(), SensorNetwork.currentInstance().getCoverageFactor()) < 0
-                || !isConnectable()) {
+        boolean coverageBelowMinimum = Double.compare(DemandPoints.currentInstance().getCoveragePercent(),
+                SensorNetwork.currentInstance().getCoverageFactor()) < 0;
+        boolean isConnectable = isConnectable();
+        if (!coverageBelowMinimum && !isConnectable) {
+            System.err.println("An error has ocurred");
+        }
+        if (coverageBelowMinimum || !isConnectable) {
             Tools.minorError("The coverage could not be kept above the desired factor anymore. Stopping simulation.");
             SimulationOutput.currentInstance().generateFinalOutput();
             return true;
