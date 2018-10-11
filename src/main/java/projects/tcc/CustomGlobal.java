@@ -189,7 +189,7 @@ public class CustomGlobal extends AbstractCustomGlobal {
         boolean coverageBelowMinimum = Double.compare(DemandPoints.currentInstance().getCoveragePercent(),
                 SensorNetwork.currentInstance().getCoverageFactor()) < 0;
         boolean isConnectable = isConnectable();
-        if (!coverageBelowMinimum && !isConnectable) {
+        if (coverageBelowMinimum && !isConnectable) {
             System.err.println("An error has ocurred");
         }
         if (coverageBelowMinimum || !isConnectable) {
