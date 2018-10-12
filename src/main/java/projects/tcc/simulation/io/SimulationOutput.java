@@ -67,8 +67,11 @@ public class SimulationOutput {
     @Data
     @Builder
     public static class OutputElement {
+        private transient int index;
+        private transient double previousRoundDelta;
+        private transient int indexSize;
         private final int round;
-        private final int activeSensorCount;
+        private final double activeSensorCount;
         private final double residualEnergy;
         private final double consumedEnergy;
         private final double sinkCoverage;
