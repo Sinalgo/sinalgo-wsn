@@ -28,7 +28,7 @@ public class DataExporter {
             paths.forEach(p -> {
                 List<String> csvRepresentation = Stream.concat(
                         Stream.of("Index,Round Delta,Round,Active Sensor Count,Consumed Energy," +
-                                "Residual Energy,Real Coverage,Sink Coverage,Coverage Delta"),
+                                "Residual Energy,Real Coverage,Sink Coverage,Coverage Delta (%)"),
                         DataExporter.createCsv(readElementsList(p)))
                         .collect(Collectors.toList());
                 Path newPath = p.getParent().resolve(p.getFileName().toString().replace(".json", ".csv"));
@@ -41,7 +41,7 @@ public class DataExporter {
             pathMap.forEach((outputPath, inputPaths) -> {
                 List<String> csvRepresentation = Stream.concat(
                         Stream.of("Index,Count,Round Delta,Active Sensor Count,Consumed Energy," +
-                                "Residual Energy,Real Coverage,Sink Coverage,Coverage Delta"),
+                                "Residual Energy,Real Coverage,Sink Coverage,Coverage Delta (%)"),
                         DataExporter.createAverageCsvForPath(inputPaths))
                         .collect(Collectors.toList());
                 writeFile(csvRepresentation, outputPath);
@@ -98,7 +98,7 @@ public class DataExporter {
                 Double.toString(element.getSinkCoverage() - element.getRealCoverage()));
     }
 
-    private static String createAverageCsv(OutputElement element) {
+    private static String createAverageCsv(OutputElement element, int count) {
         return String.join(",",
                 Integer.toString(element.getIndex()),
                 Integer.toString(element.getIndexSize()),
@@ -106,16 +106,16 @@ public class DataExporter {
                 Double.toString(element.getActiveSensorCount()),
                 Double.toString(element.getConsumedEnergy()),
                 Double.toString(element.getResidualEnergy()),
-                Double.toString(element.getRealCoverage()),
-                Double.toString(element.getSinkCoverage()),
-                Double.toString(element.getSinkCoverage() - element.getRealCoverage()));
+                Double.toString(element.getRealCoverage() / count),
+                Double.toString(element.getSinkCoverage() / count),
+                Double.toString((element.getSinkCoverage() - element.getRealCoverage()) / element.getIndexSize()));
     }
 
     private static Stream<String> createAverageCsvForPath(List<Path> paths) {
-        return createAverageCsv(paths.stream().map(DataExporter::readElementsList));
+        return createAverageCsv(paths.stream().map(DataExporter::readElementsList), paths.size());
     }
 
-    private static Stream<String> createAverageCsv(Stream<OutputElementList> elements) {
+    private static Stream<String> createAverageCsv(Stream<OutputElementList> elements, int count) {
         return elements
                 .map(OutputElementList::getElements)
                 .flatMap(List::stream)
@@ -131,10 +131,14 @@ public class DataExporter {
                             .activeSensorCount(average(s, OutputElement::getActiveSensorCount))
                             .residualEnergy(average(s, OutputElement::getResidualEnergy))
                             .consumedEnergy(average(s, OutputElement::getConsumedEnergy))
-                            .realCoverage(average(s, OutputElement::getRealCoverage))
-                            .sinkCoverage(average(s, OutputElement::getSinkCoverage))
+                            .realCoverage(sum(s, OutputElement::getRealCoverage))
+                            .sinkCoverage(sum(s, OutputElement::getSinkCoverage))
                             .build();
-                }).map(DataExporter::createAverageCsv);
+                }).map(s -> DataExporter.createAverageCsv(s, count));
+    }
+
+    private static <T> double sum(List<T> list, Function<T, Double> extractor) {
+        return list.stream().mapToDouble(extractor::apply).sum();
     }
 
     private static <T> double average(List<T> list, Function<T, Double> extractor) {
