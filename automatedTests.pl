@@ -21,6 +21,7 @@ my @numNodesList = (36, 49, 64, 81, 100);
 for my $numNodes (@numNodesList) {
     for my $detectionRate (@failureDetectionModelSuccessRate) {
         for (my $i = 0; $i < $numRepetitions; $i += 1) {
+            print("Nodes: $numNodes. Failure detection rate: $detectionRate. Test #$i\n");
             die "Terminated prematurely" unless
                 system("./gradlew run -PappArgs=\"[" .
                     "'-project', 'tcc', " .                                                                 # choose the project
