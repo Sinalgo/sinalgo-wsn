@@ -13,8 +13,8 @@
 use strict;
 use warnings;
 
-my $numRepetitions = 33; # Number of rounds to perform for each simulation
-my $refreshRate = 10;    # Refresh rate
+my $numRepetitions = 100; # Number of rounds to perform for each simulation
+my $refreshRate = 10;     # Refresh rate
 my @failureDetectionModelSuccessRate = (-1.0, 0.95, 1.0);
 my @numNodesList = (36, 49, 64, 81, 100);
 
