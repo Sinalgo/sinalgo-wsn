@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -21,35 +22,103 @@ public class DataExporter {
     private static final Gson GSON = new GsonBuilder().create();
 
     public static void main(String[] args) {
+        generateSinalgoOutputCsvs(args[0]);
+        generateOldOutputCsvs(args[0]);
+    }
+
+    private static void generateOldOutputCsvs(String folder) {
         try {
-            List<Path> paths = Files.list(Paths.get(args[0]))
-                    .filter(p -> p.getFileName().toString().endsWith(".json"))
+            List<Path> folders = Files.list(Paths.get(folder).resolve("old"))
+                    .filter(Files::isDirectory)
                     .collect(Collectors.toList());
-            paths.forEach(p -> {
-                List<String> csvRepresentation = Stream.concat(
-                        Stream.of("Index,Round Delta,Round,Active Sensor Count,Consumed Energy," +
-                                "Residual Energy,Real Coverage,Sink Coverage,Coverage Delta (%)"),
-                        DataExporter.createCsv(readElementsList(p)))
+            for (Path f : folders) {
+                List<List<String>> files = Files.list(f)
+                        .filter(p -> p.getFileName().toString().matches("Hibrido\\d+\\.out"))
+                        .map(DataExporter::getReadAllLines)
                         .collect(Collectors.toList());
-                Path newPath = p.getParent().resolve(p.getFileName().toString().replace(".json", ".csv"));
-                writeFile(csvRepresentation, newPath);
-            });
-            Map<Path, List<Path>> pathMap = paths.stream()
-                    .collect(Collectors.groupingBy(p ->
-                            p.getParent().resolve("average/"
-                                    + p.getFileName().toString().replaceAll("\\s\\d+\\.json", ".csv"))));
-            pathMap.forEach((outputPath, inputPaths) -> {
+                Path outputPath = f.getParent().resolve(f.getFileName().toString() + " old.csv");
                 List<String> csvRepresentation = Stream.concat(
-                        Stream.of("Index,Count,Round Delta,Active Sensor Count,Consumed Energy," +
-                                "Residual Energy,Real Coverage,Sink Coverage,Coverage Delta (%)"),
-                        DataExporter.createAverageCsvForPath(inputPaths))
+                        Stream.of("Index,Count,Consumed Energy,Residual Energy,Real Coverage"),
+                        files.stream()
+                                .flatMap(l -> {
+                                    l = l.subList(1, l.size());
+                                    int[] index = new int[]{1};
+                                    return l.stream().map(s -> {
+                                        double[] columns = Arrays.stream(s.split("\t")).mapToDouble(Double::parseDouble).toArray();
+                                        return OutputElement.builder()
+                                                .index(index[0]++)
+                                                .realCoverage(columns[0])
+                                                .consumedEnergy(columns[1])
+                                                .residualEnergy(columns[2])
+                                                .build();
+                                    });
+                                }).collect(Collectors.groupingBy(OutputElement::getIndex))
+                                .entrySet()
+                                .stream()
+                                .map(e -> {
+                                    List<OutputElement> s = e.getValue();
+                                    return OutputElement.builder()
+                                            .index(e.getKey())
+                                            .indexSize(s.size())
+                                            .residualEnergy(average(s, OutputElement::getResidualEnergy))
+                                            .consumedEnergy(average(s, OutputElement::getConsumedEnergy))
+                                            .realCoverage(sum(s, OutputElement::getRealCoverage) / files.size())
+                                            .build();
+                                }).map(DataExporter::createOldAverageCsv))
                         .collect(Collectors.toList());
                 writeFile(csvRepresentation, outputPath);
-            });
 
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private static List<String> getReadAllLines(Path p) {
+        try {
+            return Files.readAllLines(p);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void generateSinalgoOutputCsvs(String folder) {
+        try {
+            List<Path> paths = Files.list(Paths.get(folder))
+                    .filter(p -> p.getFileName().toString().endsWith(".json"))
+                    .collect(Collectors.toList());
+            generateIndividualCsvs(paths);
+            generateAverageCsvs(paths);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void generateAverageCsvs(List<Path> paths) {
+        Map<Path, List<Path>> pathMap = paths.stream()
+                .collect(Collectors.groupingBy(p ->
+                        p.getParent().resolve("average/"
+                                + p.getFileName().toString().replaceAll("\\s\\d+\\.json", ".csv"))));
+        pathMap.forEach((outputPath, inputPaths) -> {
+            List<String> csvRepresentation = Stream.concat(
+                    Stream.of("Index,Count,Round Delta,Active Sensor Count,Consumed Energy," +
+                            "Residual Energy,Real Coverage,Sink Coverage,Coverage Delta (%)"),
+                    DataExporter.createAverageCsvForPath(inputPaths))
+                    .collect(Collectors.toList());
+            writeFile(csvRepresentation, outputPath);
+        });
+    }
+
+    private static void generateIndividualCsvs(List<Path> paths) {
+        paths.forEach(p -> {
+            List<String> csvRepresentation = Stream.concat(
+                    Stream.of("Index,Round Delta,Round,Active Sensor Count,Consumed Energy," +
+                            "Residual Energy,Real Coverage,Sink Coverage,Coverage Delta (%)"),
+                    DataExporter.createCsv(readElementsList(p)))
+                    .collect(Collectors.toList());
+            Path newPath = p.getParent().resolve(p.getFileName().toString().replace(".json", ".csv"));
+            writeFile(csvRepresentation, newPath);
+        });
     }
 
     private static void writeFile(List<String> csvRepresentation, Path newPath) {
@@ -109,6 +178,15 @@ public class DataExporter {
                 Double.toString(element.getRealCoverage()),
                 Double.toString(element.getSinkCoverage()),
                 Double.toString(element.getCoverageDiff()));
+    }
+
+    private static String createOldAverageCsv(OutputElement element) {
+        return String.join(",",
+                Integer.toString(element.getIndex()),
+                Integer.toString(element.getIndexSize()),
+                Double.toString(element.getConsumedEnergy()),
+                Double.toString(element.getResidualEnergy()),
+                Double.toString(element.getRealCoverage()));
     }
 
     private static Stream<String> createAverageCsvForPath(List<Path> paths) {
