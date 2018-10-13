@@ -98,7 +98,7 @@ public class DataExporter {
                 Double.toString(element.getSinkCoverage() - element.getRealCoverage()));
     }
 
-    private static String createAverageCsv(OutputElement element, int count) {
+    private static String createAverageCsv(OutputElement element) {
         return String.join(",",
                 Integer.toString(element.getIndex()),
                 Integer.toString(element.getIndexSize()),
@@ -106,9 +106,9 @@ public class DataExporter {
                 Double.toString(element.getActiveSensorCount()),
                 Double.toString(element.getConsumedEnergy()),
                 Double.toString(element.getResidualEnergy()),
-                Double.toString(element.getRealCoverage() / count),
-                Double.toString(element.getSinkCoverage() / count),
-                Double.toString((element.getSinkCoverage() - element.getRealCoverage()) / element.getIndexSize()));
+                Double.toString(element.getRealCoverage()),
+                Double.toString(element.getSinkCoverage()),
+                Double.toString(element.getCoverageDiff()));
     }
 
     private static Stream<String> createAverageCsvForPath(List<Path> paths) {
@@ -131,10 +131,11 @@ public class DataExporter {
                             .activeSensorCount(average(s, OutputElement::getActiveSensorCount))
                             .residualEnergy(average(s, OutputElement::getResidualEnergy))
                             .consumedEnergy(average(s, OutputElement::getConsumedEnergy))
-                            .realCoverage(sum(s, OutputElement::getRealCoverage))
-                            .sinkCoverage(sum(s, OutputElement::getSinkCoverage))
+                            .realCoverage(sum(s, OutputElement::getRealCoverage) / count)
+                            .sinkCoverage(sum(s, OutputElement::getSinkCoverage) / count)
+                            .coverageDiff(average(s, el -> el.getSinkCoverage() - el.getRealCoverage()))
                             .build();
-                }).map(s -> DataExporter.createAverageCsv(s, count));
+                }).map(DataExporter::createAverageCsv);
     }
 
     private static <T> double sum(List<T> list, Function<T, Double> extractor) {

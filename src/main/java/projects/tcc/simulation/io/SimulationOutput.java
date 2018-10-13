@@ -76,6 +76,7 @@ public class SimulationOutput {
         private final double consumedEnergy;
         private final double sinkCoverage;
         private final double realCoverage;
+        private transient double coverageDiff;
     }
 
     @Getter
