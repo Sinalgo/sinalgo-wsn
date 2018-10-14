@@ -102,7 +102,7 @@ public class DataExporter {
         pathMap.forEach((outputPath, inputPaths) -> {
             List<String> csvRepresentation = Stream.concat(
                     Stream.of("Index,Count,Round Delta,Active Sensor Count,Consumed Energy," +
-                            "Residual Energy,Real Coverage,Sink Coverage,Coverage Delta (%)"),
+                            "Residual Energy,Real Coverage,Sink Coverage,Coverage Delta"),
                     DataExporter.createAverageCsvForPath(inputPaths))
                     .collect(Collectors.toList());
             writeFile(csvRepresentation, outputPath);
