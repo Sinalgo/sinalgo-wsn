@@ -89,6 +89,7 @@ public class DataExporter {
                     .collect(Collectors.toList());
             generateIndividualCsvs(paths);
             generateAverageCsvs(paths);
+            generateStatisticsCsvs(paths);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -102,7 +103,7 @@ public class DataExporter {
         pathMap.forEach((outputPath, inputPaths) -> {
             List<String> csvRepresentation = Stream.concat(
                     Stream.of("Index,Count,Round Delta,Active Sensor Count,Consumed Energy," +
-                            "Residual Energy,Real Coverage,Sink Coverage,Coverage Delta"),
+                            "Residual Energy,Real Coverage,Sink Coverage,Coverage Delta (%)"),
                     DataExporter.createAverageCsvForPath(inputPaths))
                     .collect(Collectors.toList());
             writeFile(csvRepresentation, outputPath);
@@ -118,6 +119,20 @@ public class DataExporter {
                     .collect(Collectors.toList());
             Path newPath = p.getParent().resolve(p.getFileName().toString().replace(".json", ".csv"));
             writeFile(csvRepresentation, newPath);
+        });
+    }
+
+    private static void generateStatisticsCsvs(List<Path> paths) {
+        Map<Path, List<Path>> pathMap = paths.stream()
+                .collect(Collectors.groupingBy(p ->
+                        p.getParent().resolve("average/"
+                                + p.getFileName().toString().replaceAll("(-1|0\\.95|1)\\s\\d+\\.json", " stats.csv"))));
+        pathMap.forEach((outputPath, inputPaths) -> {
+            List<String> csvRepresentation = Stream.concat(
+                    Stream.of("Round Delta,Real Coverage,Sink Coverage,Coverage Delta (%)"),
+                    DataExporter.createStatisticsCsvForPath(inputPaths))
+                    .collect(Collectors.toList());
+            writeFile(csvRepresentation, outputPath);
         });
     }
 
@@ -189,6 +204,14 @@ public class DataExporter {
                 Double.toString(element.getRealCoverage()));
     }
 
+    private static String createStatisticsCsv(OutputElement element) {
+        return String.join(",",
+                Double.toString(element.getPreviousRoundDelta()),
+                Double.toString(element.getRealCoverage()),
+                Double.toString(element.getSinkCoverage()),
+                Double.toString(element.getSinkCoverage() - element.getRealCoverage()));
+    }
+
     private static Stream<String> createAverageCsvForPath(List<Path> paths) {
         return createAverageCsv(paths.stream().map(DataExporter::readElementsList), paths.size());
     }
@@ -222,6 +245,22 @@ public class DataExporter {
 
     private static <T> double average(List<T> list, Function<T, Double> extractor) {
         return list.stream().mapToDouble(extractor::apply).average().orElse(0);
+    }
+
+    private static Stream<String> createStatisticsCsvForPath(List<Path> paths) {
+        return createStatisticsCsv(paths.stream().map(DataExporter::readElementsList));
+    }
+
+    private static Stream<String> createStatisticsCsv(Stream<OutputElementList> elements) {
+        return elements
+                .map(OutputElementList::getElements)
+                .flatMap(List::stream)
+                .map(e -> OutputElement.builder()
+                        .previousRoundDelta(e.getPreviousRoundDelta())
+                        .realCoverage(e.getRealCoverage())
+                        .sinkCoverage(e.getSinkCoverage())
+                        .build())
+                .map(DataExporter::createStatisticsCsv);
     }
 
 }
