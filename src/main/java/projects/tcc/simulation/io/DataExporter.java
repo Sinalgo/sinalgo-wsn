@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -129,7 +130,8 @@ public class DataExporter {
                                 + p.getFileName().toString().replaceAll("\\s\\d+\\.json", " stats.csv"))));
         pathMap.forEach((outputPath, inputPaths) -> {
             List<String> csvRepresentation = Stream.concat(
-                    Stream.of("Round Delta,Real Coverage,Sink Coverage,Coverage Delta (%)"),
+                    Stream.of("Reconfigurations,Total Rounds,Valid Rounds,Round Delta," +
+                            "Real Coverage,Sink Coverage,Coverage Delta (%)"),
                     DataExporter.createStatisticsCsvForPath(inputPaths))
                     .collect(Collectors.toList());
             writeFile(csvRepresentation, outputPath);
@@ -206,6 +208,9 @@ public class DataExporter {
 
     private static String createStatisticsCsv(OutputElement element) {
         return String.join(",",
+                Integer.toString(element.getIndex()),
+                Integer.toString(element.getIndexSize()),
+                Integer.toString(element.getRound()),
                 Double.toString(element.getPreviousRoundDelta()),
                 Double.toString(element.getRealCoverage()),
                 Double.toString(element.getSinkCoverage()),
@@ -254,13 +259,19 @@ public class DataExporter {
     private static Stream<String> createStatisticsCsv(Stream<OutputElementList> elements) {
         return elements
                 .map(OutputElementList::getElements)
-                .flatMap(List::stream)
                 .map(e -> OutputElement.builder()
-                        .previousRoundDelta(e.getPreviousRoundDelta())
-                        .realCoverage(e.getRealCoverage())
-                        .sinkCoverage(e.getSinkCoverage())
+                        .index((int) count(e, OutputElement::getPreviousRoundDelta, c -> c > 1))
+                        .indexSize(e.size())
+                        .round((int) count(e, OutputElement::getRealCoverage, c -> c >= 0.95))
+                        .previousRoundDelta(average(e, OutputElement::getPreviousRoundDelta))
+                        .realCoverage(average(e, OutputElement::getRealCoverage))
+                        .sinkCoverage(average(e, OutputElement::getSinkCoverage))
                         .build())
                 .map(DataExporter::createStatisticsCsv);
+    }
+
+    private static <T> long count(List<T> list, Function<T, Double> extractor, Predicate<Double> condition) {
+        return list.stream().mapToDouble(extractor::apply).filter(condition::test).count();
     }
 
 }
