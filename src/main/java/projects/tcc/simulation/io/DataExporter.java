@@ -126,7 +126,7 @@ public class DataExporter {
         Map<Path, List<Path>> pathMap = paths.stream()
                 .collect(Collectors.groupingBy(p ->
                         p.getParent().resolve("average/"
-                                + p.getFileName().toString().replaceAll("(-1|0\\.95|1)\\s\\d+\\.json", " stats.csv"))));
+                                + p.getFileName().toString().replaceAll("\\s\\d+\\.json", " stats.csv"))));
         pathMap.forEach((outputPath, inputPaths) -> {
             List<String> csvRepresentation = Stream.concat(
                     Stream.of("Round Delta,Real Coverage,Sink Coverage,Coverage Delta (%)"),
