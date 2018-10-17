@@ -24,9 +24,9 @@ for my $numNodes (@numNodesList) {
             print("Nodes: $numNodes. Failure detection rate: $detectionRate. Test #$i\n");
             die "Terminated prematurely" unless
                 system("./gradlew run -PappArgs=\"[" .
-                    "'-project', 'tcc', " .                                                                 # choose the project
-                    "'-gen', '$numNodes', 'tcc:SensorNode', 'tcc:ListBasedPositionModel', 'NoMobility', " . # generate nodes
-                    "'-gen', '1', 'tcc:SinkNode', 'tcc:ListBasedPositionModel', 'NoMobility', " .           # generate nodes
+                    "'-project', 'wsn', " .                                                                 # choose the project
+                    "'-gen', '$numNodes', 'wsn:SensorNode', 'wsn:ListBasedPositionModel', 'NoMobility', " . # generate nodes
+                    "'-gen', '1', 'wsn:SinkNode', 'wsn:ListBasedPositionModel', 'NoMobility', " .           # generate nodes
                     "'-overwrite', 'failureDetectionModelSuccessRate=$detectionRate', " .                   # Detection rate
                     "'exitOnTerminationInGUI=true', " .                                                     # Close GUI when hasTerminated() returns true
                     "'outputToConsole=false', " .                                                           # Create a framework log-file for each run
