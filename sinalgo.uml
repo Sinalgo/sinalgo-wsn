@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>sinalgo</OriginalElement>
+  <nodes>
+    <node x="1110.5" y="99.0">sinalgo.models.MobilityModel</node>
+    <node x="720.0" y="292.0">sinalgo.nodes.Position</node>
+    <node x="856.5" y="99.0">sinalgo.models.ReliabilityModel</node>
+    <node x="643.0" y="0.0">sinalgo.models.Model</node>
+    <node x="310.5" y="99.0">sinalgo.models.InterferenceModel</node>
+    <node x="0.0" y="198.0">sinalgo.models.ConnectivityModelHelper</node>
+    <node x="584.5" y="99.0">sinalgo.models.DistributionModel</node>
+    <node x="515.0" y="292.0">sinalgo.nodes.messages.Message</node>
+    <node x="328.0" y="292.0">sinalgo.nodes.messages.Inbox</node>
+    <node x="0.0" y="391.0">sinalgo.nodes.Node.NodePopupMethod</node>
+    <node x="312.0" y="391.0">sinalgo.nodes.messages.NackBox</node>
+    <node x="70.0" y="292.0">sinalgo.nodes.Node</node>
+    <node x="33.5" y="99.0">sinalgo.models.ConnectivityModel</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="sinalgo.models.MobilityModel" target="sinalgo.models.Model">
+      <point x="0.0" y="-24.5" />
+      <point x="1218.5" y="69.0" />
+      <point x="764.5" y="69.0" />
+      <point x="54.0" y="24.5" />
+    </edge>
+    <edge source="sinalgo.models.DistributionModel" target="sinalgo.models.Model">
+      <point x="0.0" y="-24.5" />
+      <point x="0.0" y="24.5" />
+    </edge>
+    <edge source="sinalgo.models.ConnectivityModel" target="sinalgo.models.Model">
+      <point x="0.0" y="-24.5" />
+      <point x="162.0" y="69.0" />
+      <point x="656.5" y="69.0" />
+      <point x="-54.0" y="24.5" />
+    </edge>
+    <edge source="sinalgo.models.ReliabilityModel" target="sinalgo.models.Model">
+      <point x="0.0" y="-24.5" />
+      <point x="973.5" y="79.0" />
+      <point x="737.5" y="79.0" />
+      <point x="27.0" y="24.5" />
+    </edge>
+    <edge source="sinalgo.models.InterferenceModel" target="sinalgo.models.Model">
+      <point x="0.0" y="-24.5" />
+      <point x="437.5" y="79.0" />
+      <point x="683.5" y="79.0" />
+      <point x="-27.0" y="24.5" />
+    </edge>
+    <edge source="sinalgo.models.ConnectivityModelHelper" target="sinalgo.models.ConnectivityModel">
+      <point x="0.0" y="-24.5" />
+      <point x="0.0" y="24.5" />
+    </edge>
+    <edge source="sinalgo.nodes.messages.NackBox" target="sinalgo.nodes.messages.Inbox">
+      <point x="0.0" y="-24.5" />
+      <point x="0.0" y="24.5" />
+    </edge>
+    <edge source="sinalgo.nodes.Node.NodePopupMethod" target="sinalgo.nodes.Node">
+      <point x="0.0" y="-24.5" />
+      <point x="0.0" y="24.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="0.7977315689981096" x="783.5" y="367.0" />
+  <SelectedNodes />
+  <Categories>
+    <Category>Inner Classes</Category>
+  </Categories>
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+
