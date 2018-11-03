@@ -40,11 +40,11 @@ public class DataExporter {
                 int i = 0;
                 for (List<String> file : files) {
                     file = file.subList(1, file.size());
+                    int[] index = new int[]{1};
                     List<String> csvRepresentation = Stream.concat(
                             Stream.of("Index,Count,Consumed Energy,Residual Energy,Real Coverage"),
                             file.stream()
                                     .map(l -> {
-                                        int[] index = new int[]{1};
                                         double[] columns = Arrays.stream(l.split("\t")).mapToDouble(Double::parseDouble).toArray();
                                         return OutputElement.builder()
                                                 .index(index[0]++)
