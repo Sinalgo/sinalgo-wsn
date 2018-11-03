@@ -37,6 +37,25 @@ public class DataExporter {
                         .filter(p -> p.getFileName().toString().matches("Hibrido\\d+\\.out"))
                         .map(DataExporter::getReadAllLines)
                         .collect(Collectors.toList());
+                int i = 0;
+                for (List<String> file : files) {
+                    file = file.subList(1, file.size());
+                    List<String> csvRepresentation = Stream.concat(
+                            Stream.of("Index,Count,Consumed Energy,Residual Energy,Real Coverage"),
+                            file.stream()
+                                    .map(l -> {
+                                        int[] index = new int[]{1};
+                                        double[] columns = Arrays.stream(l.split("\t")).mapToDouble(Double::parseDouble).toArray();
+                                        return OutputElement.builder()
+                                                .index(index[0]++)
+                                                .realCoverage(columns[0])
+                                                .consumedEnergy(columns[1])
+                                                .residualEnergy(columns[2])
+                                                .build();
+                                    }).map(DataExporter::createOldAverageCsv))
+                            .collect(Collectors.toList());
+                    writeFile(csvRepresentation, f.resolve("Hibrido" + (i++) + ".csv"));
+                }
                 Path outputPath = f.getParent().resolve(f.getFileName().toString() + " old.csv");
                 List<String> csvRepresentation = Stream.concat(
                         Stream.of("Index,Count,Consumed Energy,Residual Energy,Real Coverage"),
