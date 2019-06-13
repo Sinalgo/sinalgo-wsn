@@ -39,27 +39,14 @@ package projects.wsn;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import projects.wsn.nodes.NodeStatus;
-import projects.wsn.nodes.SimulationNode;
-import projects.wsn.simulation.io.SimulationOutput;
-import projects.wsn.simulation.network.SensorNetwork;
-import projects.wsn.simulation.network.data.DemandPoints;
-import projects.wsn.simulation.network.data.Sensor;
-import projects.wsn.simulation.network.data.Sink;
-import sinalgo.configuration.Configuration;
 import sinalgo.exception.SinalgoFatalException;
 import sinalgo.gui.transformation.PositionTransformation;
-import sinalgo.nodes.Node;
-import sinalgo.nodes.Position;
 import sinalgo.runtime.AbstractCustomGlobal;
 import sinalgo.runtime.Global;
-import sinalgo.tools.Tools;
 import sinalgo.tools.logging.Logging;
 
-import java.awt.*;
-import java.io.PrintStream;
+import java.awt.Graphics;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 
 @Getter(AccessLevel.PRIVATE)
 @Setter(AccessLevel.PRIVATE)
@@ -139,94 +126,16 @@ public class CustomGlobal extends AbstractCustomGlobal {
 
     @Override
     public void customPaint(Graphics g, PositionTransformation pt) {
-        Color backupColor = g.getColor();
-        if (this.drawPoints) {
-            g.setColor(Color.DARK_GRAY);
-            for (Position p : DemandPoints.currentInstance().getPoints()) {
-                pt.drawLine(g, p, p);
-            }
-        }
-        if (this.drawLegend) {
-            Font font = new Font(null, Font.PLAIN, (int) (1.2 * pt.getZoomFactor()));
-            g.setFont(font);
-            FontMetrics fm = g.getFontMetrics(font);
-            int maxWidth = Arrays.stream(NodeStatus.values())
-                    .map(NodeStatus::getDescription)
-                    .mapToInt(d -> (int) Math.ceil(fm.stringWidth(d)))
-                    .max()
-                    .orElse(0);
-            double offset = 2.2;
-            double x = Configuration.getDimX() * 1.05;
-            double y = Configuration.getDimY() / 2.0;
-            int height = (int) (offset * 0.95 * (NodeStatus.values().length + 1) * pt.getZoomFactor());
-            pt.translateToGUIPosition(x, y, 0);
-            g.setColor(Color.WHITE);
-            g.fillRect(pt.getGuiX(), pt.getGuiY(), (int) (maxWidth + (0.5 + 1.8 + 1.2) * pt.getZoomFactor()), height);
-            g.setColor(Color.BLACK);
-            g.drawRect(pt.getGuiX(), pt.getGuiY(), (int) (maxWidth + (0.5 + 1.8 + 1.2) * pt.getZoomFactor()), height);
-            double legendX = x + 0.5;
-            double legendY = y;
-            boolean firstLine = true;
-            for (NodeStatus s : NodeStatus.values()) {
-                legendY += offset;
-                if (firstLine) {
-                    firstLine = false;
-                    legendY -= offset / 2;
-                }
-                pt.translateToGUIPosition(legendX, legendY, 0);
-                g.setColor(s.getColor());
-                g.fillOval(pt.getGuiX(), pt.getGuiY(), (int) (1.2 * pt.getZoomFactor()), (int) (1.2 * pt.getZoomFactor()));
-                pt.translateToGUIPosition(legendX + 1.8, legendY + 1, 0);
-                g.setColor(Color.BLACK);
-                g.drawChars(s.getDescription().toCharArray(), 0, s.getDescription().length(), pt.getGuiX(), pt.getGuiY());
-            }
-        }
-        g.setColor(backupColor);
+
     }
 
     @Override
     public boolean hasTerminated() {
-        boolean coverageBelowMinimum = Double.compare(DemandPoints.currentInstance().getCoveragePercent(),
-                SensorNetwork.currentInstance().getCoverageFactor()) < 0;
-        boolean isConnectable = isConnectable();
-        if (coverageBelowMinimum && !isConnectable) {
-            System.err.println("An error has ocurred");
-        }
-        if (coverageBelowMinimum || !isConnectable) {
-            Tools.minorError("The coverage could not be kept above the desired factor anymore. Stopping simulation.");
-            SimulationOutput.currentInstance().generateFinalOutput();
-            return true;
-        }
         return false;
-    }
-
-    private boolean isConnectable() {
-        Iterable<Node> nodes = Tools.getNodeList();
-        boolean isConnectable = false;
-        for (Node n : nodes) {
-            if (n instanceof SimulationNode) {
-                isConnectable |= isConnectable((SimulationNode) n);
-            }
-        }
-        return isConnectable;
-    }
-
-    private static boolean isConnectable(SimulationNode n) {
-        Sensor s = n.getSensor();
-        return !(s instanceof Sink)
-                && s.isAvailable()
-                && s.getParent() != null
-                && s.getParent().isAvailable()
-                && (s.getParent() instanceof Sink || isConnectable(s.getParent().getNode()));
     }
 
     @Override
     public void preRun() {
-        if (Tools.isSimulationInGuiMode()) {
-            PrintStream ps = Tools.getTextOutputPrintStream();
-            SimulationOutput.setPrintFunction(ps::print);
-            SimulationOutput.setPrintlnFunction(ps::println);
-        }
     }
 
     @Override

@@ -5,9 +5,6 @@ import projects.wsn.nodes.nodeImplementations.SensorNode;
 import projects.wsn.nodes.nodeImplementations.SinkNode;
 import projects.wsn.simulation.io.SimulationConfiguration;
 import projects.wsn.simulation.io.SimulationConfigurationLoader;
-import projects.wsn.simulation.network.data.Sensor;
-import projects.wsn.simulation.network.data.SensorIndex;
-import projects.wsn.simulation.network.data.Sink;
 import sinalgo.nodes.Node;
 import sinalgo.nodes.Position;
 import sinalgo.tools.Tools;
@@ -16,6 +13,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class ListBasedPositionModel extends Random {
+
+    private static final java.util.Random RAND = new java.util.Random();
 
     public ListBasedPositionModel() {
     }
@@ -32,9 +31,9 @@ public class ListBasedPositionModel extends Random {
 
     private static int getIndexFor(Class<? extends Node> nodeClass) {
         if (nodeClass.equals(SensorNode.class)) {
-            return SensorIndex.currentInstance().getIndexFor(Sensor.class);
+            return RAND.nextInt(SimulationConfigurationLoader.getConfiguration().getSensorPositions().size());
         } else if (nodeClass.equals(SinkNode.class)) {
-            return SensorIndex.currentInstance().getIndexFor(Sink.class);
+            return RAND.nextInt(SimulationConfigurationLoader.getConfiguration().getSinkPositions().size());
         } else {
             return 0;
         }
